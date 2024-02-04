@@ -54,3 +54,6 @@ casa gaz 9<br>
 
 
 **Explanation: Tetouan is the cheapest city because (tetouan) 3+4+4+5+7+9 < (rabat) 4+5+5+5+8+9 < (casa) 4+5+6+6+9+9**
+
+The challenge is to show the name of the cheapest city and the total cost of all products on the first line. 
+Then, list the five cheapest products along with their lowest and highest prices, ensuring no duplicates are included.
