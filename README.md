@@ -122,16 +122,22 @@ oil 6.70
 
 **Explanation: Tetouan is the cheapest city because it has a total price of 48.50, while Casa has a total price of 93.73 and Rabat has a total price of 78.10.**
 
+## Evaluation criteria
+In short: Correctness and speed!
+The competition focuses solely on correctness and speed of execution to gauge participants' ability to deliver accurate solutions within minimal computational time.
+
 ## I have a question
 
 If you have any questions, feel free to add them to the [Discussions](https://github.com/geeksblabla/blanat/discussions/categories/q-a), and our team and contributors will be happy to help you.
 
 ## Leaderboard
 
-The primary criterion for leaderboard ranking is execution time. The fastest code will be ranked at the top.
+The primary criterion for leaderboard ranking is execution time. The fastest code will be ranked at the top. The leaderboard will be refreshed twice a day
 
 > Coming soon
 
+## Timeline
+The challeneg will run from 16th February 2024 until 22nd February 2023. The winner will be announced during Blablaconf 2024 last day, Friday 23rd February 2024. 
 ## Prize
-
-The prize will be announced on the opening day of BlaBlaConf 2024. Stay tuned for more information. Make sure to check the live event on [YouTube](https://www.youtube.com/watch?v=-peiFexaSWg).
+The (one) winner will win 6000 MAD (or a PS5 :D)
+The winner will be announced on the last day of BlaBlaConf 2024. Stay tuned for more information. Make sure to check the live event on [YouTube](https://www.youtube.com/watch?v=-peiFexaSWg).
