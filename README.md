@@ -1,6 +1,6 @@
 # Blanat Challenge
 
-Blanat Challenge is a coding challenge designed to test your coding skills and your ability to write optimized code. [The challenge](#challenge-cheapest-city) primarily focuses on writing a program capable of efficiently handling large amounts of data and promptly returning the solution. It is open to everyone, and you can submit your code in any of the following languages: C, C++, Java, Rust, or JavaScript. This is your chance to demonstrate that your favorite programming language is the best and the fastest one! 😀
+Blanat Challenge is a coding challenge designed to test your coding skills and your ability to write optimized code. [The challenge](#challenge-cheapest-city) primarily focuses on writing a program capable of efficiently handling large amounts of data and promptly returning the solution. It is open to everyone, and you can submit your code in any of the following languages: C, C++, Java, Rust, PHP or JavaScript. This is your chance to demonstrate that your favorite programming language is the best and the fastest one! 😀
 
 > This challenge is part of BlaBlaConf 2024, Make sure to check the [event](https://blablaconf.com)
 
@@ -63,7 +63,7 @@ Assist Adnan by writing a program, using any allowed language, to find the city 
 - Before creating the PR, your code has to produce the same result as the output below.
 - You are allowed to submit the code several times with different langs.
 - Each code will be reviewed manually. Any fraudulent attempt will result in your account being banned, and you will be disqualified from the challenge.
-- Java solutions should use `Main.java` and have a `public class `Main` as a top-level class.
+- Java solutions should use `Main.java` and have a `public class Main` as a top-level class.
 - Contestants are supposed to read input from the file in their current working directory named `input.txt` and write the output to a file in the same directory named `output.txt`.
 
 <br>
