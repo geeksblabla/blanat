@@ -21,7 +21,7 @@ public class Main {
     private static void processData(){
         Map<String, BigDecimal> map = new HashMap<>();
         List<CityData> data = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("/home/adnan/IdeaProjects/blabla/src/file.txt"))) {
+        try (BufferedReader br = new BufferedReader(new FileReader("input.txt"))) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] lineArr = line.split(",");
