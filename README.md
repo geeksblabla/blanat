@@ -70,52 +70,55 @@ Assist Adnan by writing a program, using any allowed language, to find the city 
 
 ### INPUT
 
-**City_name**,**products**,**price**<br>
-casa,tomato,6.23<br>
-casa,tomato,7.23<br>
-casa,tomato,8.23<br>
-casa,tomato,9.23<br>
-casa,potato,4.21<br>
-casa,flour,6.24<br>
-casa,oil,9.24<br>
-casa,oil,9.94<br>
-casa,oil,8.24<br>
-casa,sugar,5.23<br>
-casa,sugar,5.23<br>
-casa,sugar,5.23<br>
-casa,gaz,9.25<br>
-Tetouan,tomato,4.5<br>
-Tetouan,tomato,3.5<br>
-Tetouan,potato,3.5<br>
-Tetouan,flour,5.2<br>
-Tetouan,oil,7.7<br>
-Tetouan,oil,6.7<br>
-Tetouan,sugar,4.5<br>
-Tetouan,gaz,9.3<br>
-Tetouan,gaz,2.3<br>
-Tetouan,gaz,1.3<br>
-rabat,tomato,5.85<br>
-rabat,tomato,9.85<br>
-rabat,potato,4.65<br>
-rabat,flour,5.65<br>
-rabat,oil,8.15<br>
-rabat,oil,9.15<br>
-rabat,oil,7.15<br>
-rabat,sugar,9.05<br>
-rabat,sugar,9.15<br>
-rabat,gaz,9.45<br>
+```csv
+city,products,price
+casa,tomato,6.23
+casa,tomato,7.23
+casa,tomato,8.23
+casa,tomato,9.23
+casa,potato,4.21
+casa,flour,6.24
+casa,oil,9.24
+casa,oil,9.94
+casa,oil,8.24
+casa,sugar,5.23
+casa,sugar,5.23
+casa,sugar,5.23
+casa,gaz,9.25
+Tetouan,tomato,4.5
+Tetouan,tomato,3.5
+Tetouan,potato,3.5
+Tetouan,flour,5.2
+Tetouan,oil,7.7
+Tetouan,oil,6.7
+Tetouan,sugar,4.5
+Tetouan,gaz,9.3
+Tetouan,gaz,2.3
+Tetouan,gaz,1.3
+rabat,tomato,5.85
+rabat,tomato,9.85
+rabat,potato,4.65
+rabat,flour,5.65
+rabat,oil,8.15
+rabat,oil,9.15
+rabat,oil,7.15
+rabat,sugar,9.05
+rabat,sugar,9.15
+rabat,gaz,9.45
+```
 
 <br>
 
 ### OUTPUT
 
-**City_name**, **products**, **price**<br>
-Tetouan 48.50<br>
-gaz 1.30<br>
-potato 3.50<br>
-tomato 3.50<br>
-flour 5.20<br>
-oil 6.70<br>
+```txt
+Tetouan 48.50
+gaz 1.30
+potato 3.50
+tomato 3.50
+flour 5.20
+oil 6.70
+```
 
 **Explanation: Tetouan is the cheapest city because it has a total price of 48.50, while Casa has a total price of 93.73 and Rabat has a total price of 78.10.**
 
@@ -132,3 +135,7 @@ The primary criterion for leaderboard ranking is execution time. The fastest cod
 ## Prize
 
 The prize will be announced on the opening day of BlaBlaConf 2024. Stay tuned for more information. Make sure to check the live event on [YouTube](https://www.youtube.com/watch?v=-peiFexaSWg).
+
+```
+
+```
