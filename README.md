@@ -46,7 +46,7 @@ Assist Adnan by writing a program, using any allowed language, to find the city 
 
 ### Output format
 
-- output has 6 lines.
+- Output has 6 lines.
 - The first line contains the name of the cheapest city and the total price of products in that city, separated by one space.
 - The remaining 5 lines display the first 5 cheapest products sorted by price in ascending order. In the case of two products with the same price, they are sorted alphabetically. For example, "Potato" and "Tomato" in the output below
 - Don't print the same product twice. If you have multiple instances of the same product in the top 5 cheapest products, only print the cheapest one.
@@ -58,11 +58,13 @@ Assist Adnan by writing a program, using any allowed language, to find the city 
 ### Rules
 
 - Make sure that your code is compiling. 😄 It may seem trivial, but sometimes we receive code that doesn't compile.
+- If your solution is correct, we will count it and add your name to the leaderboard, if not we will discard it.
 - When you feel that your code is ready, create a folder under the "/submissions" folder with your GitHub handle as the name. Add the code to this folder and open a pull request (PR).
 - Before creating the PR, your code has to produce the same result as the output below.
-- you are allowed to submit the code several times with different langs.
+- You are allowed to submit the code several times with different langs.
 - Each code will be reviewed manually. Any fraudulent attempt will result in your account being banned, and you will be disqualified from the challenge.
-- you will receive ACCEPTED or WRONG ANSWER as answers.
+- Java solutions should use `Main.java` and have a `public class `Main` as a top-level class.
+- Contestants are supposed to read input from the file in their current working directory named `input.txt` and write the output to a file in the same directory named `output.txt`.
 
 <br>
 
