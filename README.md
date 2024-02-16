@@ -137,7 +137,7 @@ The primary criterion for leaderboard ranking is execution time. The fastest cod
 > Coming soon
 
 ## Timeline
-The challeneg will run from 16th February 2024 until 22nd February 2023. The winner will be announced during Blablaconf 2024 last day, Friday 23rd February 2024. 
+The challenge will run from 16th of February 2024 until 22nd of February 2023. The winner will be announced during Blablaconf 2024 last day, Friday 23rd February 2024. 
 ## Prize
 The (one) winner will win 6000 MAD (or a PS5 :D)
 The winner will be announced on the last day of BlaBlaConf 2024. Stay tuned for more information. Make sure to check the live event on [YouTube](https://www.youtube.com/watch?v=-peiFexaSWg).
