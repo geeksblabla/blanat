@@ -7,6 +7,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import java.io.FileWriter;
+
 import static java.util.stream.Collectors.toList;
 
 public class Main {
@@ -14,12 +16,12 @@ public class Main {
     private record CityData(String name, String product, BigDecimal price) {}
     
     public static void main(String[] args) {
-        System.out.println(processData());
+        processData();
     }
-    private static String processData(){
+    private static void processData(){
         Map<String, BigDecimal> map = new HashMap<>();
         List<CityData> data = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader("input.txt"))) {
+        try (BufferedReader br = new BufferedReader(new FileReader("/home/adnan/IdeaProjects/blabla/src/file.txt"))) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] lineArr = line.split(",");
@@ -38,7 +40,7 @@ public class Main {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return formatResult(map, data);
+         writer(map, data);
     }
 
     private static List<CityData> filterCheapestProdList(List<CityData> cityData, String name){
@@ -68,5 +70,16 @@ public class Main {
         sb.append(min.getKey() + " " + min.getValue().setScale(2, RoundingMode.FLOOR));
         fiveCheapestProd.forEach(cd -> sb.append("\n" + cd.product + " " + cd.price.setScale(2, RoundingMode.FLOOR)) );
         return sb.toString();
+    }
+
+
+    private static void writer(Map<String, BigDecimal> map, List<CityData> data){
+        try {
+            FileWriter wr = new FileWriter("output.txt");
+            wr.write(formatResult(map, data));
+            wr.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
