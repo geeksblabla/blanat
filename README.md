@@ -1,6 +1,6 @@
 # Blanat Challenge
 
-Blanat Challenge is a coding challenge designed to test your coding skills and your ability to write optimized code. [The challenge](#challenge-cheapest-city) primarily focuses on writing a program capable of efficiently handling large amounts of data and promptly returning the solution. It is open to everyone, and you can submit your code in any of the following languages: C, C++, Java, Rust, PHP or JavaScript. This is your chance to demonstrate that your favorite programming language is the best and the fastest one! 😀
+Blanat Challenge is a coding challenge designed to test your coding skills and your ability to write optimized code. [The challenge](#challenge-cheapest-city) primarily focuses on writing a program capable of efficiently handling large amounts of data and promptly returning the solution. It is open to everyone, and you can submit your code in any of the following languages: C, C++, Java, Rust, Python, PHP or JavaScript. This is your chance to demonstrate that your favorite programming language is the best and the fastest one! 😀
 
 > This challenge is part of BlaBlaConf 2024, Make sure to check the [event](https://blablaconf.com)
 
@@ -12,9 +12,11 @@ Blanat Challenge is a coding challenge designed to test your coding skills and y
   - [Constraints](#constraints)
   - [Output format](#output-format)
   - [Rules](#rules)
-- [I have a question](#i-have-a-question)
+- [Evaluation Criteria](#evaluation-criteria)
+- [Timeline](#timeline)
 - [Leaderboard](#leaderboard)
 - [Prize](#prize)
+- [I have a question](#i-have-a-question)
 
 ## Submit your solution
 
@@ -25,7 +27,7 @@ Blanat Challenge is a coding challenge designed to test your coding skills and y
 - 5. Open a PR with the title `Challenge: Username submission` and wait for the review. and hopefully, your PR will be merged.
 - 6. Our team will run your code with a large dataset(1 billion rows) and add your name to the leaderboard, along with the time it took to run your code.
 
-## Challenge: Cheapest city
+## Challenge: The Cheapest city
 
 We are in September 2022, the world has witnessed significant events over the past two years, like the global COVID-19 pandemic, the Russian invasion of Ukraine and the economic boycott imposed on Russia. These occurrences have had a profound and adverse impact on the international economy, leading to a surge in global inflation reminiscent of that in the 1920s.
 
@@ -123,21 +125,23 @@ oil 6.70
 **Explanation: Tetouan is the cheapest city because it has a total price of 48.50, while Casa has a total price of 93.73 and Rabat has a total price of 78.10.**
 
 ## Evaluation criteria
+
 In short: Correctness and speed!
 The competition focuses solely on correctness and speed of execution to gauge participants' ability to deliver accurate solutions within minimal computational time.
+
+## Timeline
+
+The challenge will run from the 16th of February 2024 until 22nd of February 2023. The winner will be announced during BlablaConf 2024 last day, Friday 23rd February 2024.
+
+## Leaderboard
+
+> Coming soon
+
+## Prize
+
+The (one) winner will win 6000 MAD (or a PS5 :D)
+The winner will be announced on the last day of BlaBlaConf 2024. Stay tuned for more information. Make sure to check the live event on [YouTube](https://www.youtube.com/watch?v=-peiFexaSWg).
 
 ## I have a question
 
 If you have any questions, feel free to add them to the [Discussions](https://github.com/geeksblabla/blanat/discussions/categories/q-a), and our team and contributors will be happy to help you.
-
-## Leaderboard
-
-The primary criterion for leaderboard ranking is execution time. The fastest code will be ranked at the top. The leaderboard will be refreshed twice a day
-
-> Coming soon
-
-## Timeline
-The challenge will run from 16th of February 2024 until 22nd of February 2023. The winner will be announced during Blablaconf 2024 last day, Friday 23rd February 2024. 
-## Prize
-The (one) winner will win 6000 MAD (or a PS5 :D)
-The winner will be announced on the last day of BlaBlaConf 2024. Stay tuned for more information. Make sure to check the live event on [YouTube](https://www.youtube.com/watch?v=-peiFexaSWg).
