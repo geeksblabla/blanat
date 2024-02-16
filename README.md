@@ -135,7 +135,3 @@ The primary criterion for leaderboard ranking is execution time. The fastest cod
 ## Prize
 
 The prize will be announced on the opening day of BlaBlaConf 2024. Stay tuned for more information. Make sure to check the live event on [YouTube](https://www.youtube.com/watch?v=-peiFexaSWg).
-
-```
-
-```
