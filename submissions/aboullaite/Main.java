@@ -1,10 +1,13 @@
+
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -12,6 +15,7 @@ import java.util.stream.Stream;
 public class Main {
 
   public static final String INPUT_TXT = "input.txt";
+  public static final String OUTPUT_TXT = "./output.txt";
 
   private record Product(String product, double price) {}
   private record CityRecord(double total, Product[] products) {
@@ -42,17 +46,19 @@ public class Main {
           AbstractMap.SimpleEntry::getKey,
           entry -> new CityRecord(entry.getValue().price(), entry.getValue()),
               CityRecord::combineWith));
-
-      resultMap.entrySet().stream()
+      Optional<String> result = resultMap.entrySet().stream()
           .sorted(Entry.comparingByValue(Comparator.comparingDouble(CityRecord::total)))
-          .limit(1)
-          .forEach(entry -> {
+          .findFirst()
+          .map(entry -> {
             Product[] products = entry.getValue().products();
-            System.out.println(entry.getKey() + " " + String.format( "%.2f", entry.getValue().total()));
+            String content = entry.getKey() + " " + String.format( "%.2f", entry.getValue().total()) + "\n";
             for (Product product : products) {
-              System.out.println(product.product() + " " + String.format( "%.2f", product.price()));
+              content += product.product() + " " + String.format( "%.2f", product.price())+ "\n";
             }
+            return content;
           });
+
+      // Flush to output file
+      Files.write(Paths.get(OUTPUT_TXT), result.get().getBytes());
     }
   }
-}
