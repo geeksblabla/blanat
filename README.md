@@ -39,12 +39,13 @@ Assist Adnan by writing a program, using any allowed language, to find the city 
 
 ### Constraints:
 
-- 1.00 <= price <= 10.00
+- 1.00 <= price <= 100.00
 - we have 101 cities.
 - We have 100 products.
 - Each city may have the same product duplicated several times with different or identical prices.
 - Your code will process a 10^9 (1 billion) line CSV file.
 - You are allowed to code with any language from this list: C, C++, Java, Python, Rust, JavaScript, PHP.
+- The input file is located on "input.txt" 
 
 ### Output format
 
@@ -133,7 +134,7 @@ The competition focuses solely on correctness and speed of execution to gauge pa
 
 ## Timeline
 
-The challenge will run from the 16th of February 2024 until 22nd of February 2023. The winner will be announced during BlablaConf 2024 last day, Friday 23rd February 2024.
+The challenge will run from the 19th of February 2024 until 29thd of February 2023. The winner will be announced during BlablaConf 2024 last day, Friday 23rd February 2024.
 
 ## Leaderboard
 
@@ -141,7 +142,7 @@ The challenge will run from the 16th of February 2024 until 22nd of February 202
 
 ## Prize
 
-The (one) winner will win 6000 MAD (or a PS5 :D)
+The (one) winner will win 6000 MAD (or a PS5 :D). The winner needs to have a valid [blalaconf ticket](blablaconf.com/ticket) and can receive the prize in Morocco. International transfer or shipping isn't possible.
 The winner will be announced on the last day of BlaBlaConf 2024. Stay tuned for more information. Make sure to check the live event on [YouTube](https://www.youtube.com/watch?v=-peiFexaSWg).
 
 ## I have a question
