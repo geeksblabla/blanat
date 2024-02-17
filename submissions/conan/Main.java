@@ -50,6 +50,7 @@ public class Main {
                 .collect(Collectors.toMap(CityData::product, obj -> obj, (first, second) -> first))
                 .values()
                 .stream()
+                .sorted((p1, p2) -> p1.price.compareTo(p2.price))
                 .limit(5);
 
         Stream<CityData> collect2 = cityData.stream()
