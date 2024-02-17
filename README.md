@@ -46,7 +46,7 @@ Assist Adnan by writing a program, using any allowed language, to find the city 
 - Your code will process a 10^9 (1 billion) line CSV file.
 - You are allowed to code with any language from this list: C, C++, Java, Python, Rust, JavaScript, PHP.
 - The input file is located on "input.txt" 
-- The output file should be located in the same fodler directory as your submission `./output.txt`
+- Make sure the result are saved in a file saved under `./output.txt`
 
 ### Output format
 
