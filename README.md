@@ -134,7 +134,7 @@ The competition focuses solely on correctness and speed of execution to gauge pa
 
 ## Timeline
 
-The challenge will run from the 19th of February 2024 until 29thd of February 2023. The winner will be announced during BlablaConf 2024 last day, Friday 23rd February 2024.
+The challenge will run from the 19th of February 2024 until 9th of March 2023. The winner will be announced during March 1st 2024 in our social media challenges
 
 ## Leaderboard
 
