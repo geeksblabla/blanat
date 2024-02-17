@@ -72,6 +72,8 @@ Assist Adnan by writing a program, using any allowed language, to find the city 
 
 ### INPUT
 
+You can find an example of the input file [here](./input.txt). This file contains 1 million line to run your tests and validate your solution.
+
 ```csv
 city,products,price
 casa,tomato,6.23
