@@ -1,3 +1,4 @@
+package org.example;
 
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -10,7 +11,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
-// Naive implementation
 public class Main {
 
   public static final String INPUT_TXT = "input.txt";
@@ -25,6 +25,7 @@ public class Main {
           c1.total() + c2.total(),
           Stream.concat(Arrays.stream(c1.products()), Arrays.stream(c2.products))
               .sorted(Comparator.comparingDouble(Product::price).thenComparing(Product::product))
+              .distinct()
               .limit(5)
               .toArray(Product[]::new)
       );
