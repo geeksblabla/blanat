@@ -62,6 +62,7 @@ Assist Adnan by writing a program, using any allowed language, to find the city 
 ### Rules
 
 - Make sure that your code is compiling. 😄 It may seem trivial, but sometimes we receive code that doesn't compile.
+- Your solution needs to **run under 15min**. Any submission taking more than that will be discarded.
 - If your solution is correct, we will count it and add your name to the leaderboard, if not we will discard it.
 - When you feel that your code is ready, create a folder under the "/submissions" folder with your GitHub handle as the name. Add the code to this folder and open a pull request (PR).
 - Before creating the PR, your code has to produce the same result as the output below.
