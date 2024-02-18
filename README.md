@@ -81,7 +81,6 @@ You can find an example of the input file [here](./input.txt). This file contain
 Below are short examples for better understanding:
 
 ```csv
-city,products,price
 casa,tomato,6.23
 casa,tomato,7.23
 casa,tomato,8.23
