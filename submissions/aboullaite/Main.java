@@ -62,3 +62,4 @@ public class Main {
       Files.write(Paths.get(OUTPUT_TXT), result.get().getBytes());
     }
   }
+}
