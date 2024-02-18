@@ -1,7 +1,7 @@
 const fs = require("fs");
 const readline = require("readline");
 
-const input = fs.createReadStream("input.txt", { highWaterMark: 64 * 1024 });
+const input = fs.createReadStream("input.txt");
 const output = fs.createWriteStream("output.txt");
 
 const calculateSumByCity = async () => {
@@ -49,7 +49,7 @@ const calculateSumByCity = async () => {
         .slice(0, 6);
 
       const products = sortedProducts.map(
-        ({ product, price }) => `${product} ${price}`,
+        ({ product, price }) => `${product} ${price.toFixed(2)}`,
       );
 
       const outputArray = [
