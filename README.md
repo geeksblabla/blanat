@@ -72,9 +72,12 @@ Assist Adnan by writing a program, using any allowed language, to find the city 
 
 <br>
 
-### INPUT
+### Testing
 
-You can find an example of the input file [here](./input.txt). This file contains 1 million line to run your tests and validate your solution.
+You can find an example of the input file [here](./input.txt). This file contains 1 million line to run your tests and validate your solution. The result contaning the correct answer from running the program against the 1M input file is saved in [this file](./output.txt)
+
+### INPUT
+Below are short examples for better understanding:
 
 ```csv
 city,products,price
