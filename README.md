@@ -39,12 +39,14 @@ Assist Adnan by writing a program, using any allowed language, to find the city 
 
 ### Constraints:
 
-- 1.00 <= price <= 10.00
+- 1.00 <= price <= 100.00
 - we have 101 cities.
 - We have 100 products.
 - Each city may have the same product duplicated several times with different or identical prices.
 - Your code will process a 10^9 (1 billion) line CSV file.
 - You are allowed to code with any language from this list: C, C++, Java, Python, Rust, JavaScript, PHP.
+- The input file is located on "input.txt" 
+- Make sure the result are saved in a file saved under `./output.txt`
 
 ### Output format
 
@@ -60,6 +62,7 @@ Assist Adnan by writing a program, using any allowed language, to find the city 
 ### Rules
 
 - Make sure that your code is compiling. 😄 It may seem trivial, but sometimes we receive code that doesn't compile.
+- Your solution needs to **run under 15min**. Any submission taking more than that will be discarded.
 - If your solution is correct, we will count it and add your name to the leaderboard, if not we will discard it.
 - When you feel that your code is ready, create a folder under the "/submissions" folder with your GitHub handle as the name. Add the code to this folder and open a pull request (PR).
 - Before creating the PR, your code has to produce the same result as the output below.
@@ -70,7 +73,12 @@ Assist Adnan by writing a program, using any allowed language, to find the city 
 
 <br>
 
+### Testing
+
+You can find an example of the input file [here](./input.txt). This file contains 1 million line to run your tests and validate your solution. The result contaning the correct answer from running the program against the 1M input file is saved in [this file](./output.txt)
+
 ### INPUT
+Below are short examples for better understanding:
 
 ```csv
 city,products,price
@@ -131,7 +139,7 @@ The competition focuses solely on correctness and speed of execution to gauge pa
 
 ## Timeline
 
-The challenge will run from the 16th of February 2024 until 22nd of February 2023. The winner will be announced during BlablaConf 2024 last day, Friday 23rd February 2024.
+The challenge will run from the 19th of February 2024 until 9th of March 2023. The winner will be announced during March 1st 2024 in our social media challenges
 
 ## Leaderboard
 
@@ -139,7 +147,7 @@ The challenge will run from the 16th of February 2024 until 22nd of February 202
 
 ## Prize
 
-The (one) winner will win 6000 MAD (or a PS5 :D)
+The (one) winner will win 6000 MAD (or a PS5 :D). The winner needs to have a valid [blalaconf ticket](blablaconf.com/ticket) and can receive the prize in Morocco. International transfer or shipping isn't possible.
 The winner will be announced on the last day of BlaBlaConf 2024. Stay tuned for more information. Make sure to check the live event on [YouTube](https://www.youtube.com/watch?v=-peiFexaSWg).
 
 ## I have a question
