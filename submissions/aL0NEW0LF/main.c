@@ -4,7 +4,7 @@
 #include <time.h> 
 
 // SPECIFY THE NUMBER OF ROWS IN HERE (EX FOR THE CHALLENGE TESTING DATA: 1000000000)
-#define MAX_ROWS 8473
+#define MAX_ROWS 10000
 // SPECIFY THE MAXIMUM LENGTH OF city
 #define MAX_CITY_NAME_LENGTH 50
 // SPECIFY THE MAXIMUM LENGTH OF PRODUCT city
@@ -33,7 +33,7 @@ int main() {
     clock_t t; 
     t = clock(); 
 
-    FILE *file = fopen("../../input.txt", "r"); // SPECIFY THE INPUT FILE PATH
+    FILE *file = fopen("../../input2.csv", "r"); // SPECIFY THE INPUT FILE PATH
     if (file == NULL) {
         printf("Could not open file\n");
         return 1;
