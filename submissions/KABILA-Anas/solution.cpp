@@ -30,18 +30,18 @@ void process_chunk(const string &chunk)
     double price;
 
     while (getline(is, line))
-        {
-            istringstream iss(line);
-            getline(iss, city, ',');
-            getline(iss, product, ',');
-            iss >> price;
+    {
+        istringstream iss(line);
+        getline(iss, city, ',');
+        getline(iss, product, ',');
+        iss >> price;
 
-            cities_prices[city] += price;
+        cities_prices[city] += price;
 
-            if (products_prices.find(product) == products_prices.end() || products_prices[product] > price)
-                products_prices[product] = price;
-        }
+        if (products_prices.find(product) == products_prices.end() || products_prices[product] > price)
+            products_prices[product] = price;
     }
+}
 
 void blanat()
 {
@@ -91,7 +91,6 @@ void blanat()
     }
 
     output.close();
-
 }
 
 int main()
