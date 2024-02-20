@@ -1,6 +1,6 @@
 # Blanat Challenge
 
-Blanat Challenge is a coding challenge designed to test your coding skills and your ability to write optimized code. [The challenge](#challenge-cheapest-city) primarily focuses on writing a program capable of efficiently handling large amounts of data and promptly returning the solution. It is open to everyone, and you can submit your code in any of the following languages: C, C++, Java, Rust, Python, PHP or JavaScript. This is your chance to demonstrate that your favorite programming language is the best and the fastest one! 😀
+Blanat Challenge is a coding challenge designed to test your coding skills and your ability to write optimized code. [The challenge](#challenge-the-cheapest-city) primarily focuses on writing a program capable of efficiently handling large amounts of data and promptly returning the solution. It is open to everyone, and you can submit your code in any of the following languages: C, C++, Java, Rust, Python, PHP or JavaScript. This is your chance to demonstrate that your favorite programming language is the best and the fastest one! 😀
 
 > This challenge is part of BlaBlaConf 2024, Make sure to check the [event](https://blablaconf.com)
 
@@ -8,7 +8,7 @@ Blanat Challenge is a coding challenge designed to test your coding skills and y
 
 - [Contents](#contents)
 - [Submit your solution](#submit-your-solution)
-- [Challenge: Cheapest city](#challenge-cheapest-city)
+- [Challenge: The Cheapest city](#challenge-the-cheapest-city)
   - [Constraints](#constraints)
   - [Output format](#output-format)
   - [Rules](#rules)
@@ -146,7 +146,7 @@ The challenge will run from the 19th of February 2024 until 29th of February 202
 
 ## Prize
 
-The (one) winner will win 6000 MAD (or a PS5 :D). The winner needs to have a valid [blalaconf ticket](blablaconf.com/ticket) and can receive the prize in Morocco. International transfer or shipping isn't possible.
+The (one) winner will win 6000 MAD (or a PS5 :D). The winner needs to have a valid [blalaconf ticket](https://blablaconf.com/ticket) and can receive the prize in Morocco. International transfer or shipping isn't possible.
 The winner will be announced on the last day of BlaBlaConf 2024. Stay tuned for more information. Make sure to check the live event on [YouTube](https://www.youtube.com/watch?v=-peiFexaSWg).
 
 ## I have a question
