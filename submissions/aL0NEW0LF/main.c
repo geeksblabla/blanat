@@ -56,8 +56,7 @@ int main() {
 
     fclose(file);
 
-    CityTotal *city_totals = malloc(sizeof(CityTotal));
-    int size = 1;
+    CityTotal *city_totals = malloc(101 * sizeof(CityTotal));
     int city_count = 0;
 
     for (int i = 0; i < MAX_ROWS; i++) {
@@ -70,10 +69,6 @@ int main() {
             }
         }
         if (!found) {
-            if (city_count == size) {
-                size *= 2;
-                city_totals = realloc(city_totals, size * sizeof(CityTotal));
-            }
             strcpy(city_totals[city_count].city, data[i].city);
             city_totals[city_count].total_price = data[i].price;
             city_count++;
@@ -94,16 +89,11 @@ int main() {
     free(city_totals);
 
     // Find items in the cheapest city
-    ProductRow *cheapest_city_rows = malloc(sizeof(ProductRow));
-    size = 1;
+    ProductRow *cheapest_city_rows = malloc(MAX_ROWS * sizeof(ProductRow));
     int cheapest_city_rows_count = 0;
 
     for (int i = 0; i < MAX_ROWS; i++) {
         if (strcmp(data[i].city, cheapest_city) == 0) {
-            if (cheapest_city_rows_count == size) {
-                size *= 2;
-                cheapest_city_rows = realloc(cheapest_city_rows, size * sizeof(ProductRow));
-            }
             strcpy(cheapest_city_rows[cheapest_city_rows_count].product, data[i].product);
             cheapest_city_rows[cheapest_city_rows_count].price = data[i].price;
             cheapest_city_rows_count++;
@@ -130,8 +120,8 @@ int main() {
     free(cheapest_city_rows);
 
     t = clock() - t;
-    double time_taken = ((double)t);
-    printf("The program took %f milli-seconds to execute\n", time_taken);
+    double time_taken = ((double)t) / CLOCKS_PER_SEC;
+    printf("The program took %f seconds to execute\n", time_taken);
     
     return 0;
 }
