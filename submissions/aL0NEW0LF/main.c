@@ -4,7 +4,7 @@
 #include <time.h> 
 
 // SPECIFY THE NUMBER OF ROWS IN HERE (EX FOR THE CHALLENGE TESTING DATA: 1000000000)
-#define MAX_ROWS 10000
+#define MAX_ROWS 8473
 // SPECIFY THE MAXIMUM LENGTH OF city
 #define MAX_CITY_NAME_LENGTH 50
 // SPECIFY THE MAXIMUM LENGTH OF PRODUCT city
@@ -17,13 +17,18 @@ typedef struct {
 } Row;
 
 typedef struct {
+    char product[MAX_PRODUCT_NAME_LENGTH];
+    double price;
+} ProductRow;
+
+typedef struct {
     char city[MAX_CITY_NAME_LENGTH];
     double total_price;
 } CityTotal;
 
 int compare_rows(const void *a, const void *b) {
-    const Row *row1 = (const Row *)a;
-    const Row *row2 = (const Row *)b;
+    const ProductRow *row1 = (const ProductRow *)a;
+    const ProductRow *row2 = (const ProductRow *)b;
     if (row1->price < row2->price) return -1;
     else if (row1->price > row2->price) return 1;
     else return 0;
@@ -33,7 +38,7 @@ int main() {
     clock_t t; 
     t = clock(); 
 
-    FILE *file = fopen("../../input2.csv", "r"); // SPECIFY THE INPUT FILE PATH
+    FILE *file = fopen("input.txt", "r"); // SPECIFY THE INPUT FILE PATH
     if (file == NULL) {
         printf("Could not open file\n");
         return 1;
@@ -75,11 +80,6 @@ int main() {
         }
     }
 
-    printf("Total price for each city:\n");
-    for (int i = 0; i < city_count; i++) {
-        printf("%s: %.2f\n", city_totals[i].city, city_totals[i].total_price);
-    }
-
     double cheapest_price = city_totals[0].total_price;
     char cheapest_city[MAX_CITY_NAME_LENGTH];
     strcpy(cheapest_city, city_totals[0].city);
@@ -91,12 +91,29 @@ int main() {
         }
     }
 
-    printf("\nThe cheapest city is: %s with total price %.2f\n", cheapest_city, cheapest_price);
     free(city_totals);
 
-    qsort(data, MAX_ROWS, sizeof(Row), compare_rows);
+    // Find items in the cheapest city
+    ProductRow *cheapest_city_rows = malloc(sizeof(ProductRow));
+    size = 1;
+    int cheapest_city_rows_count = 0;
 
-    FILE* fp = fopen("../../output.txt", "w"); // SPECIFY THE OUTPUT FILE PATH
+    for (int i = 0; i < MAX_ROWS; i++) {
+        if (strcmp(data[i].city, cheapest_city) == 0) {
+            if (cheapest_city_rows_count == size) {
+                size *= 2;
+                cheapest_city_rows = realloc(cheapest_city_rows, size * sizeof(ProductRow));
+            }
+            strcpy(cheapest_city_rows[cheapest_city_rows_count].product, data[i].product);
+            cheapest_city_rows[cheapest_city_rows_count].price = data[i].price;
+            cheapest_city_rows_count++;
+        }
+    }
+    
+    // Sort items by price
+    qsort(cheapest_city_rows, cheapest_city_rows_count, sizeof(ProductRow), compare_rows);
+
+    FILE* fp = fopen("output.txt", "w"); // SPECIFY THE OUTPUT FILE PATH
     if (NULL == fp) {
         printf("Cannot create/open file %s. Make sure you have permission to create/open a file in the directory\n", "output.txt");
         exit(0);
@@ -104,16 +121,17 @@ int main() {
 
     fprintf(fp, "%s %.2f\n", cheapest_city, cheapest_price);
     for (int i = 0; i < 5 && i < MAX_ROWS; i++) {
-        fprintf(fp, "%s %.2f\n", data[i].product, data[i].price);
+        fprintf(fp, "%s %.2f\n", cheapest_city_rows[i].product, cheapest_city_rows[i].price);
     }
 
     fclose(fp);
 
     free(data);
+    free(cheapest_city_rows);
 
     t = clock() - t;
-    double time_taken = ((double)t)/CLOCKS_PER_SEC;
-    printf("The program took %f seconds to execute\n", time_taken);
+    double time_taken = ((double)t);
+    printf("The program took %f milli-seconds to execute\n", time_taken);
     
     return 0;
 }
