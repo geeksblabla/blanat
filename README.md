@@ -125,8 +125,8 @@ Tetouan 48.50
 gaz 1.30
 potato 3.50
 tomato 3.50
+sugar 4.50
 flour 5.20
-oil 6.70
 ```
 
 **Explanation: Tetouan is the cheapest city because it has a total price of 48.50, while Casa has a total price of 93.73 and Rabat has a total price of 78.10.**
