@@ -14,7 +14,6 @@ struct Product {
     string name;
     double price;
 
-    // Custom sorting
     bool operator<(const Product& p) const {
         return price == p.price ? name > p.name : price > p.price;
     }
@@ -72,7 +71,6 @@ void blanat()
 
     priority_queue<Product> cheapestProducts;
 
-    // Add products of cheapest city to the priority queue
     for (const auto& [product, price] : products_prices) {
         cheapestProducts.push({product, price});
     }
