@@ -44,6 +44,7 @@ public class Main {
                             cityProducts.get(city.getKey()).entrySet()
                                     .stream()
                                     .sorted(Map.Entry.comparingByValue())
+                                    .limit(5)
                                     .forEach(entry -> {
                                         result.append(entry.getKey())
                                                 .append(" ")
