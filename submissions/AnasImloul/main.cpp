@@ -65,21 +65,20 @@ std::string fruits_and_vegetables[94] = {
 
 
 int main() {
-    int64_t start = currentTimeMillis();
-
-    freopen("input.txt", "r", stdin);
+    // int64_t start = currentTimeMillis();
 
     std::cin.tie(nullptr);
     std::cout.tie(nullptr);
     std::ios_base::sync_with_stdio(false);
 
+    freopen("input.txt", "r", stdin);
+
     std::unordered_map<std::string, std::unordered_map<std::string, double>> map;
     map.reserve(613);
     for (const auto& city : morrocan_cities) {
         map[city].reserve(512);
-        for (const auto& product : fruits_and_vegetables) {
+        for (const auto& product : fruits_and_vegetables)
             map[city][product] = INT_MAX;
-        }
     }
 
     std::unordered_map<std::string, double> index_totals;
@@ -89,6 +88,9 @@ int main() {
 
     std::string city, product;
     char c;
+
+    int count = 0;
+
     while (!std::cin.eof()) {
         city.clear(), product.clear();
 
@@ -98,19 +100,31 @@ int main() {
 
         int price = 0;
         while (std::cin.get(c) && c != '\n') {
-            if (c == '.') continue;
+            if (c == '.') break;
             else price = price * 10 + (c - '0');
+        }
+
+        int decimal = 0;
+        if (c == '.') {
+            while (std::cin.get(c) && c != '\n') {
+                price = price * 10 + (c - '0');
+                decimal++;
+            }
         }
 
         if (price == 0) break;
 
-        double price_double = price / 100.0;
+        double price_double = price;
+        if (decimal == 1) price_double /= 10;
+        else if (decimal == 2) price_double /= 100;
 
         double& current_price = map[city][product];
         if (price_double < current_price)
             current_price = price_double;
 
         index_totals[city] += price_double;
+
+        count++;
     }
 
     std::ofstream output("output.txt");
@@ -148,9 +162,6 @@ int main() {
 
     output.close();
 
-    int64_t end = currentTimeMillis();
-    std::cout << "Execution time: " << end - start << "ms" << std::endl;
-
-
-
+    // int64_t end = currentTimeMillis();
+    // std::cout << "Execution time: " << end - start << "ms" << std::endl;
 }
