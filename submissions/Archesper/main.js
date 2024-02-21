@@ -41,7 +41,5 @@ async function processData() {
   writeStream.write(`${cheapestCity} ${cheapestCityCost.toFixed(2)}\n`);
   writeStream.write(productOutput.join("\n"));
 }
-
-console.time('benchmark');
 processData();
-console.timeEnd('benchmark');
+
