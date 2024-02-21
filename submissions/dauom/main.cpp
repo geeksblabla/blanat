@@ -4,10 +4,10 @@
 #include <unistd.h>  // For close()
 
 #include <algorithm>
-// #include <cassert>
+#include <cassert>
 #include <cstring>
 #include <future>
-// #include <iostream>
+#include <iostream>
 #include <string>
 #include <thread>
 #include <unordered_map>
@@ -130,12 +130,13 @@ Result process_chunk(char *start, char *end) {
 vector<Result> process_concurrently(const MappedFile &mp) {
   char *start = (char *)mp.file_data;
   char *end = start + mp.file_size;
-  const int block_size = mp.file_size / NUM_THREADS;
+  const size_t block_size = mp.file_size / NUM_THREADS;
 
   vector<future<Result>> future_results;
   for (int i = 0; i < NUM_THREADS; i++) {
-    future_results.emplace_back(async(process_chunk, start + i * block_size,
-                                      min(start + (i + 1) * block_size, end)));
+    future_results.emplace_back(
+        async(process_chunk, start + i * block_size,
+              i == NUM_THREADS - 1 ? end : (start + (i + 1) * block_size)));
   }
 
   vector<Result> results;
@@ -170,7 +171,7 @@ inline void ans(Result &result) {
   int city_id = -1;
   for (auto &cid : result.city_id) {
     long long c = result.city_cost[cid.second];
-    if (c < min_city_cost) {
+    if (min_city_cost > c) {
       min_city_cost = c;
       city = cid.first;
       city_id = cid.second;
@@ -178,6 +179,7 @@ inline void ans(Result &result) {
       city = cid.first;
       city_id = cid.second;
     }
+    // fprintf(f, "%s %.2f\n", cid.first.c_str(), c / 100.0);
   }
   fprintf(f, "%s %.2f\n", city.c_str(), min_city_cost / 100.0);
 
