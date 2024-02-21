@@ -22,7 +22,6 @@ const char* INPUT_FILENAME = "input.txt";
 const char* OUTPUT_FILENAME = "output.txt";
 const int BLOCK_SIZE = 10 * 4096;
 const int NUM_THREADS = thread::hardware_concurrency();
-int total = 0;
 
 inline void handle_error(const char* msg) {
     perror(msg); 
@@ -36,8 +35,14 @@ struct MappedFile {
 };
 
 struct Result {
-    unordered_map<string, unordered_map<string, double>> product_cost;
-    unordered_map<string, double> city_cost;
+    double city_cost[111];
+    double product_cost[111][111];
+    unordered_map<string, int> product_id;
+    unordered_map<string, int> city_id;
+    Result() {
+        fill_n(city_cost, 111, 0.0);
+        fill_n((double *)product_cost, 111 * 111, 4e18);
+    }
 };
 
 inline const MappedFile map_input() {
@@ -51,18 +56,28 @@ inline const MappedFile map_input() {
     if (addr == MAP_FAILED) handle_error("map_input: mmap failed");
     madvise((void *)addr, 0, MADV_SEQUENTIAL);
 
-    return {fd, sb.st_size, addr};
+    return {fd, (size_t) sb.st_size, addr};
 }
 
 const string consume_str(char* &start) {
-    stringstream ss;
+    string s; s.reserve(40);
     char c;
     while ((c = *start) != 0 && c != ',' && c != '\n') {
-        ss << c;
+        s += c;
         start++;
     }
     start++;
-    return ss.str();
+    return s;
+}
+
+int find_or_create(unordered_map<string, int> &id_map, const string &k) {
+    int id = -1;
+    if (id_map.find(k) == id_map.end()) {
+        id = id_map[k] = id_map.size();
+    } else {
+        id = id_map[k];
+    }
+    return id;
 }
 
 Result process_chunk(char * start, char * end) {
@@ -71,23 +86,21 @@ Result process_chunk(char * start, char * end) {
     }
     start++;
 
-    unordered_map<string, unordered_map<string, double>> product_cost;
-    unordered_map<string, double> city_cost;
+    Result r;
     char *cur = start;
     while (cur < end) {
         string city = consume_str(cur);
         string product = consume_str(cur);
         string price = consume_str(cur);
         double dprice = stod(price);
-        if (product_cost[city].find(product) == product_cost[city].end()) {
-            product_cost[city][product] = dprice;
-        } else {
-            product_cost[city][product] = min(product_cost[city][product], dprice);
-        }
-        city_cost[city] += dprice;
+
+        int cid = find_or_create(r.city_id, city);
+        int pid = find_or_create(r.product_id, product);
+        r.product_cost[cid][pid] = min(r.product_cost[cid][pid], dprice);
+        r.city_cost[cid] += dprice;
     }
 
-    return {product_cost, city_cost};
+    return r;
 }
 
 vector<Result> process_concurrently(const MappedFile &mp) {
@@ -108,45 +121,39 @@ vector<Result> process_concurrently(const MappedFile &mp) {
 }
 
 Result merge(vector<Result> &results) {
-    unordered_map<string, unordered_map<string, double>> product_cost;
-    unordered_map<string, double> city_cost;
+    Result mr;
     for (auto &r : results) {
-        for (auto &cc : r.city_cost) {
-            city_cost[cc.first] += cc.second;
-        }
-        for (auto &pc : r.product_cost) {
-            string city = pc.first;
-            for (auto &ppc : pc.second) {
-                string product = ppc.first;
-                if (product_cost[city].find(product) == product_cost[city].end()) {
-                    product_cost[city][product] = ppc.second;
-                } else {
-                    product_cost[city][product] = min(product_cost[city][product], ppc.second);
-                }
+        for (auto &cid : r.city_id) {
+            int ncid = find_or_create(mr.city_id, cid.first);
+            mr.city_cost[ncid] += r.city_cost[cid.second];
+            for (auto &pid : r.product_id) {
+                int npid = find_or_create(mr.product_id, pid.first);
+                mr.product_cost[ncid][npid] = min(mr.product_cost[ncid][npid], r.product_cost[cid.second][pid.second]);
             }
         }
     }
-    return {product_cost, city_cost};
+    return mr;
 }
 
 void ans(Result &result) {
     FILE *f = fopen(OUTPUT_FILENAME, "w");
-    
+
     double min_city_cost = 4e18;
     string city = "";
-    for (auto &cc : result.city_cost) {
-        if (cc.second < min_city_cost) {
-            min_city_cost = cc.second;
-            city = cc.first;
-        } else if (cc.second == min_city_cost && cc.first < city) {
-            city = cc.first;
+    int city_id = -1;
+    for (auto &cid : result.city_id) {
+        double c = result.city_cost[cid.second];
+        if (c < min_city_cost) {
+            min_city_cost = c;
+            city = cid.first;
+            city_id = cid.second;
         }
     }
     fprintf(f, "%s %.2f\n", city.c_str(), min_city_cost);
 
     vector<pair<double, string>> products;
-    for (auto &pc : result.product_cost[city]) {
-        products.push_back({pc.second, pc.first});
+    for (auto &pid : result.product_id) {
+        products.push_back({result.product_cost[city_id][pid.second], pid.first});
     }
     sort(products.begin(), products.end());
     products.resize(5);
