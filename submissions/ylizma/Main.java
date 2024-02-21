@@ -13,7 +13,9 @@ public class Main {
         Map<String, Double> cityPrices = new ConcurrentHashMap<>();
         Map<String, Map<String, Double>> cityProducts = new ConcurrentHashMap<>();
         try(Stream<String > lines = Files.lines(Paths.get(INPUT_TXT))) {
-            lines.forEach(line -> {
+            lines
+                    .parallel()
+                    .forEach(line -> {
                         String[] parts = line.split(",");
                         String city = parts[0];
                         String product = parts[1];
@@ -53,6 +55,7 @@ public class Main {
                                     });
                         }
                 );
+        result.setLength(result.length() - 1);
         Files.write(Paths.get(OUTPUT_TXT), result.toString().getBytes());
     }
 }
