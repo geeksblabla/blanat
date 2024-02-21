@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h> 
+#include <windows.h>
 
 // SPECIFY THE NUMBER OF ROWS IN HERE (EX FOR THE CHALLENGE TESTING DATA: 1000000000)
 #define MAX_ROWS 8473
@@ -137,8 +137,13 @@ void findCheapestProducts(const char* key, FILE* fp) {
 
 
 int main() {
-    clock_t t; 
-    t = clock(); 
+    LARGE_INTEGER frequency;
+    LARGE_INTEGER start;
+    LARGE_INTEGER end;
+    double interval;
+
+    QueryPerformanceFrequency(&frequency);
+    QueryPerformanceCounter(&start); 
     
     struct CityTotalHashTable* cityTotalHashTable = createCityTotalHashTable(102);
 
@@ -196,8 +201,9 @@ int main() {
 
     fclose(file);
 
-    t = clock() - t;
-    double time_taken = ((double)t) / CLOCKS_PER_SEC;
-    printf("The program took %f seconds to execute\n", time_taken);
+    QueryPerformanceCounter(&end);
+    interval = (double) (end.QuadPart - start.QuadPart) / frequency.QuadPart;
+
+    printf("The program took %f seconds to execute\n", interval);
     return 0;
 }
