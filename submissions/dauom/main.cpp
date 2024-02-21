@@ -4,10 +4,8 @@
 #include <unistd.h>  // For close()
 
 #include <algorithm>
-#include <cassert>
 #include <cstring>
 #include <future>
-#include <iostream>
 #include <string>
 #include <thread>
 #include <unordered_map>
@@ -179,7 +177,6 @@ inline void ans(Result &result) {
       city = cid.first;
       city_id = cid.second;
     }
-    // fprintf(f, "%s %.2f\n", cid.first.c_str(), c / 100.0);
   }
   fprintf(f, "%s %.2f\n", city.c_str(), min_city_cost / 100.0);
 
