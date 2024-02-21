@@ -14,7 +14,6 @@ async function processData() {
   for await (const line of readlineInterface) {
     let [city, item, price] = line.split(",");
     price = parseFloat(price);
-    city = city.trim();
     cities.set(city, cities.has(city) ? cities.get(city) + price : price);
     const currentProductData = products.get(city);
     if (currentProductData) {
