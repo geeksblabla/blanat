@@ -34,9 +34,122 @@ int compare_rows(const void *a, const void *b) {
     else return 0;
 }
 
+void merge(CityTotal* arr, int l, int m, int r)
+{
+    int i, j, k;
+    int n1 = m - l + 1;
+    int n2 = r - m;
+ 
+    CityTotal *L = (CityTotal*)malloc(n1 * sizeof(CityTotal));
+    CityTotal *R = (CityTotal*)malloc(n2 * sizeof(CityTotal));
+ 
+    for (i = 0; i < n1; i++)
+        L[i] = arr[l + i];
+    for (j = 0; j < n2; j++)
+        R[j] = arr[m + 1 + j];
+
+    i = 0;
+    j = 0;
+    k = l;
+    while (i < n1 && j < n2) {
+        if (L[i].total_price <= R[j].total_price) {
+            arr[k] = L[i];
+            i++;
+        }
+        else {
+            arr[k] = R[j];
+            j++;
+        }
+        k++;
+    }
+
+    while (i < n1) {
+        arr[k] = L[i];
+        i++;
+        k++;
+    }
+
+    while (j < n2) {
+        arr[k] = R[j];
+        j++;
+        k++;
+    }
+}
+
+void mergeSort(CityTotal* arr, int l, int r)
+{
+    if (l < r) {
+        int m = l + (r - l) / 2;
+ 
+        // Sort first and second halves
+        mergeSort(arr, l, m);
+        mergeSort(arr, m + 1, r);
+ 
+        merge(arr, l, m, r);
+    }
+}
+
+void mergeProducts(ProductRow* arr, int l, int m, int r)
+{
+    int i, j, k;
+    int n1 = m - l + 1;
+    int n2 = r - m;
+ 
+    ProductRow *L = (ProductRow*)malloc(n1 * sizeof(ProductRow));
+    ProductRow *R = (ProductRow*)malloc(n2 * sizeof(ProductRow));
+ 
+    for (i = 0; i < n1; i++)
+        L[i] = arr[l + i];
+    for (j = 0; j < n2; j++)
+        R[j] = arr[m + 1 + j];
+ 
+    i = 0;
+    j = 0;
+    k = l;
+    while (i < n1 && j < n2) {
+        if (L[i].price <= R[j].price) {
+            arr[k] = L[i];
+            i++;
+        }
+        else {
+            arr[k] = R[j];
+            j++;
+        }
+        k++;
+    }
+
+    while (i < n1) {
+        arr[k] = L[i];
+        i++;
+        k++;
+    }
+
+    while (j < n2) {
+        arr[k] = R[j];
+        j++;
+        k++;
+    }
+}
+
+
+void mergeSortProducts(ProductRow* arr, int l, int r)
+{
+    if (l < r) {
+        int m = l + (r - l) / 2;
+ 
+        mergeSortProducts(arr, l, m);
+        mergeSortProducts(arr, m + 1, r);
+ 
+        mergeProducts(arr, l, m, r);
+    }
+}
+
 int main() {
     clock_t t; 
     t = clock(); 
+
+    CityTotal *city_totals = malloc(101 * sizeof(CityTotal));
+    int city_count = 0;
 
     FILE *file = fopen("input.txt", "r"); // SPECIFY THE INPUT FILE PATH
     if (file == NULL) {
@@ -48,18 +161,6 @@ int main() {
     int i = 0;
 
     while (fscanf(file, "%49[^,],%49[^,],%lf\n", data[i].city, data[i].product, &data[i].price) == 3) {
-        i++;
-        if (i >= MAX_ROWS) {
-            break;
-        }
-    }
-
-    fclose(file);
-
-    CityTotal *city_totals = malloc(101 * sizeof(CityTotal));
-    int city_count = 0;
-
-    for (int i = 0; i < MAX_ROWS; i++) {
         int found = 0;
         for (int j = 0; j < city_count; j++) {
             if (strcmp(data[i].city, city_totals[j].city) == 0) {
@@ -73,18 +174,28 @@ int main() {
             city_totals[city_count].total_price = data[i].price;
             city_count++;
         }
+        i++;
+        if (i >= MAX_ROWS) {
+            break;
+        }
     }
+
+    fclose(file);
 
     double cheapest_price = city_totals[0].total_price;
     char cheapest_city[MAX_CITY_NAME_LENGTH];
     strcpy(cheapest_city, city_totals[0].city);
 
-    for (int i = 0; i < city_count; i++) {
-        if (city_totals[i].total_price < cheapest_price) {
-            cheapest_price = city_totals[i].total_price;
-            strcpy(cheapest_city, city_totals[i].city);
-        }
+    mergeSort(city_totals, 0, city_count - 1);
+
+    FILE* fp = fopen("output.txt", "w"); // SPECIFY THE OUTPUT FILE PATH
+    if (NULL == fp) {
+        printf("Cannot create/open file %s. Make sure you have permission to create/open a file in the directory\n", "output.txt");
+        exit(0);
     }
+
+    strcpy(cheapest_city, city_totals[0].city);
+    cheapest_price = city_totals[0].total_price;
 
     free(city_totals);
 
@@ -100,14 +211,9 @@ int main() {
         }
     }
     
-    // Sort items by price
-    qsort(cheapest_city_rows, cheapest_city_rows_count, sizeof(ProductRow), compare_rows);
+    mergeSortProducts(cheapest_city_rows, 0, cheapest_city_rows_count - 1);
 
-    FILE* fp = fopen("output.txt", "w"); // SPECIFY THE OUTPUT FILE PATH
-    if (NULL == fp) {
-        printf("Cannot create/open file %s. Make sure you have permission to create/open a file in the directory\n", "output.txt");
-        exit(0);
-    }
+    rewind(fp);
 
     fprintf(fp, "%s %.2f\n", cheapest_city, cheapest_price);
     for (int i = 0; i < 5 && i < MAX_ROWS; i++) {
