@@ -55,16 +55,13 @@ inline const MappedFile map_input() {
   return {fd, (size_t)sb.st_size, addr};
 }
 
-inline const string consume_str(char *&start) {
-  string s;
-  s.reserve(40);
+inline const void consume_str(char *&start, string &s) {
   char c;
   while ((c = *start) != 0 && c != ',' && c != '\n') {
     s += c;
     ++start;
   }
   ++start;
-  return s;
 }
 
 inline long long consume_float_as_long(char *&start) {
@@ -109,11 +106,15 @@ Result process_chunk(char *start, char *end) {
 
   Result r;
   char *cur = start;
+  string city;
+  city.reserve(40);
+  string product;
+  product.reserve(40);
   while (cur < end) {
-    string city = consume_str(cur);
-    string product = consume_str(cur);
-    // string sprice = consume_str(cur);
-    // long long price = stoll(sprice);
+    city.clear();
+    consume_str(cur, city);
+    product.clear();
+    consume_str(cur, product);
     long long price = consume_float_as_long(cur);
 
     int cid = find_or_create(r.city_id, city);
