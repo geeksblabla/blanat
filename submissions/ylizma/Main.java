@@ -10,7 +10,6 @@ public class Main {
     public static final String OUTPUT_TXT = "output.txt";
 
     public static void main(String[] args) throws IOException {
-        long start = System.currentTimeMillis();
         Map<String, Double> cityPrices = new ConcurrentHashMap<>();
         Map<String, Map<String, Double>> cityProducts = new ConcurrentHashMap<>();
         try(Stream<String > lines = Files.lines(Paths.get(INPUT_TXT))) {
@@ -29,8 +28,6 @@ public class Main {
             e.getMessage();
         }
         writeResultToFile(cityPrices, cityProducts);
-        long end = System.currentTimeMillis();
-        System.out.println("time: " + (end - start));
     }
 
     private static void writeResultToFile(Map<String, Double> cityPrices, Map<String,
@@ -42,7 +39,7 @@ public class Main {
                 .forEach(city -> {
                             result.append(city.getKey())
                                     .append(" ")
-                                    .append(Math.floor(city.getValue()))
+                                    .append(String.format("%.2f", city.getValue()))
                                     .append("\n");
                             cityProducts.get(city.getKey()).entrySet()
                                     .stream()
@@ -50,7 +47,7 @@ public class Main {
                                     .forEach(entry -> {
                                         result.append(entry.getKey())
                                                 .append(" ")
-                                                .append(Math.floor(entry.getValue()))
+                                                .append(String.format("%.2f", entry.getValue()))
                                                 .append("\n");
                                     });
                         }
