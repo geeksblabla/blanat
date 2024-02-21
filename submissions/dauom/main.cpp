@@ -4,14 +4,8 @@
 #include <unistd.h>  // For close()
 
 #include <algorithm>
-#include <cstdio>
-#include <cstring>  // For strtok & memcpy
-#include <cstring>  // For
-#include <fstream>
+#include <cstring>
 #include <future>
-#include <iomanip>
-#include <iostream>
-#include <numeric>
 #include <string>
 #include <thread>
 #include <unordered_map>
@@ -21,7 +15,6 @@ using namespace std;
 
 const char *INPUT_FILENAME = "input.txt";
 const char *OUTPUT_FILENAME = "output.txt";
-const int BLOCK_SIZE = 10 * 4096;
 const int NUM_THREADS = thread::hardware_concurrency();
 
 inline void handle_error(const char *msg) {
