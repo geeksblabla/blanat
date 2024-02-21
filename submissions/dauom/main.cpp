@@ -4,8 +4,10 @@
 #include <unistd.h>  // For close()
 
 #include <algorithm>
+// #include <cassert>
 #include <cstring>
 #include <future>
+// #include <iostream>
 #include <string>
 #include <thread>
 #include <unordered_map>
@@ -13,6 +15,7 @@
 
 using namespace std;
 
+#define NUM_CITIES 102
 const char *INPUT_FILENAME = "input.txt";
 const char *OUTPUT_FILENAME = "output.txt";
 const int NUM_THREADS = thread::hardware_concurrency();
@@ -29,13 +32,13 @@ struct MappedFile {
 };
 
 struct Result {
-  double city_cost[111];
-  double product_cost[111][111];
+  long long city_cost[NUM_CITIES];
+  long long product_cost[NUM_CITIES][NUM_CITIES];
   unordered_map<string, int> product_id;
   unordered_map<string, int> city_id;
   Result() {
-    fill_n(city_cost, 111, 0.0);
-    fill_n((double *)product_cost, 111 * 111, 4e18);
+    fill_n(city_cost, NUM_CITIES, 0);
+    fill_n((long long *)product_cost, NUM_CITIES * NUM_CITIES, (long long)4e18);
   }
 };
 
@@ -49,7 +52,7 @@ inline const MappedFile map_input() {
   const char *addr = static_cast<const char *>(
       mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0u));
   if (addr == MAP_FAILED) handle_error("map_input: mmap failed");
-  madvise((void *)addr, 0, MADV_SEQUENTIAL);
+  // madvise((void *)addr, 0, MADV_SEQUENTIAL);
 
   return {fd, (size_t)sb.st_size, addr};
 }
@@ -60,10 +63,34 @@ inline const string consume_str(char *&start) {
   char c;
   while ((c = *start) != 0 && c != ',' && c != '\n') {
     s += c;
-    start++;
+    ++start;
   }
-  start++;
+  ++start;
   return s;
+}
+
+inline long long consume_float_as_long(char *&start) {
+  long long ans = 0;
+  char c;
+
+  // integral part
+  while ((c = *start) <= '9' && c >= '0') {
+    ans = ans * 10 + c - '0';
+    ++start;
+  }
+  ++start;         // skip dot or \n
+  if (c == '.') {  // fractional part exists, consume!
+    int count = 0;
+    while ((c = *start) <= '9' && c >= '0') {
+      ans = ans * 10 + c - '0';
+      ++start;
+      ++count;
+    }
+    if (count == 1) ans *= 10;    // always precision=2
+    ++start;                      // skip \n or \r
+    if (*start == '\n') ++start;  // skip \n if prefixed by \r
+  }
+  return ans;
 }
 
 inline int find_or_create(unordered_map<string, int> &id_map, const string &k) {
@@ -80,20 +107,21 @@ Result process_chunk(char *start, char *end) {
   if (*start != '\n') {
     start = (char *)rawmemchr(start, '\n');
   }
-  start++;
+  ++start;
 
   Result r;
   char *cur = start;
   while (cur < end) {
     string city = consume_str(cur);
     string product = consume_str(cur);
-    string price = consume_str(cur);
-    double dprice = stod(price);
+    // string sprice = consume_str(cur);
+    // long long price = stoll(sprice);
+    long long price = consume_float_as_long(cur);
 
     int cid = find_or_create(r.city_id, city);
     int pid = find_or_create(r.product_id, product);
-    r.product_cost[cid][pid] = min(r.product_cost[cid][pid], dprice);
-    r.city_cost[cid] += dprice;
+    r.product_cost[cid][pid] = min(r.product_cost[cid][pid], price);
+    r.city_cost[cid] += price;
   }
 
   return r;
@@ -137,20 +165,23 @@ Result merge(vector<Result> &results) {
 inline void ans(Result &result) {
   FILE *f = fopen(OUTPUT_FILENAME, "w");
 
-  double min_city_cost = 4e18;
+  long long min_city_cost = (long long)4e18;
   string city = "";
   int city_id = -1;
   for (auto &cid : result.city_id) {
-    double c = result.city_cost[cid.second];
+    long long c = result.city_cost[cid.second];
     if (c < min_city_cost) {
       min_city_cost = c;
       city = cid.first;
       city_id = cid.second;
+    } else if (c == min_city_cost && city > cid.first) {
+      city = cid.first;
+      city_id = cid.second;
     }
   }
-  fprintf(f, "%s %.2f\n", city.c_str(), min_city_cost);
+  fprintf(f, "%s %.2f\n", city.c_str(), min_city_cost / 100.0);
 
-  vector<pair<double, string>> products;
+  vector<pair<long long, string>> products;
   for (auto &pid : result.product_id) {
     products.push_back({result.product_cost[city_id][pid.second], pid.first});
   }
@@ -158,7 +189,7 @@ inline void ans(Result &result) {
   products.resize(5);
 
   for (auto &p : products) {
-    fprintf(f, "%s %.2f\n", p.second.c_str(), p.first);
+    fprintf(f, "%s %.2f\n", p.second.c_str(), p.first / 100.0);
   }
   fclose(f);
 }
