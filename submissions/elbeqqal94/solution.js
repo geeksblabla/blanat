@@ -1,9 +1,9 @@
 const fs = require('fs');
-const path = require('path');
 
-const filePath = path.relative('/', 'm.txt');
+const INPUT_FILE = '../../input.txt';
+const OUTPUT_FILE = '../../output.txt';
 
-fs.readFile(filePath, 'utf8', (err, data) => {
+fs.readFile(INPUT_FILE, 'utf8', (err, data) => {
 	if (err) {
 		console.error('File reading error:', err);
 		return;
@@ -74,7 +74,7 @@ fs.readFile(filePath, 'utf8', (err, data) => {
 		.map((product) => `${product[0]} ${product[1].toFixed(2)}`)
 		.join('\n');
 
-	fs.writeFile('output.txt', outputData, 'utf8', (err) => {
+	fs.writeFile(OUTPUT_FILE, outputData, 'utf8', (err) => {
 		if (err) {
 			console.error('Error writing to output.txt:', err);
 			return;
