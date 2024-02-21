@@ -10,146 +10,137 @@
 // SPECIFY THE MAXIMUM LENGTH OF PRODUCT city
 #define MAX_PRODUCT_NAME_LENGTH 50
 
-typedef struct {
-    char city[MAX_CITY_NAME_LENGTH];
+#define MAX_LINE_SIZE 1048576
+
+struct KeyValuePair {
     char product[MAX_PRODUCT_NAME_LENGTH];
     double price;
-} Row;
+    struct KeyValuePair* next;
+};
 
-typedef struct {
-    char product[MAX_PRODUCT_NAME_LENGTH];
-    double price;
-} ProductRow;
-
-typedef struct {
+struct CityTotal {
     char city[MAX_CITY_NAME_LENGTH];
     double total_price;
-} CityTotal;
+};
 
-int compare_rows(const void *a, const void *b) {
-    const ProductRow *row1 = (const ProductRow *)a;
-    const ProductRow *row2 = (const ProductRow *)b;
-    if (row1->price < row2->price) return -1;
-    else if (row1->price > row2->price) return 1;
-    else return 0;
+
+struct CityTotalHashTable {
+    int size;
+    struct CityTotal** table;
+};
+
+// Function to create a new key-value pair
+struct KeyValuePair* createKeyValuePair(const char* key, char product[MAX_PRODUCT_NAME_LENGTH], double price) {
+    struct KeyValuePair* pair = (struct KeyValuePair*)malloc(sizeof(struct KeyValuePair));
+    strcpy(pair->product, product);
+    pair->price = price;
+    pair->next = NULL;
+    return pair;
 }
 
-void merge(CityTotal* arr, int l, int m, int r)
-{
-    int i, j, k;
-    int n1 = m - l + 1;
-    int n2 = r - m;
- 
-    CityTotal *L = (CityTotal*)malloc(n1 * sizeof(CityTotal));
-    CityTotal *R = (CityTotal*)malloc(n2 * sizeof(CityTotal));
- 
-    for (i = 0; i < n1; i++)
-        L[i] = arr[l + i];
-    for (j = 0; j < n2; j++)
-        R[j] = arr[m + 1 + j];
+struct CityTotalHashTable* createCityTotalHashTable(int size) {
+    struct CityTotalHashTable* cityTotalHashTable = (struct CityTotalHashTable*)malloc(sizeof(struct CityTotalHashTable));
+    cityTotalHashTable->size = size;
+    cityTotalHashTable->table = (struct CityTotal**)calloc(size, sizeof(struct CityTotal*));
+    return cityTotalHashTable;
+};
 
-    i = 0;
-    j = 0;
-    k = l;
-    while (i < n1 && j < n2) {
-        if (L[i].total_price <= R[j].total_price) {
-            arr[k] = L[i];
-            i++;
-        }
-        else {
-            arr[k] = R[j];
-            j++;
-        }
-        k++;
+
+// Function to calculate the hash code for a key
+int hashCode(const char* key, int tableSize) {
+    int hash = 0;
+    for (int i = 0; key[i] != '\0'; i++) {
+        hash += key[i];
+    }
+    return hash % tableSize;
+}
+
+void insertCityTotal(struct CityTotalHashTable* cityTotalHashTable, const char* key, double price) {
+    int index = hashCode(key, cityTotalHashTable->size);
+    struct CityTotal* pair = (struct CityTotal*)malloc(sizeof(struct CityTotal));
+    strcpy(pair->city, key);
+    pair->total_price = price;
+
+    if (cityTotalHashTable->table[index] == NULL) {
+        cityTotalHashTable->table[index] = pair;
+    } else {
+        cityTotalHashTable->table[index]->total_price += price;
+    }
+}
+
+void free_city_total_hash_table(struct CityTotalHashTable* cityTotalHashTable) {
+    for (int i = 0; i < cityTotalHashTable->size; i++) {
+        struct CityTotal* current = cityTotalHashTable->table[i];
+        free(current);
+    }
+    free(cityTotalHashTable->table);
+    free(cityTotalHashTable);
+}
+
+// Function to find the top 5 cheapest products in that cheapest city
+void findCheapestProducts(const char* key, FILE* fp) {
+    struct KeyValuePair* cheapest_products_stack = NULL;
+    int cheapest_products_stack_size = 0;
+
+    FILE *file = fopen("input.txt", "r"); // SPECIFY THE INPUT FILE PATH
+    if (file == NULL) {
+        printf("Could not open file\n");
+        exit(0);
     }
 
-    while (i < n1) {
-        arr[k] = L[i];
+    char* line = (char*)malloc(MAX_LINE_SIZE * sizeof(char));
+    int i = 0;
+
+    while (fgets(line, MAX_LINE_SIZE, file) && i < MAX_ROWS) {
+        char* city = strtok(line, ",");
+        char* product = strtok(NULL, ",");
+        double price = atof(strtok(NULL, ",\n"));
+
+        if (strcmp(city, key) == 0) {
+            if (cheapest_products_stack_size < 5) {
+                struct KeyValuePair* pair = createKeyValuePair(city, product, price);
+                pair->next = cheapest_products_stack;
+                cheapest_products_stack = pair;
+                cheapest_products_stack_size++;
+            } else {
+                struct KeyValuePair* current = cheapest_products_stack;
+                struct KeyValuePair* prev = NULL;
+                while (current != NULL) {
+                    if (price < current->price) {
+                        struct KeyValuePair* pair = createKeyValuePair(city, product, price);
+                        if (prev == NULL) {
+                            pair->next = cheapest_products_stack;
+                            cheapest_products_stack = pair;
+                        } else {
+                            pair->next = current;
+                            prev->next = pair;
+                        }
+                        prev = pair;
+                        current = NULL;
+                    } else {
+                        prev = current;
+                        current = current->next;
+                    }
+                }
+            }
+        }
         i++;
-        k++;
     }
 
-    while (j < n2) {
-        arr[k] = R[j];
-        j++;
-        k++;
-    }
-}
+    fclose(file);
 
-void mergeSort(CityTotal* arr, int l, int r)
-{
-    if (l < r) {
-        int m = l + (r - l) / 2;
- 
-        // Sort first and second halves
-        mergeSort(arr, l, m);
-        mergeSort(arr, m + 1, r);
- 
-        merge(arr, l, m, r);
+    for (int i = 0; i < 5; i++) {
+        fprintf(fp, "%s, %.2f\n", cheapest_products_stack->product, cheapest_products_stack->price);
+        cheapest_products_stack = cheapest_products_stack->next;
     }
 }
 
-void mergeProducts(ProductRow* arr, int l, int m, int r)
-{
-    int i, j, k;
-    int n1 = m - l + 1;
-    int n2 = r - m;
- 
-    ProductRow *L = (ProductRow*)malloc(n1 * sizeof(ProductRow));
-    ProductRow *R = (ProductRow*)malloc(n2 * sizeof(ProductRow));
- 
-    for (i = 0; i < n1; i++)
-        L[i] = arr[l + i];
-    for (j = 0; j < n2; j++)
-        R[j] = arr[m + 1 + j];
- 
-    i = 0;
-    j = 0;
-    k = l;
-    while (i < n1 && j < n2) {
-        if (L[i].price <= R[j].price) {
-            arr[k] = L[i];
-            i++;
-        }
-        else {
-            arr[k] = R[j];
-            j++;
-        }
-        k++;
-    }
-
-    while (i < n1) {
-        arr[k] = L[i];
-        i++;
-        k++;
-    }
-
-    while (j < n2) {
-        arr[k] = R[j];
-        j++;
-        k++;
-    }
-}
-
-
-void mergeSortProducts(ProductRow* arr, int l, int r)
-{
-    if (l < r) {
-        int m = l + (r - l) / 2;
- 
-        mergeSortProducts(arr, l, m);
-        mergeSortProducts(arr, m + 1, r);
- 
-        mergeProducts(arr, l, m, r);
-    }
-}
 
 int main() {
     clock_t t; 
     t = clock(); 
-
-    CityTotal *city_totals = malloc(101 * sizeof(CityTotal));
-    int city_count = 0;
+    
+    struct CityTotalHashTable* cityTotalHashTable = createCityTotalHashTable(102);
 
     FILE *file = fopen("input.txt", "r"); // SPECIFY THE INPUT FILE PATH
     if (file == NULL) {
@@ -157,77 +148,56 @@ int main() {
         return 1;
     }
 
-    Row *data = malloc(MAX_ROWS * sizeof(Row));
+    char* line = (char*)malloc(MAX_LINE_SIZE * sizeof(char));
     int i = 0;
 
-    while (fscanf(file, "%49[^,],%49[^,],%lf\n", data[i].city, data[i].product, &data[i].price) == 3) {
-        int found = 0;
-        for (int j = 0; j < city_count; j++) {
-            if (strcmp(data[i].city, city_totals[j].city) == 0) {
-                city_totals[j].total_price += data[i].price;
-                found = 1;
-                break;
-            }
-        }
-        if (!found) {
-            strcpy(city_totals[city_count].city, data[i].city);
-            city_totals[city_count].total_price = data[i].price;
-            city_count++;
-        }
+    while (fgets(line, MAX_LINE_SIZE, file) && i < MAX_ROWS) {
+        char* city = strtok(line, ",");
+        char* product = strtok(NULL, ",");
+        double price = atof(strtok(NULL, ",\n"));
+
+        /* char* tok = strtok(line, ",");
+        char city[MAX_CITY_NAME_LENGTH];
+        strcpy(city, tok);
+        tok = strtok(NULL, ",");
+        char product[MAX_PRODUCT_NAME_LENGTH];
+        strcpy(product, tok);
+        tok = strtok(NULL, ",");
+        double price = atof(tok); */
+
+        insertCityTotal(cityTotalHashTable, city, price);
         i++;
-        if (i >= MAX_ROWS) {
-            break;
-        }
     }
 
     fclose(file);
 
-    double cheapest_price = city_totals[0].total_price;
     char cheapest_city[MAX_CITY_NAME_LENGTH];
-    strcpy(cheapest_city, city_totals[0].city);
-
-    mergeSort(city_totals, 0, city_count - 1);
-
-    FILE* fp = fopen("output.txt", "w"); // SPECIFY THE OUTPUT FILE PATH
-    if (NULL == fp) {
-        printf("Cannot create/open file %s. Make sure you have permission to create/open a file in the directory\n", "output.txt");
-        exit(0);
-    }
-
-    strcpy(cheapest_city, city_totals[0].city);
-    cheapest_price = city_totals[0].total_price;
-
-    free(city_totals);
-
-    // Find items in the cheapest city
-    ProductRow *cheapest_city_rows = malloc(MAX_ROWS * sizeof(ProductRow));
-    int cheapest_city_rows_count = 0;
-
-    for (int i = 0; i < MAX_ROWS; i++) {
-        if (strcmp(data[i].city, cheapest_city) == 0) {
-            strcpy(cheapest_city_rows[cheapest_city_rows_count].product, data[i].product);
-            cheapest_city_rows[cheapest_city_rows_count].price = data[i].price;
-            cheapest_city_rows_count++;
+    double cheapest_price = 1.7976931348623158e+308;
+    for (int i = 0; i < cityTotalHashTable->size; i++) {
+        if (cityTotalHashTable->table[i] != NULL) {
+            if (cityTotalHashTable->table[i]->total_price < cheapest_price) {
+                cheapest_price = cityTotalHashTable->table[i]->total_price;
+                strcpy(cheapest_city, cityTotalHashTable->table[i]->city);
+            }
         }
     }
+
+    free_city_total_hash_table(cityTotalHashTable);
     
-    mergeSortProducts(cheapest_city_rows, 0, cheapest_city_rows_count - 1);
-
-    rewind(fp);
-
-    fprintf(fp, "%s %.2f\n", cheapest_city, cheapest_price);
-    for (int i = 0; i < 5 && i < MAX_ROWS; i++) {
-        fprintf(fp, "%s %.2f\n", cheapest_city_rows[i].product, cheapest_city_rows[i].price);
+    file = fopen("output.txt", "w"); // SPECIFY THE OUTPUT FILE PATH
+    if (file == NULL) {
+        printf("Could not open file\n");
+        return 1;
     }
 
-    fclose(fp);
+    fprintf(file, "%s %.2f\n", cheapest_city, cheapest_price);
 
-    free(data);
-    free(cheapest_city_rows);
+    findCheapestProducts(cheapest_city, file);
+
+    fclose(file);
 
     t = clock() - t;
     double time_taken = ((double)t) / CLOCKS_PER_SEC;
     printf("The program took %f seconds to execute\n", time_taken);
-    
     return 0;
 }
