@@ -59,7 +59,7 @@ inline const MappedFile map_input() {
     return {fd, (size_t) sb.st_size, addr};
 }
 
-const string consume_str(char* &start) {
+inline const string consume_str(char* &start) {
     string s; s.reserve(40);
     char c;
     while ((c = *start) != 0 && c != ',' && c != '\n') {
@@ -70,7 +70,7 @@ const string consume_str(char* &start) {
     return s;
 }
 
-int find_or_create(unordered_map<string, int> &id_map, const string &k) {
+inline int find_or_create(unordered_map<string, int> &id_map, const string &k) {
     int id = -1;
     if (id_map.find(k) == id_map.end()) {
         id = id_map[k] = id_map.size();
@@ -135,7 +135,7 @@ Result merge(vector<Result> &results) {
     return mr;
 }
 
-void ans(Result &result) {
+inline void ans(Result &result) {
     FILE *f = fopen(OUTPUT_FILENAME, "w");
 
     double min_city_cost = 4e18;
