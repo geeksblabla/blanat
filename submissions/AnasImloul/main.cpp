@@ -62,6 +62,7 @@ string fruits_and_vegetables[94] = {
         "Rutabaga", "Avocado", "Beet", "Zucchini", "Kiwi", "Salsify"
 };
 
+
 int main() {
     cin.tie(nullptr);
     cout.tie(nullptr);
