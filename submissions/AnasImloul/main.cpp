@@ -64,14 +64,8 @@ string fruits_and_vegetables[94] = {
         "Rutabaga", "Avocado", "Beet", "Zucchini", "Kiwi", "Salsify"
 };
 
-int64_t currentTimeMillis() {
-    using namespace std::chrono;
-    return duration_cast<milliseconds>(high_resolution_clock::now().time_since_epoch()).count();
-}
 
 int main() {
-    // int64_t start = currentTimeMillis();
-
     cin.tie(nullptr);
     cout.tie(nullptr);
     ios_base::sync_with_stdio(false);
@@ -94,11 +88,8 @@ int main() {
         total_per_city[city] = 0;
     }
 
-    int64_t round = currentTimeMillis();
-
     ofstream output("output.txt");
 
-    int counter = 0;
     string city, product;
     char c;
     while (!cin.eof()) {
@@ -132,13 +123,6 @@ int main() {
             if (price < current_price) current_price = price;
         }
         total_per_city[city] += price;
-
-        counter++;
-        if (counter % 1000000 == 0) {
-            cerr << counter / 1000000 << " million lines processed in " << currentTimeMillis() - round << endl;
-            round = currentTimeMillis();
-            break;
-        }
     }
 
     // get city with the lowest price
@@ -176,7 +160,4 @@ int main() {
     }
 
     output.close();
-
-    // int64_t end = currentTimeMillis();
-    // cerr << "Execution time: " << end - start << " ms" << endl;
 }
