@@ -39,7 +39,9 @@ struct Result {
   long long product_cost[NUM_CITIES][NUM_CITIES];
   ht<string, int> product_id;
   ht<string, int> city_id;
-  Result() {
+  Result()
+      : product_id({}, {}, {}, {}, {1 << 7}),
+        city_id({}, {}, {}, {}, {1 << 7}) {
     fill_n(city_cost, NUM_CITIES, 0);
     fill_n((long long *)product_cost, NUM_CITIES * NUM_CITIES, (long long)4e18);
   }
@@ -55,6 +57,7 @@ inline const MappedFile map_input() {
   const char *addr = static_cast<const char *>(
       mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0u));
   if (addr == MAP_FAILED) handle_error("map_input: mmap failed");
+  // madvise((void *)addr, sb.st_size / NUM_THREADS, MADV_SEQUENTIAL);
 
   return {fd, (size_t)sb.st_size, addr};
 }
