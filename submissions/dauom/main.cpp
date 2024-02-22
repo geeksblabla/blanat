@@ -191,6 +191,7 @@ inline void ans(Result &result) {
   for (auto &p : products) {
     fprintf(f, "%s %.2f\n", p.second.c_str(), p.first / 100.0);
   }
+  fflush(f);
   fclose(f);
 }
 
