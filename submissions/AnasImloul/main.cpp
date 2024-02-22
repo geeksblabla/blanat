@@ -1,6 +1,6 @@
 /*
 Author: @AnasImloul
-compile: g++ -std=c++17 -O7 -o main main.cpp
+compile: g++ -std=c++17 -Ofast -o main main.cpp
 */
 
 #include <fstream>
@@ -11,10 +11,7 @@ compile: g++ -std=c++17 -O7 -o main main.cpp
 #include <unordered_map>
 #include <iomanip>
 #include <queue>
-#include <limits>
-
-#pragma GCC optimize("O7,unroll-loops")
-#pragma GCC target("avx,avx2,fma")
+#include <cstdint>
 
 using namespace std;
 
@@ -73,7 +70,7 @@ int64_t currentTimeMillis() {
 }
 
 int main() {
-    int64_t start = currentTimeMillis();
+    // int64_t start = currentTimeMillis();
 
     cin.tie(nullptr);
     cout.tie(nullptr);
@@ -140,32 +137,25 @@ int main() {
         if (counter % 1000000 == 0) {
             cerr << counter / 1000000 << " million lines processed in " << currentTimeMillis() - round << endl;
             round = currentTimeMillis();
+            break;
         }
     }
 
     // get city with the lowest price
-    string cheapest_city;
-    int64_t cheapest_price = INT64_MAX;
-    for (const auto& entry : total_per_city) {
-        const auto& city = entry.first;
-        const auto& total = entry.second;
-        // cout << city << " " << total << endl;
-        if (total > 0 && total < cheapest_price) {
-            cheapest_price = total;
-            cheapest_city = city;
-        } else if (total == cheapest_price && city < cheapest_city) {
-            cheapest_city = city;
-        }
+    pair<int64_t, string> cheapest = {INT64_MAX, ""};
+    for (const auto& [city, total] : total_per_city) {
+        cheapest = min(cheapest, {total, city});
     }
 
     // print the city with the lowest price
-    output << cheapest_city << " " << cheapest_price / 100 << '.' << cheapest_price % 100 << endl;
+    if (cheapest.first % 100 < 10)
+        output << cheapest.second << " " << cheapest.first / 100 << ".0" << cheapest.first % 100 << endl;
+    else
+        output << cheapest.second << " " << cheapest.first / 100 << "." << cheapest.first % 100 << endl;
 
     // get 5 products with the lowest price
     priority_queue<pair<int64_t , string>> pq;
-    for (const auto& entry : map[cheapest_city]) {
-        const auto& product = entry.first;
-        const auto& price = entry.second;
+    for (const auto& [product, price] : map[cheapest.second]) {
         pq.emplace(price, product);
         if (pq.size() > 5) pq.pop();
     }
@@ -177,14 +167,16 @@ int main() {
     }
 
     // print the products
-    for (const auto& entry : products) {
-        const auto& product = entry.second;
-        const auto& price = entry.first;
-        output << product << " " << price / 100 << '.' << price % 100 << endl;
+    for (const auto& [price, product] : products) {
+        if (price % 100 < 10)
+            output << product << " " << price / 100 << ".0" << price % 100 << endl;
+        else
+            output << product << " " << price / 100 << "." << price % 100 << endl;
+
     }
 
     output.close();
 
-    int64_t end = currentTimeMillis();
-    cerr << "Execution time: " << end - start << " ms" << endl;
+    // int64_t end = currentTimeMillis();
+    // cerr << "Execution time: " << end - start << " ms" << endl;
 }
