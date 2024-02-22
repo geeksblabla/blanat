@@ -1,0 +1,1 @@
+The city with the lowest total price is Rabat, with a total price of 5.90. The cheapest products in Rabat are Apple, Banana, Orange, Carrot, and Potato, with prices of 2.20, 1.10, 2.80, 2.00, and 2.25, respectively.
