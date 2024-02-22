@@ -7,10 +7,13 @@
 #include <errno.h>
 #include <string.h>
 
+#include <sys/mman.h>
+#include <sys/stat.h>
+
 #include <stdlib.h>
 #include <time.h>
 
-#define ENABLE_ASSERTS 0
+#define ENABLE_ASSERTS 1
 
 #if ENABLE_ASSERTS
 # define AssertBreak (*(volatile int *)0 = 0)
@@ -282,65 +285,20 @@ static u64 product_min_price_per_city[CITIES_MAX][PRODUCTS_MAX]; // about 1.5MB
 static u64 cities_prices[CITIES_MAX];
 static b8 valid_cities[CITIES_MAX];
 
+static char *mapped_file;
+static u64 mapped_file_size;
+static u64 offset_into_mapped_file;
 
-#define BACK_BUFFE_SIZE (1 << 20)
-int fd;
-static u8 io_back_buffer[BACK_BUFFE_SIZE];
-static i32 io_back_buffer_size;
-static u8 *io_next_unread;
-
-
-static int
-file_read(u8 *buf, u32 buf_size)
+static void
+map_file_to_memory(int fd)
 {
-  while (io_back_buffer_size <= 0)
-  {
-    // NOTE(fakhri): refill the back buffer
-    io_back_buffer_size = read(fd, io_back_buffer, BACK_BUFFE_SIZE);
-    if (io_back_buffer_size < 0)
-    {
-      if (errno != EINTR) return -1;
-    }
-    else if (io_back_buffer_size == 0) return 0;
-    else io_next_unread = io_back_buffer;
-  }
+  struct stat buf;
+  fstat(fd, &buf);
+  mapped_file_size = buf.st_size;
   
-  int cnt = MIN(buf_size, (u32)io_back_buffer_size);
-  memcpy(buf, io_next_unread, cnt);
-  
-  io_back_buffer_size -= cnt;
-  io_next_unread += cnt;
-  
-  return cnt;
+  mapped_file = (char*)mmap(0, mapped_file_size, PROT_READ, MAP_PRIVATE, fd, 0);
+  Assert(mapped_file != MAP_FAILED);
 }
-
-static int
-file_read_line(u8 *buf, u32 buf_size)
-{
-  u8 *buf_ptr = buf;
-  int i = 1;
-  for (; i < (int)buf_size; i += 1)
-  {
-    char c;
-    int rs = file_read((u8*)&c, 1);
-    if (rs == 1)
-    {
-      *buf_ptr++ = c;
-      if (c == '\n')
-        break;
-    }
-    else if (rs == 0)
-    {
-      if (i == 1) return 0;
-      break;
-    }
-    else return -1;
-  }
-  *buf_ptr = 0;
-  return i - 1;
-}
-
-
 
 int main()
 {
@@ -350,17 +308,16 @@ int main()
     fill_cities_name_per_index_table();
     fill_fruits_name_per_index_table();
     
-    fd = open("input.txt", O_RDONLY);
+    int fd = open("input.txt", O_RDONLY);
     Assert(fd != -1);
-    io_back_buffer_size = 0;
-    io_next_unread = io_back_buffer;
+    map_file_to_memory(fd);
     
     memset(product_min_price_per_city, -1, sizeof(product_min_price_per_city));
     
-    char line_buf[256];
-    while (file_read_line((u8*)line_buf, sizeof(line_buf)) > 0)
+    for (;offset_into_mapped_file < mapped_file_size;)
     {
-      char *city = line_buf;
+      // TODO(fakhri): attempt prefetching?
+      char *city = mapped_file + offset_into_mapped_file;
       u32 city_len = 0;
       for (;city[city_len] != ',';city_len++);
       
@@ -387,6 +344,8 @@ int main()
       valid_cities[city_idx] = 1;
       cities_prices[city_idx] += price;
       product_min_price_per_city[city_idx][product_idx] = MIN(product_min_price_per_city[city_idx][product_idx], price);
+      
+      offset_into_mapped_file += city_len + fruit_len + price_decimal_len + price_fractional_len + 4;
     }
     
     // NOTE(fakhri): find cheapest city
