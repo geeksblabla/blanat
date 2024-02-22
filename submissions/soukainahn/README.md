@@ -1,4 +1,4 @@
--  Hi, I’m @soukainahn a cybersecurity and embedded network systems at the national school of applied science in marrakesh 
+-  👋Hi, I’m @soukainahn a cybersecurity engineering student  at the national school of applied science in marrakesh 
 - 🌱 I'm deeply interested in programming and cybersecurity,and I'm constantly seeking opportunities to expand my knowledge in these areas,where i enjoy exploring the complexities of both disciplines .
 
 - 📫 soukainahanane03@gmail.com
@@ -7,5 +7,4 @@
 
 <!---
 soukainahn/soukainahn is a ✨ special ✨ repository because its README.md (this file) appears on your GitHub profile.
-You can click the Preview link to take a look at your changes.
---->
+
