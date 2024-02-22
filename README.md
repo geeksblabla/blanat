@@ -150,6 +150,7 @@ The challenge will run from the 19th of February 2024 until 29th of February 202
 
 ## Leaderboard
 > Last updated: Thu 22 Feb 2024, 12pm Moroccan time
+
 | Username   | Avg Time (ms) | Median Time (ms) | Language | Humanized Time                |
 |------------|---------------|------------------|----------|-------------------------------|
 | NotAsheraf | 107811        | 107152           | rs       | 107.81 sec (≈ 1 min 47.81 sec) |
