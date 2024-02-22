@@ -5,7 +5,7 @@
 #include <pthread.h>
 
 // SPECIFY THE NUMBER OF ROWS IN HERE (EX FOR THE CHALLENGE TESTING DATA: 1000000000)
-#define MAX_ROWS 8473
+#define MAX_ROWS 1000000
 // SPECIFY THE MAXIMUM LENGTH OF city
 #define MAX_CITY_NAME_LENGTH 50
 // SPECIFY THE MAXIMUM LENGTH OF PRODUCT city
@@ -21,6 +21,7 @@ struct KeyValuePair {
 struct CityTotal {
     char city[MAX_CITY_NAME_LENGTH];
     double total_price;
+    struct CityTotal* next;
 };
 
 
@@ -109,14 +110,31 @@ int hashCode(const char* key, int tableSize) {
 
 void insertCityTotal(struct CityTotalHashTable* cityTotalHashTable, const char* key, double price) {
     int index = hashCode(key, cityTotalHashTable->size);
-    struct CityTotal* pair = (struct CityTotal*)malloc(sizeof(struct CityTotal));
-    strcpy(pair->city, key);
-    pair->total_price = price;
+    struct CityTotal* current = cityTotalHashTable->table[index];
 
-    if (cityTotalHashTable->table[index] == NULL) {
-        cityTotalHashTable->table[index] = pair;
+    if (current == NULL) {
+        current = (struct CityTotal*)malloc(sizeof(struct CityTotal));
+        strcpy(current->city, key);
+        current->total_price = price;
+        current->next = NULL;
+        cityTotalHashTable->table[index] = current;
     } else {
-        cityTotalHashTable->table[index]->total_price += price;
+        while (current->next != NULL) {
+            if (strcmp(current->city, key) == 0) {
+                current->total_price += price;
+                return;
+            }
+            current = current->next;
+        }
+        if (strcmp(current->city, key) == 0) {
+            current->total_price += price;
+            return;
+        }
+        current->next = (struct CityTotal*)malloc(sizeof(struct CityTotal));
+        current = current->next;
+        strcpy(current->city, key);
+        current->total_price = price;
+        current->next = NULL;
     }
 }
 
@@ -217,11 +235,16 @@ int main() {
 
     char cheapest_city[MAX_CITY_NAME_LENGTH];
     double cheapest_price = 1.7976931348623158e+308;
+    struct CityTotal* current;
     for (int i = 0; i < cityTotalHashTable->size; i++) {
         if (cityTotalHashTable->table[i] != NULL) {
-            if (cityTotalHashTable->table[i]->total_price < cheapest_price) {
-                cheapest_price = cityTotalHashTable->table[i]->total_price;
-                strcpy(cheapest_city, cityTotalHashTable->table[i]->city);
+            current = cityTotalHashTable->table[i];
+            while (current != NULL) {
+                if (current->total_price < cheapest_price) {
+                    cheapest_price = current->total_price;
+                    strcpy(cheapest_city, current->city);
+                }
+                current = current->next;
             }
         }
     }
