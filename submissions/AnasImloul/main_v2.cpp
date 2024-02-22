@@ -198,6 +198,7 @@ int main() {
         if (pq.size() > 5) pq.pop();
     }
 
+
     // get the products in ascending order
     vector<pair<int64_t , string>> products(pq.size());
     for (int i = (int)pq.size() - 1; i >= 0; i--, pq.pop()) {
