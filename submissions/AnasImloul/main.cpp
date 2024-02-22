@@ -11,6 +11,7 @@ compile: g++ -std=c++17 -O7 -o main main.cpp
 #include <unordered_map>
 #include <iomanip>
 #include <queue>
+#include <limits>
 
 #pragma GCC optimize("O7,unroll-loops")
 #pragma GCC target("avx,avx2,fma")
@@ -86,7 +87,7 @@ int main() {
     for (const auto& city : moroccan_cities) {
         map[city].reserve(512);
         for (const auto& product : fruits_and_vegetables)
-            map[city][product] = UINT64_MAX;
+            map[city][product] = INT64_MAX;
     }
 
     // map to store the total price of each city (sum of all products)
@@ -97,6 +98,8 @@ int main() {
     }
 
     int64_t round = currentTimeMillis();
+
+    ofstream output("output.txt");
 
     int counter = 0;
     string city, product;
@@ -140,17 +143,14 @@ int main() {
         }
     }
 
-
-    ofstream output("output.txt");
-
     // get city with the lowest price
     string cheapest_city;
     int64_t cheapest_price = INT64_MAX;
     for (const auto& entry : total_per_city) {
         const auto& city = entry.first;
         const auto& total = entry.second;
-        cout << city << " " << total << endl;
-        if (total < cheapest_price) {
+        // cout << city << " " << total << endl;
+        if (total > 0 && total < cheapest_price) {
             cheapest_price = total;
             cheapest_city = city;
         } else if (total == cheapest_price && city < cheapest_city) {
