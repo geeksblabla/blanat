@@ -7,9 +7,7 @@ compile: g++ -std=c++17 -Ofast -o main main.cpp
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include <chrono>
 #include <unordered_map>
-#include <iomanip>
 #include <queue>
 #include <cstdint>
 
@@ -132,10 +130,11 @@ int main() {
     }
 
     // print the city with the lowest price
-    if (cheapest.first % 100 < 10)
-        output << cheapest.second << " " << cheapest.first / 100 << ".0" << cheapest.first % 100 << endl;
-    else
-        output << cheapest.second << " " << cheapest.first / 100 << "." << cheapest.first % 100 << endl;
+    output << cheapest.second
+           << " "
+           << cheapest.first / 100
+           << (cheapest.first % 100 < 10 ? ".0" : ".")
+           << cheapest.first % 100 << endl;
 
     // get 5 products with the lowest price
     priority_queue<pair<int64_t , string>> pq;
@@ -152,11 +151,12 @@ int main() {
 
     // print the products
     for (const auto& [price, product] : products) {
-        if (price % 100 < 10)
-            output << product << " " << price / 100 << ".0" << price % 100 << endl;
-        else
-            output << product << " " << price / 100 << "." << price % 100 << endl;
-
+        output << product
+               << " "
+               << price / 100
+               << (price % 100 < 10 ? ".0" : ".")
+               << price % 100
+               << endl;
     }
 
     output.close();
