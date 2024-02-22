@@ -149,13 +149,15 @@ The competition focuses solely on correctness and speed of execution to gauge pa
 The challenge will run from the 19th of February 2024 until 29th of February 2024. The winner will be announced during March 1st 2024 in our social media challenges
 
 ## Leaderboard
-> Last updated: Thu 22 Feb 2024, 12pm Moroccan time
+> Last updated: Thu 22 Feb 2024, 5pm Moroccan time
  
 | Username   | Avg Time (ms) | Median Time (ms) | Language | Humanized Time                |
 |------------|---------------|------------------|----------|-------------------------------|
-| NotAsheraf | 107811        | 107152           | rs       | 107.81 sec (≈ 1 min 47.81 sec) |
+| dauom      | 64388         | 63221            | C++      | 643.88 sec (≈ 1 min 4.88 sec) |
+| NotAsheraf | 107811        | 107152           | rust     | 107.81 sec (≈ 1 min 47.81 sec) |
 | aboullaite | 368758        | 368167           | java     | 368.76 sec (≈ 6 min 8.76 sec)  |
-| sm3xy      | 903274        | 900806           | py       | 903.27 sec (≈ 15 min 3.27 sec) |
+| essmehdi   | 475119        | 486776           | rust     | 475.11 sec (≈ 7 min 55.11 se) |
+| sm3xy      | 903274        | 900806           | python   | 903.27 sec (≈ 15 min 3.27 sec) |
 
 We only list solutions with correct results that run within ~15 min. We unfortunately can't give feedback on every submission and we invite you to read the full assignement.
 
