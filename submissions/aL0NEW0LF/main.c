@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <windows.h>
+#include <pthread.h>
 
 // SPECIFY THE NUMBER OF ROWS IN HERE (EX FOR THE CHALLENGE TESTING DATA: 1000000000)
 #define MAX_ROWS 8473
@@ -15,7 +16,6 @@
 struct KeyValuePair {
     char product[MAX_PRODUCT_NAME_LENGTH];
     double price;
-    struct KeyValuePair* next;
 };
 
 struct CityTotal {
@@ -34,8 +34,61 @@ struct KeyValuePair* createKeyValuePair(const char* key, char product[MAX_PRODUC
     struct KeyValuePair* pair = (struct KeyValuePair*)malloc(sizeof(struct KeyValuePair));
     strcpy(pair->product, product);
     pair->price = price;
-    pair->next = NULL;
     return pair;
+}
+
+void mergeProducts(struct KeyValuePair* arr, int l, int m, int r)
+{
+    int i, j, k;
+    int n1 = m - l + 1;
+    int n2 = r - m;
+ 
+    struct KeyValuePair *L = (struct KeyValuePair*)malloc(n1 * sizeof(struct KeyValuePair));
+    struct KeyValuePair *R = (struct KeyValuePair*)malloc(n2 * sizeof(struct KeyValuePair));
+ 
+    for (i = 0; i < n1; i++)
+        L[i] = arr[l + i];
+    for (j = 0; j < n2; j++)
+        R[j] = arr[m + 1 + j];
+ 
+    i = 0;
+    j = 0;
+    k = l;
+    while (i < n1 && j < n2) {
+        if (L[i].price <= R[j].price) {
+            arr[k] = L[i];
+            i++;
+        }
+        else {
+            arr[k] = R[j];
+            j++;
+        }
+        k++;
+    }
+
+    while (i < n1) {
+        arr[k] = L[i];
+        i++;
+        k++;
+    }
+
+    while (j < n2) {
+        arr[k] = R[j];
+        j++;
+        k++;
+    }
+}
+
+void mergeSortProducts(struct KeyValuePair* arr, int l, int r)
+{
+    if (l < r) {
+        int m = l + (r - l) / 2;
+ 
+        mergeSortProducts(arr, l, m);
+        mergeSortProducts(arr, m + 1, r);
+ 
+        mergeProducts(arr, l, m, r);
+    }
 }
 
 struct CityTotalHashTable* createCityTotalHashTable(int size) {
@@ -44,7 +97,6 @@ struct CityTotalHashTable* createCityTotalHashTable(int size) {
     cityTotalHashTable->table = (struct CityTotal**)calloc(size, sizeof(struct CityTotal*));
     return cityTotalHashTable;
 };
-
 
 // Function to calculate the hash code for a key
 int hashCode(const char* key, int tableSize) {
@@ -79,7 +131,7 @@ void free_city_total_hash_table(struct CityTotalHashTable* cityTotalHashTable) {
 
 // Function to find the top 5 cheapest products in that cheapest city
 void findCheapestProducts(const char* key, FILE* fp) {
-    struct KeyValuePair* cheapest_products_stack = NULL;
+    struct KeyValuePair cheapest_products_stack[100];
     int cheapest_products_stack_size = 0;
 
     FILE *file = fopen("input.txt", "r"); // SPECIFY THE INPUT FILE PATH
@@ -97,41 +149,28 @@ void findCheapestProducts(const char* key, FILE* fp) {
         double price = atof(strtok(NULL, ",\n"));
 
         if (strcmp(city, key) == 0) {
-            if (cheapest_products_stack_size < 5) {
-                struct KeyValuePair* pair = createKeyValuePair(city, product, price);
-                pair->next = cheapest_products_stack;
-                cheapest_products_stack = pair;
-                cheapest_products_stack_size++;
-            } else {
-                struct KeyValuePair* current = cheapest_products_stack;
-                struct KeyValuePair* prev = NULL;
-                while (current != NULL) {
-                    if (price < current->price) {
-                        struct KeyValuePair* pair = createKeyValuePair(city, product, price);
-                        if (prev == NULL) {
-                            pair->next = cheapest_products_stack;
-                            cheapest_products_stack = pair;
-                        } else {
-                            pair->next = current;
-                            prev->next = pair;
-                        }
-                        prev = pair;
-                        current = NULL;
-                    } else {
-                        prev = current;
-                        current = current->next;
+            for (int j = 0; j < 100; j++) {
+                if (strcmp(cheapest_products_stack[j].product, product) == 0) {
+                    if (price < cheapest_products_stack[j].price) {
+                        cheapest_products_stack[j].price = price;
                     }
+                    break;
+                } else if (j == cheapest_products_stack_size) {
+                    strcpy(cheapest_products_stack[cheapest_products_stack_size].product, product);
+                    cheapest_products_stack[cheapest_products_stack_size].price = price;
+                    cheapest_products_stack_size++;
+                    break;
                 }
             }
         }
-        i++;
     }
 
     fclose(file);
 
+    mergeSortProducts(cheapest_products_stack, 0, cheapest_products_stack_size - 1);
+
     for (int i = 0; i < 5; i++) {
-        fprintf(fp, "%s, %.2f\n", cheapest_products_stack->product, cheapest_products_stack->price);
-        cheapest_products_stack = cheapest_products_stack->next;
+        fprintf(fp, "%s %.2f\n", cheapest_products_stack[i].product, cheapest_products_stack[i].price);
     }
 }
 
