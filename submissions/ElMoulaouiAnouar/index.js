@@ -19,7 +19,7 @@ data.split('\r\n').map(line => {
 //sort results and get first city
 const firstCityHasSmallPrice = Array.from(cityWithTotal.entries()).sort((a,b) => a[1]-b[1])[0];
 
-//write reulsts in file 
+//write reulsts in file  
 fileStreamOut.write(`${firstCityHasSmallPrice[0]}  ${firstCityHasSmallPrice[1]} \n`)
 
 cityWithProduct.get(firstCityHasSmallPrice[0].trim()).sort((a,b) => {
