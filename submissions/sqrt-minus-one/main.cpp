@@ -7,13 +7,17 @@
 #include <errno.h>
 #include <string.h>
 
+#include <emmintrin.h>
+
 #include <sys/mman.h>
 #include <sys/stat.h>
 
 #include <stdlib.h>
 #include <time.h>
 
-#define ENABLE_ASSERTS 1
+#include <thread>
+
+#define ENABLE_ASSERTS 0
 
 #if ENABLE_ASSERTS
 # define AssertBreak (*(volatile int *)0 = 0)
@@ -52,6 +56,8 @@ typedef int8_t i8;
 
 typedef int8_t b8;
 typedef int32_t b32;
+
+#define CHUNK_SIZE (1ull << 30)
 
 #define CITIES_MAX 523
 #define PRODUCTS_MAX 409
@@ -300,6 +306,76 @@ map_file_to_memory(int fd)
   Assert(mapped_file != MAP_FAILED);
 }
 
+static void 
+process_file_chunk(char *chunk_buf, u64 chunk_size)
+{
+  u32 offset = 0;
+  if (chunk_buf != mapped_file && chunk_buf[- 1] != '\n')
+  {
+    // NOTE(fakhri): we are not at the start of a new line, move to the next line
+    for (offset = 0; (offset < chunk_size) && (chunk_buf[offset++] != '\n'););
+  }
+  
+  for (;offset < chunk_size;)
+  {
+    // TODO(fakhri): attempt prefetching?
+    char *city = chunk_buf + offset;
+    u32 city_len = 0;
+    for (;city[city_len] != ',';city_len++);
+    
+    char *fruit = city + city_len + 1;
+    u32 fruit_len = 0;
+    for (;fruit[fruit_len] != ',';fruit_len++);
+    
+    char *price_decimal_str = fruit + fruit_len + 1;
+    u32 price_decimal_len = 0;
+    for (;price_decimal_str[price_decimal_len] != '.';price_decimal_len++);
+    u32 price_decimal = convert_to_int(price_decimal_str, price_decimal_len);
+    
+    char *price_fractional_str = price_decimal_str + price_decimal_len + 1;
+    u32 price_fractional_len = 0;
+    for (;price_fractional_str[price_fractional_len] != '\n';price_fractional_len++);
+    u32 price_fractional = convert_to_int(price_fractional_str, price_fractional_len);
+    price_fractional *= (price_fractional_len < 2)? 10:1; 
+    
+    u32 price = price_decimal * 100 + price_fractional;
+    
+    u32 city_idx = compute_city_index(city, city_len);
+    u32 product_idx = compute_product_index(fruit, fruit_len);
+    
+    offset += city_len + fruit_len + price_decimal_len + price_fractional_len + 4;
+    
+    __atomic_store_n(&valid_cities[city_idx], 1, __ATOMIC_SEQ_CST);
+    __atomic_fetch_add(&cities_prices[city_idx], price, __ATOMIC_SEQ_CST);
+    
+    u64 stored_price = 0;
+    u64 new_min = 0;
+    b32 success = 0;
+    do
+    {
+      stored_price = __atomic_load_n(&product_min_price_per_city[city_idx][product_idx], __ATOMIC_SEQ_CST);
+      if (stored_price < price) break;
+      new_min = MIN(stored_price, price);
+      success = __atomic_compare_exchange_n(&product_min_price_per_city[city_idx][product_idx], &stored_price, new_min, false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
+    } while (!success);
+    product_min_price_per_city[city_idx][product_idx] = MIN(product_min_price_per_city[city_idx][product_idx], price);
+  }
+}
+
+static void *thread_main(void *args)
+{
+  volatile u32 *running_threads_count = (volatile u32 *)args;
+  for (;offset_into_mapped_file < mapped_file_size;)
+  {
+    u64 my_offset = __atomic_fetch_add(&offset_into_mapped_file, CHUNK_SIZE, __ATOMIC_SEQ_CST);
+    u64 chunk_size = MIN(CHUNK_SIZE, mapped_file_size - my_offset);
+    process_file_chunk(mapped_file + my_offset, chunk_size);
+  }
+  
+  __atomic_fetch_sub(running_threads_count, 1, __ATOMIC_SEQ_CST);
+  return 0;
+}
+
 int main()
 {
   double timing = 0;
@@ -314,38 +390,21 @@ int main()
     
     memset(product_min_price_per_city, -1, sizeof(product_min_price_per_city));
     
-    for (;offset_into_mapped_file < mapped_file_size;)
+    u32 thread_cnt = std::thread::hardware_concurrency();
+    volatile u32 thread_cnt_arg = thread_cnt;
+    
+    for (u32 i = 1; i < thread_cnt; i += 1)
     {
-      // TODO(fakhri): attempt prefetching?
-      char *city = mapped_file + offset_into_mapped_file;
-      u32 city_len = 0;
-      for (;city[city_len] != ',';city_len++);
-      
-      char *fruit = city + city_len + 1;
-      u32 fruit_len = 0;
-      for (;fruit[fruit_len] != ',';fruit_len++);
-      
-      char *price_decimal_str = fruit + fruit_len + 1;
-      u32 price_decimal_len = 0;
-      for (;price_decimal_str[price_decimal_len] != '.';price_decimal_len++);
-      u32 price_decimal = convert_to_int(price_decimal_str, price_decimal_len);
-      
-      char *price_fractional_str = price_decimal_str + price_decimal_len + 1;
-      u32 price_fractional_len = 0;
-      for (;price_fractional_str[price_fractional_len] != '\n';price_fractional_len++);
-      u32 price_fractional = convert_to_int(price_fractional_str, price_fractional_len);
-      price_fractional *= (price_fractional_len < 2)? 10:1; 
-      
-      u32 price = price_decimal * 100 + price_fractional;
-      
-      u32 city_idx = compute_city_index(city, city_len);
-      u32 product_idx = compute_product_index(fruit, fruit_len);
-      
-      valid_cities[city_idx] = 1;
-      cities_prices[city_idx] += price;
-      product_min_price_per_city[city_idx][product_idx] = MIN(product_min_price_per_city[city_idx][product_idx], price);
-      
-      offset_into_mapped_file += city_len + fruit_len + price_decimal_len + price_fractional_len + 4;
+      pthread_t pid;
+      pthread_create(&pid, 0, thread_main, (void*)&thread_cnt_arg);
+    }
+    
+    thread_main((void*)&thread_cnt_arg);
+
+    // NOTE(fakhri): wait for all threads to finishe
+    while (thread_cnt_arg)
+    {
+      _mm_pause();
     }
     
     // NOTE(fakhri): find cheapest city
@@ -387,16 +446,19 @@ int main()
       }
     }
     
-    printf("%s %lu.%.2lu\n", cities_name_per_index[min_city_idx], min_price / 100, min_price % 100);
+    FILE *fout = fopen("output.txt", "w");
+    fprintf(fout, "%s %lu.%.2lu\n", cities_name_per_index[min_city_idx], min_price / 100, min_price % 100);
     for (int i = 0; i < 5; i += 1)
     {
       if (min_fruits_prices[i] == (u64)-1) break;
       
       u32 fruit_idx = min_fruits_idx[i];
       u64 fruit_price = min_fruits_prices[i];
-      printf("%s %lu.%.2lu\n", fruits_name_per_index[fruit_idx], fruit_price / 100, fruit_price % 100);
+      fprintf(fout, "%s %lu.%.2lu\n", fruits_name_per_index[fruit_idx], fruit_price / 100, fruit_price % 100);
     }
   }
+  
+  munmap(mapped_file, mapped_file_size);
   printf("timing: %fs\n", timing);
   return 0;
 }
