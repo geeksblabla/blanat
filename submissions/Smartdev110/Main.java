@@ -11,7 +11,7 @@ public class Main {
     private static final DecimalFormat df=new DecimalFormat("0.00", new DecimalFormatSymbols(Locale.ENGLISH));
 
     public static void main(String[] args) throws IOException {
-        LocalTime l1=LocalTime.now();
+        
         File inputFile = new File("input.txt");
         File outputFile = new File("output.txt");
 
@@ -61,9 +61,6 @@ public class Main {
 
         writer.write(String.valueOf(result));
         writer.close();
-        LocalTime l2=LocalTime.now();
-        System.out.println(l1.until(l2, ChronoUnit.SECONDS));
-        System.out.println(l1.until(l2, ChronoUnit.MILLIS));
     }
 
 
