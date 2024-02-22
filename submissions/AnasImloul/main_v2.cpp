@@ -117,41 +117,6 @@ int main() {
 
     ofstream output("output.txt");
 
-    string city, product;
-    char c;
-    while (!cin.eof()) {
-        city.clear(), product.clear();
-
-        while (cin.get(c) && c != ',') city.push_back(c);
-
-        while (cin.get(c) && c != ',') product.push_back(c);
-
-        int price = 0;
-        while (cin.get(c) && c != '\n') {
-            if (c == '.') break;
-            else price = price * 10 + (c - '0');
-        }
-
-        int decimal = 0;
-        if (c == '.') {
-            while (cin.get(c) && c != '\n') {
-                price = price * 10 + (c - '0');
-                decimal++;
-            }
-        }
-
-        if (price == 0) break;
-
-        if (decimal == 0) price *= 100;
-        else if (decimal == 1) price *= 10;
-
-        if (price < 1000) {
-            int64_t &current_price = map[city][product];
-            if (price < current_price) current_price = price;
-        }
-        total_per_city[city] += price;
-    }
-
     const size_t bufferSize = 1024 * 1024; // 1 MB buffer size
     vector<char> buffer(bufferSize + 1);
     string leftover;
