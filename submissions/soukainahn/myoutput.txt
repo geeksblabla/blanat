@@ -1,0 +1,6 @@
+Rabat 5.90
+Apple 2.20
+Banana 1.10
+Orange 2.80
+Carrot 2.00
+Potato 2.25
