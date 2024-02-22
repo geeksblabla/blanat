@@ -130,12 +130,10 @@ int main() {
         cheapest = min(cheapest, {total, city});
     }
 
+    output << fixed << setprecision(2);
+
     // print the city with the lowest price
-    output << cheapest.second
-           << " "
-           << cheapest.first / 100
-           << (cheapest.first % 100 < 10 ? ".0" : ".")
-           << cheapest.first % 100 << endl;
+    output << cheapest.second << " " << (double)cheapest.first / 100. << endl;
 
     // get 5 products with the lowest price
     priority_queue<pair<int64_t , string>> pq;
@@ -152,12 +150,7 @@ int main() {
 
     // print the products
     for (const auto& [price, product] : products) {
-        output << product
-               << " "
-               << price / 100
-               << (price % 100 < 10 ? ".0" : ".")
-               << price % 100
-               << endl;
+        output << product << " " << (double)price / 100. << endl;
     }
 
     output.close();
