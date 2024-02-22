@@ -18,7 +18,7 @@ schema = StructType([
 ])
 
 # Read the CSV-like file into a DataFrame
-df = spark.read.csv("input.txt", schema=schema)
+df = spark.read.csv("../../input.txt", schema=schema)
 
 # Group by city and compute the total price of all products
 total_price_by_city = df.groupBy("city").sum("price")
