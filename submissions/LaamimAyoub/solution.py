@@ -1,5 +1,6 @@
 from collections import defaultdict
 from functools import reduce
+from copy import deepcopy
 
 class Solution:
     input_path = "input.txt"
@@ -22,7 +23,7 @@ class Solution:
  
     def get_output(self, the_cheapest_city, data):
         the_cheapest_city_name = the_cheapest_city[0]
-        cc_data = data[the_cheapest_city_name]
+        cc_data = list(dict(data[the_cheapest_city_name]).items())
         cc_data.sort(key = lambda x : x[0])
         cc_data.sort(key = lambda x:x[1])
         cc_data = cc_data[:self.nb_product_to_print]
@@ -39,8 +40,7 @@ class Solution:
             txt = fh.read()
         
         lines = txt.split("\n")
-        default_dict_product = defaultdict(lambda : 1_000_000)
-        data = defaultdict(lambda : default_dict_product)
+        data = defaultdict(lambda : defaultdict(lambda : 101))
         total_per_city = defaultdict(lambda : 0)
         
         
@@ -49,7 +49,7 @@ class Solution:
                 continue
             city, product, price = line.split(',')
             price = float(price)
-            data[city][product] = price if price < data[city][product]
+            data[city][product] = price if price < data[city][product] else data[city][product]
             total_per_city[city] += price
             
         return data, total_per_city   
