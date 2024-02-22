@@ -1,8 +1,7 @@
 from typing import Any
-import numpy as np
 
 
-def get_cities(lines: np.ndarray) -> set:
+def get_cities(lines: list[str]) -> set:
     """Get all cities"""
 
     cities = set()
@@ -11,26 +10,28 @@ def get_cities(lines: np.ndarray) -> set:
     return cities
 
 
-def read_input_file(input_path: str) -> np.ndarray:
-    """Read the input file using numpy"""
+def read_input_file(input_path: str) -> list[str]:
+    """Read the input file"""
 
-    return np.loadtxt(input_path, dtype="str")
+    with open(input_path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+    return lines
 
 
-def get_city_total(city: str, lines: np.ndarray) -> int:
+def get_city_total(city: str, lines: list[str]) -> int:
     """Get the city total"""
 
-    city_lines = np.array([line for line in lines if city == line.split(",")[0]])
+    city_lines = [line for line in lines if city == line.split(",")[0]]
     return sum(float(city_line.split(",")[2].strip()) for city_line in city_lines)
 
 
-def find_cheapest_city(lines: np.ndarray) -> dict[str, Any]:
+def find_cheapest_city(lines: list[str]) -> dict[str, Any]:
     """Find the cheapest city"""
 
     cities = get_cities(lines)
-    cities_data = np.array(
-        [{"name": city, "total": get_city_total(city, lines)} for city in cities]
-    )
+    cities_data = [
+        {"name": city, "total": get_city_total(city, lines)} for city in cities
+    ]
     return min(cities_data, key=lambda x: x["total"])
 
 
@@ -39,13 +40,11 @@ def main(input_path: str, output_path: str) -> Any:
 
     lines = read_input_file(input_path)
     cheapest_city = find_cheapest_city(lines)
-    cheapest_city_lines = np.array(
-        [
-            {"product": line.split(",")[1], "price": line.split(",")[2].strip()}
-            for line in lines
-            if cheapest_city.get("name") == line.split(",")[0]
-        ]
-    )
+    cheapest_city_lines = [
+        {"product": line.split(",")[1], "price": line.split(",")[2].strip()}
+        for line in lines
+        if cheapest_city.get("name") == line.split(",")[0]
+    ]
     output_lines = [
         cheapest_city.get("name") + " " + str(round(cheapest_city.get("total"), 2))
     ]
