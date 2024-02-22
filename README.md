@@ -83,7 +83,7 @@ You can also use the script found at `gen.py` to generate arbitrarily large test
 python3 gen.py --rows <number_of_rows>
 ```
 
-> Note that to generate the 1B row file, it will require a couple of minutes to generate and would take around `~22Gb` of disk space.
+> Note that to generate the 1B row file, it will require a couple of minutes to generate and would take around `~22Mb` of disk space.
 
 ### INPUT
 Below are short examples for better understanding:
