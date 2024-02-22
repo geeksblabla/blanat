@@ -113,7 +113,7 @@ typedef struct
   u32 len;
 } String;
 
-#define string_lit(x) {.data = (x), .len = ArrayLength(x) - 1}
+#define string_lit(x) { (x), ArrayLength(x) - 1}
 
 // NOTE(fakhri): list of all possible products
 // NOTE(fakhri): some fruits and vegies in the original generation code are duplicated... 
@@ -290,8 +290,7 @@ static u64 product_min_price_per_city[CITIES_MAX][PRODUCTS_MAX]; // about 1.5MB
 static u64 cities_prices[CITIES_MAX];
 static b8 valid_cities[CITIES_MAX];
 
-// TODO(fakhri): started with a standard memory page size arbitary, check if changing this
-// have impact on performance
+
 #define BACK_BUFFE_SIZE (1 << 20)
 int fd;
 static u8 io_back_buffer[BACK_BUFFE_SIZE];
