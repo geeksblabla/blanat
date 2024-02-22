@@ -1,19 +1,11 @@
 
-#if defined(_WIN32)
-#define _CRT_SECURE_NO_WARNINGS
-#include <io.h>
-#define open _open
-#define read _read
-#endif
-
+#include <unistd.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-
-#include <intrin.h>
 
 #include <stdlib.h>
 #include <time.h>
@@ -202,7 +194,7 @@ fill_cities_name_per_index_table()
     b32 success = 1;
 #endif
     
-    for (int i = 0; i < ArrayLength(city_names); i += 1)
+    for (u32 i = 0; i < ArrayLength(city_names); i += 1)
     {
       u32 city_idx = compute_city_index(city_names[i].data, city_names[i].len);
 
@@ -252,7 +244,7 @@ fill_fruits_name_per_index_table()
     b32 success = 1;
 #endif
     
-    for (int i = 0; i < ArrayLength(fuits_and_vegs); i += 1)
+    for (u32 i = 0; i < ArrayLength(fuits_and_vegs); i += 1)
     {
       u32 fruits_idx = compute_product_index(fuits_and_vegs[i].data, fuits_and_vegs[i].len);
       
@@ -401,7 +393,7 @@ int main()
     u64 min_price = (u64)-1;
     u64 min_city_idx = (u64)-1;
     
-    for (int i = 0; i < ArrayLength(city_names); i += 1)
+    for (u32 i = 0; i < ArrayLength(city_names); i += 1)
     {
       u32 city_idx = compute_city_index(city_names[i].data, city_names[i].len);
       if (valid_cities[city_idx] && cities_prices[city_idx] < min_price)
@@ -415,7 +407,7 @@ int main()
     u32 min_fruits_idx[6];
     u32 fruits_cnt = 0;
     
-    for (int i = 0; i < ArrayLength(fuits_and_vegs); i += 1)
+    for (u32 i = 0; i < ArrayLength(fuits_and_vegs); i += 1)
     {
       u32 fruit_idx = compute_product_index(fuits_and_vegs[i].data, fuits_and_vegs[i].len);
       u64 price = product_min_price_per_city[min_city_idx][fruit_idx];
@@ -436,14 +428,14 @@ int main()
       }
     }
     
-    printf("%s %lld.%.2lld\n", cities_name_per_index[min_city_idx], min_price / 100, min_price % 100);
+    printf("%s %lu.%.2lu\n", cities_name_per_index[min_city_idx], min_price / 100, min_price % 100);
     for (int i = 0; i < 5; i += 1)
     {
-      if (min_fruits_prices[i] == -1) break;
+      if (min_fruits_prices[i] == (u64)-1) break;
       
       u32 fruit_idx = min_fruits_idx[i];
       u64 fruit_price = min_fruits_prices[i];
-      printf("%s %lld.%.2lld\n", fruits_name_per_index[fruit_idx], fruit_price / 100, fruit_price % 100);
+      printf("%s %lu.%.2lu\n", fruits_name_per_index[fruit_idx], fruit_price / 100, fruit_price % 100);
     }
   }
   printf("timing: %fs\n", timing);
