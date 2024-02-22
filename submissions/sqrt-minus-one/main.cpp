@@ -376,11 +376,15 @@ static void *thread_main(void *args)
   return 0;
 }
 
+#define COMPUTE_TIMING 0
+
 int main()
 {
   double timing = 0;
+#if COMPUTE_TIMING
   compute_timing(timing)
   {
+#endif
     fill_cities_name_per_index_table();
     fill_fruits_name_per_index_table();
     
@@ -456,9 +460,13 @@ int main()
       u64 fruit_price = min_fruits_prices[i];
       fprintf(fout, "%s %lu.%.2lu\n", fruits_name_per_index[fruit_idx], fruit_price / 100, fruit_price % 100);
     }
+    fclose(fout);
+
+#if COMPUTE_TIMING    
   }
+  printf("timing: %fs\n", timing);
+#endif
   
   munmap(mapped_file, mapped_file_size);
-  printf("timing: %fs\n", timing);
   return 0;
 }
