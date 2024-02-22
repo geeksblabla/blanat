@@ -9,7 +9,7 @@
 #include <future>
 #include <string>
 #include <thread>
-// #include <unordered_map>
+#include <unordered_map>
 #include <vector>
 
 using namespace __gnu_pbds;
@@ -57,7 +57,7 @@ inline const MappedFile map_input() {
   const char *addr = static_cast<const char *>(
       mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0u));
   if (addr == MAP_FAILED) handle_error("map_input: mmap failed");
-  // madvise((void *)addr, sb.st_size / NUM_THREADS, MADV_SEQUENTIAL);
+  // madvise((void *)addr, 0, MADV_SEQUENTIAL);
 
   return {fd, (size_t)sb.st_size, addr};
 }
@@ -106,7 +106,7 @@ inline int find_or_create(ht<string, int> &id_map, const string &k) {
 }
 
 Result process_chunk(char *start, char *end) {
-  madvise((void *)start, end - start, MADV_SEQUENTIAL);
+  // madvise((void *)start, end - start, MADV_SEQUENTIAL);
   if (*start != '\n') {
     start = (char *)rawmemchr(start, '\n');
   }
