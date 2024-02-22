@@ -117,7 +117,7 @@ int main() {
 
         if (price < 1000) {
             int64_t &current_price = map[city][product];
-            if (price < current_price) current_price = price;
+            if (current_price == 0 || price < current_price) current_price = price;
         }
         total_per_city[city] += price;
     }
@@ -125,6 +125,7 @@ int main() {
     // get city with the lowest price
     pair<int64_t, string> cheapest = {INT64_MAX, ""};
     for (const auto& [city, total] : total_per_city) {
+        if (total == 0) continue;
         cheapest = min(cheapest, {total, city});
     }
 
