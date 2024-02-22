@@ -139,9 +139,16 @@ void insertCityTotal(struct CityTotalHashTable* cityTotalHashTable, const char* 
 }
 
 void free_city_total_hash_table(struct CityTotalHashTable* cityTotalHashTable) {
+    struct CityTotal* current;
     for (int i = 0; i < cityTotalHashTable->size; i++) {
-        struct CityTotal* current = cityTotalHashTable->table[i];
-        free(current);
+        if (cityTotalHashTable->table[i] != NULL) {
+            current = cityTotalHashTable->table[i];
+            while (current != NULL) {
+                struct CityTotal* temp = current;
+                current = current->next;
+                free(temp);
+            }
+        }
     }
     free(cityTotalHashTable->table);
     free(cityTotalHashTable);
