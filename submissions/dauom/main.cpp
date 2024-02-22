@@ -4,10 +4,8 @@
 #include <unistd.h>  // For close()
 
 #include <algorithm>
-// #include <cassert>
 #include <cstring>
 #include <future>
-// #include <iostream>
 #include <string>
 #include <thread>
 #include <unordered_map>
@@ -57,16 +55,13 @@ inline const MappedFile map_input() {
   return {fd, (size_t)sb.st_size, addr};
 }
 
-inline const string consume_str(char *&start) {
-  string s;
-  s.reserve(40);
+inline const void consume_str(char *&start, string &s) {
   char c;
   while ((c = *start) != 0 && c != ',' && c != '\n') {
     s += c;
     ++start;
   }
   ++start;
-  return s;
 }
 
 inline long long consume_float_as_long(char *&start) {
@@ -111,11 +106,15 @@ Result process_chunk(char *start, char *end) {
 
   Result r;
   char *cur = start;
+  string city;
+  city.reserve(40);
+  string product;
+  product.reserve(40);
   while (cur < end) {
-    string city = consume_str(cur);
-    string product = consume_str(cur);
-    // string sprice = consume_str(cur);
-    // long long price = stoll(sprice);
+    city.clear();
+    consume_str(cur, city);
+    product.clear();
+    consume_str(cur, product);
     long long price = consume_float_as_long(cur);
 
     int cid = find_or_create(r.city_id, city);
@@ -130,12 +129,13 @@ Result process_chunk(char *start, char *end) {
 vector<Result> process_concurrently(const MappedFile &mp) {
   char *start = (char *)mp.file_data;
   char *end = start + mp.file_size;
-  const int block_size = mp.file_size / NUM_THREADS;
+  const size_t block_size = mp.file_size / NUM_THREADS;
 
   vector<future<Result>> future_results;
   for (int i = 0; i < NUM_THREADS; i++) {
-    future_results.emplace_back(async(process_chunk, start + i * block_size,
-                                      min(start + (i + 1) * block_size, end)));
+    future_results.emplace_back(
+        async(process_chunk, start + i * block_size,
+              i == NUM_THREADS - 1 ? end : (start + (i + 1) * block_size)));
   }
 
   vector<Result> results;
@@ -170,7 +170,7 @@ inline void ans(Result &result) {
   int city_id = -1;
   for (auto &cid : result.city_id) {
     long long c = result.city_cost[cid.second];
-    if (c < min_city_cost) {
+    if (min_city_cost > c) {
       min_city_cost = c;
       city = cid.first;
       city_id = cid.second;
