@@ -5,13 +5,18 @@
 
 #include <algorithm>
 #include <cstring>
+#include <ext/pb_ds/assoc_container.hpp>
 #include <future>
 #include <string>
 #include <thread>
 #include <unordered_map>
 #include <vector>
 
+using namespace __gnu_pbds;
 using namespace std;
+
+template <class K, class V>
+using ht = gp_hash_table<K, V>;
 
 #define NUM_CITIES 102
 const char *INPUT_FILENAME = "input.txt";
@@ -32,9 +37,11 @@ struct MappedFile {
 struct Result {
   long long city_cost[NUM_CITIES];
   long long product_cost[NUM_CITIES][NUM_CITIES];
-  unordered_map<string, int> product_id;
-  unordered_map<string, int> city_id;
-  Result() {
+  ht<string, int> product_id;
+  ht<string, int> city_id;
+  Result()
+      : product_id({}, {}, {}, {}, {1 << 7}),
+        city_id({}, {}, {}, {}, {1 << 7}) {
     fill_n(city_cost, NUM_CITIES, 0);
     fill_n((long long *)product_cost, NUM_CITIES * NUM_CITIES, (long long)4e18);
   }
@@ -88,7 +95,7 @@ inline long long consume_float_as_long(char *&start) {
   return ans;
 }
 
-inline int find_or_create(unordered_map<string, int> &id_map, const string &k) {
+inline int find_or_create(ht<string, int> &id_map, const string &k) {
   int id = -1;
   if (id_map.find(k) == id_map.end()) {
     id = id_map[k] = id_map.size();
@@ -99,6 +106,7 @@ inline int find_or_create(unordered_map<string, int> &id_map, const string &k) {
 }
 
 Result process_chunk(char *start, char *end) {
+  // madvise((void *)start, end - start, MADV_SEQUENTIAL);
   if (*start != '\n') {
     start = (char *)rawmemchr(start, '\n');
   }
@@ -126,7 +134,8 @@ Result process_chunk(char *start, char *end) {
   return r;
 }
 
-vector<Result> process_concurrently(const MappedFile &mp) {
+inline void process_concurrently(const MappedFile &mp,
+                                 vector<Result> &results) {
   char *start = (char *)mp.file_data;
   char *end = start + mp.file_size;
   const size_t block_size = mp.file_size / NUM_THREADS;
@@ -138,14 +147,12 @@ vector<Result> process_concurrently(const MappedFile &mp) {
               i == NUM_THREADS - 1 ? end : (start + (i + 1) * block_size)));
   }
 
-  vector<Result> results;
   for (auto &fr : future_results) {
     results.emplace_back(fr.get());
   }
-  return results;
 }
 
-Result merge(vector<Result> &results) {
+inline Result merge(vector<Result> &results) {
   Result mr;
   for (auto &r : results) {
     for (auto &cid : r.city_id) {
@@ -198,7 +205,9 @@ inline void ans(Result &result) {
 int main() {
   const MappedFile mp = map_input();
 
-  vector<Result> results = process_concurrently(mp);
+  vector<Result> results;
+  results.reserve(NUM_THREADS);
+  process_concurrently(mp, results);
   Result result = merge(results);
   ans(result);
 
