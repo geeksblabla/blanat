@@ -11,7 +11,9 @@
 // SPECIFY THE MAXIMUM LENGTH OF PRODUCT city
 #define MAX_PRODUCT_NAME_LENGTH 50
 
-#define MAX_LINE_SIZE 1048576
+#define MAX_LINE_SIZE 2048
+
+#define NUM_THREADS 4
 
 struct KeyValuePair {
     char product[MAX_PRODUCT_NAME_LENGTH];
@@ -28,6 +30,12 @@ struct CityTotal {
 struct CityTotalHashTable {
     int size;
     struct CityTotal** table;
+    pthread_mutex_t* locks;
+};
+
+struct ThreadData {
+    int start;
+    int end;
 };
 
 // Function to create a new key-value pair
@@ -96,6 +104,10 @@ struct CityTotalHashTable* createCityTotalHashTable(int size) {
     struct CityTotalHashTable* cityTotalHashTable = (struct CityTotalHashTable*)malloc(sizeof(struct CityTotalHashTable));
     cityTotalHashTable->size = size;
     cityTotalHashTable->table = (struct CityTotal**)calloc(size, sizeof(struct CityTotal*));
+    cityTotalHashTable->locks = (pthread_mutex_t*)malloc(size * sizeof(pthread_mutex_t));
+    for (int i = 0; i < size; i++) {
+        pthread_mutex_init(&cityTotalHashTable->locks[i], NULL);
+    }
     return cityTotalHashTable;
 };
 
@@ -136,6 +148,7 @@ void insertCityTotal(struct CityTotalHashTable* cityTotalHashTable, const char* 
         current->total_price = price;
         current->next = NULL;
     }
+    pthread_mutex_unlock(&cityTotalHashTable->locks[index]);
 }
 
 void free_city_total_hash_table(struct CityTotalHashTable* cityTotalHashTable) {
@@ -151,6 +164,7 @@ void free_city_total_hash_table(struct CityTotalHashTable* cityTotalHashTable) {
         }
     }
     free(cityTotalHashTable->table);
+    free(cityTotalHashTable->locks);
     free(cityTotalHashTable);
 }
 
@@ -199,6 +213,39 @@ void findCheapestProducts(const char* key, FILE* fp) {
     }
 }
 
+// Function to process a batch of data
+void* processBatch(void* arg) {
+    struct ThreadData* data = (struct ThreadData*)arg;
+    
+    struct CityTotalHashTable* cityTotalHashTable = createCityTotalHashTable(102);
+    
+    FILE *file = fopen("input.txt", "r"); // SPECIFY THE INPUT FILE PATH
+    if (file == NULL) {
+        printf("Could not open file\n");
+        pthread_exit(NULL);
+    }
+
+    char* line = (char*)malloc(MAX_LINE_SIZE * sizeof(char));
+    int i = 0;
+
+    // Process data in the batch
+    while (fgets(line, MAX_LINE_SIZE, file) && i < data->end) {
+        if (i >= data->start) {
+            char* city = strtok(line, ",");
+            char* product = strtok(NULL, ",");
+            double price = atof(strtok(NULL, ",\n"));
+
+            insertCityTotal(cityTotalHashTable, city, price);
+        }
+        i++;
+    }
+
+    fclose(file);
+
+    return (void*)cityTotalHashTable;
+}
+
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 int main() {
     LARGE_INTEGER frequency;
@@ -210,39 +257,41 @@ int main() {
     QueryPerformanceCounter(&start); 
     
     struct CityTotalHashTable* cityTotalHashTable = createCityTotalHashTable(102);
+    struct CityTotalHashTable** cityTotalHashTableArray = (struct CityTotalHashTable**)malloc(NUM_THREADS * sizeof(struct CityTotalHashTable*));
 
-    FILE *file = fopen("input.txt", "r"); // SPECIFY THE INPUT FILE PATH
-    if (file == NULL) {
-        printf("Could not open file\n");
-        return 1;
+    pthread_t threads[NUM_THREADS];
+    struct ThreadData threadData[NUM_THREADS];
+
+    // Create threads
+    for (int i = 0; i < NUM_THREADS; i++) {
+        threadData[i].start = i * (MAX_ROWS / NUM_THREADS);
+        threadData[i].end = (i + 1) * (MAX_ROWS / NUM_THREADS);
+        pthread_create(&threads[i], NULL, processBatch, &threadData[i]);
     }
 
-    char* line = (char*)malloc(MAX_LINE_SIZE * sizeof(char));
-    int i = 0;
-
-    while (fgets(line, MAX_LINE_SIZE, file) && i < MAX_ROWS) {
-        char* city = strtok(line, ",");
-        char* product = strtok(NULL, ",");
-        double price = atof(strtok(NULL, ",\n"));
-
-        /* char* tok = strtok(line, ",");
-        char city[MAX_CITY_NAME_LENGTH];
-        strcpy(city, tok);
-        tok = strtok(NULL, ",");
-        char product[MAX_PRODUCT_NAME_LENGTH];
-        strcpy(product, tok);
-        tok = strtok(NULL, ",");
-        double price = atof(tok); */
-
-        insertCityTotal(cityTotalHashTable, city, price);
-        i++;
+    // Wait for threads to finish
+    for (int i = 0; i < NUM_THREADS; i++) {
+        pthread_join(threads[i], (void**)&cityTotalHashTableArray[i]);
     }
 
-    fclose(file);
+    struct CityTotal* current;
 
+    // Merge the results from the threads
+    for (int i = 0; i < NUM_THREADS; i++) {
+        for (int j = 0; j < cityTotalHashTableArray[i]->size; j++) {
+            if (cityTotalHashTableArray[i]->table[j] != NULL) {
+                current = cityTotalHashTableArray[i]->table[j];
+                while (current != NULL) {
+                    insertCityTotal(cityTotalHashTable, current->city, current->total_price);
+                    current = current->next;
+                }
+            }
+        }
+    }
+
+    // Find the cheapest products in the cheapest city
     char cheapest_city[MAX_CITY_NAME_LENGTH];
     double cheapest_price = 1.7976931348623158e+308;
-    struct CityTotal* current;
     for (int i = 0; i < cityTotalHashTable->size; i++) {
         if (cityTotalHashTable->table[i] != NULL) {
             current = cityTotalHashTable->table[i];
@@ -255,20 +304,21 @@ int main() {
             }
         }
     }
-
-    free_city_total_hash_table(cityTotalHashTable);
     
-    file = fopen("output.txt", "w"); // SPECIFY THE OUTPUT FILE PATH
-    if (file == NULL) {
-        printf("Could not open file\n");
-        return 1;
+    // free the memory
+    for (int i = 0; i < NUM_THREADS; i++) {
+        free_city_total_hash_table(cityTotalHashTableArray[i]);
     }
+    free(cityTotalHashTableArray);
+    free_city_total_hash_table(cityTotalHashTable);
 
-    fprintf(file, "%s %.2f\n", cheapest_city, cheapest_price);
+    FILE* fp = fopen("output.txt", "w"); // SPECIFY THE OUTPUT FILE PATH
 
-    findCheapestProducts(cheapest_city, file);
+    fprintf(fp, "%s %.2f\n", cheapest_city, cheapest_price);
 
-    fclose(file);
+    findCheapestProducts(cheapest_city, fp);
+
+    fclose(fp);
 
     QueryPerformanceCounter(&end);
     interval = (double) (end.QuadPart - start.QuadPart) / frequency.QuadPart;
