@@ -33,4 +33,3 @@ if __name__ == "__main__":
     city_prices, city_products = process_input(input_file)
     cheapest_city, cheapest_products, cheapest_price = find_cheapest(city_prices, city_products)
     write_output(output_file, cheapest_city, cheapest_products, cheapest_price)
-
