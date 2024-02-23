@@ -11,36 +11,40 @@ def get_city_totals(lines):
     return city_totals
 
 
-def find_cheapest_city(lines):
-    """Find the city with the lowest total price"""
+def read_large_file(file_path, chunk_size=256 * 256):
+    """Read input file by chunks"""
 
-    city_totals = get_city_totals(lines)
-    cheapest_city_name = min(city_totals, key=city_totals.get)
-    return cheapest_city_name, city_totals.get(cheapest_city_name)
-
-
-def get_top_n_products(city, lines, n=5):
-    """Get the top n cheapest products for a city"""
-
-    city_products = []
-    for line in lines:
-        if line.startswith(city):
-            _, product, price = line.strip().split(",")
-            city_products.append({"product": product, "price": float(price)})
-    return sorted(
-        city_products,
-        key=lambda x: (x.get("price", 0), x.get("product")),
-    )[:n]
+    with open(file_path, "r") as file:
+        while True:
+            data = file.readlines(chunk_size)
+            if not data:
+                break
+            yield data
 
 
 def main(input_path, output_path):
     """Main function"""
 
-    with open(input_path, "r", encoding="utf-8") as f:
-        lines = f.readlines()
+    city_totals = defaultdict(float)
+    cheapest_city_products = defaultdict(list)
+    for chunk in read_large_file(input_path):
+        for line in chunk:
+            city, _, price = line.strip().split(",")
+            city_totals[city] += float(price)
+            _, product, price = line.strip().split(",")
 
-    cheapest_city, cheapest_total = find_cheapest_city(lines)
-    top_products = get_top_n_products(cheapest_city, lines)
+    cheapest_city = min(city_totals, key=city_totals.get)
+    cheapest_total = city_totals[cheapest_city]
+    for chunk in read_large_file(input_path):
+        for line in chunk:
+            if line.startswith(cheapest_city):
+                _, product, price = line.strip().split(",")
+                cheapest_city_products[cheapest_city].append(
+                    {"product": product, "price": float(price)}
+                )
+    top_products = sorted(
+        cheapest_city_products[cheapest_city], key=lambda x: (x["price"], x["product"])
+    )[:5]
 
     output_lines = [f"{cheapest_city} {round(cheapest_total, 2)}"]
     output_lines.extend(
