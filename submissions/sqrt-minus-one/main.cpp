@@ -28,6 +28,7 @@
 #endif
 
 #define MIN(a, b) (((a) < (b))? (a) : (b))
+#define MAX(a, b) (((a) > (b))? (a) : (b))
 #define SWAP(a, b, T) do {T t = (a); (a) = (b); (b) = t;} while(0)
 
 #define ArrayLength(arr) (sizeof(arr) / sizeof(*arr))
@@ -62,13 +63,15 @@ typedef int32_t b32;
 #define CITIES_MAX 523
 #define PRODUCTS_MAX 409
 
-static u32 
+static inline u32 
 convert_to_int(char *number, u32 number_len)
 {
   u32 result = 0;
-  for (u32 i = 0; i < number_len; i += 1)
+  switch (number_len)
   {
-    result = result * 10 + (number[i] - '0');
+    case 1: result = number[0] - '0'; break;
+    case 2: result = 10 * number[0] + number[1] - 11 * '0'; break;
+    case 3: result = 100 * number[0] + 10 * number[1] + number[2] - 111 * '0'; break;
   }
   return result;
 }
@@ -395,6 +398,8 @@ int main()
     memset(product_min_price_per_city, -1, sizeof(product_min_price_per_city));
     
     u32 thread_cnt = std::thread::hardware_concurrency();
+    thread_cnt = MAX(1, thread_cnt * (thread_cnt + 1) / 2);
+    
     volatile u32 thread_cnt_arg = thread_cnt;
     
     for (u32 i = 1; i < thread_cnt; i += 1)
