@@ -1,6 +1,0 @@
-Sidi_Slimane 487539.37
-Onion 1.01
-Turnip 1.01
-Salsify 1.04
-Butternut_Squash 1.06
-Clementine 1.06
