@@ -1,6 +1,5 @@
 from collections import defaultdict
 from functools import reduce
-from copy import deepcopy
 
 class Solution:
     input_path = "input.txt"
@@ -35,28 +34,22 @@ class Solution:
         return cheapest_city
      
     
-    def load_data(self):
-        with open(self.input_path, "r") as fh:
-            txt = fh.read()
-        
-        lines = txt.split("\n")
+    def load_data(self):            
         data = defaultdict(lambda : defaultdict(lambda : 101))
         total_per_city = defaultdict(lambda : 0)
         
-        
-        for line in lines:
-            if line == "":
-                continue
-            city, product, price = line.split(',')
-            price = float(price)
-            data[city][product] = price if price < data[city][product] else data[city][product]
-            total_per_city[city] += price
+        with open(self.input_path, "r") as fh:  
+            for line in fh:
+                if line == "":
+                    continue
+                city, product, price = line.split(',')
+                price = float(price)
+                data[city][product] = price if price < data[city][product] else data[city][product]
+                total_per_city[city] += price
             
         return data, total_per_city   
 
 if __name__ == "__main__":
-    import time
-    t0 = time.time()
     Solution().do()
-    print("This took about", time.time() - t0)
+
         
