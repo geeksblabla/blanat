@@ -79,7 +79,7 @@ rl.on('close', () => {
 	outputStream.write(outputData);
 	outputStream.end();
 
-	const endTime = process.hrtime(startTime); // Capture end time
-	const execTimeInMs = (endTime[0] * 1000 + endTime[1] / 1000000).toFixed(2); // Calculate execution time in milliseconds
+	const endTime = process.hrtime(startTime);
+	const execTimeInMs = (endTime[0] * 1000 + endTime[1] / 1000000).toFixed(2);
 	console.log(`Execution time: ${execTimeInMs} ms`);
 });
