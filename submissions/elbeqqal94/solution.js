@@ -1,49 +1,51 @@
 const fs = require('fs');
+const readline = require('readline');
 
 const INPUT_FILE = '../../input.txt';
 const OUTPUT_FILE = '../../output.txt';
 
-fs.readFile(INPUT_FILE, 'utf8', (err, data) => {
-	if (err) {
-		console.error('File reading error:', err);
-		return;
-	}
+const inputStream = fs.createReadStream(INPUT_FILE, { encoding: 'utf8' });
+const outputStream = fs.createWriteStream(OUTPUT_FILE);
 
-	const rows = data.split('\r\n');
+const rl = readline.createInterface({
+	input: inputStream,
+	output: outputStream,
+	crlfDelay: Infinity,
+});
 
-	let resultMap = new Map();
+let resultMap = new Map();
 
-	rows.forEach((row) => {
-		const data = row.split(',');
-		const city = data[0];
-		const productName = data[1];
-		const productPrice = parseFloat(data[2]);
+const startTime = process.hrtime();
 
-		if (resultMap.has(city)) {
-			const currentData = resultMap.get(city);
-			const newPrice = currentData.price + productPrice;
-			if (!currentData.products[productName]) {
-				// If the product name does not exist, add the new product
-				currentData.products[productName] = productPrice;
-				//console.log(`Product '${name}' added with price ${price}.`);
-			} else {
-				//console.log(`Product '${name}' already exists.`);
-				if (currentData.products[productName] > productPrice) {
-					currentData.products[productName] = productPrice;
-				}
-			}
-			const updatedProducts = currentData.products;
-			resultMap.set(city, { price: newPrice, products: updatedProducts });
+rl.on('line', (line) => {
+	const data = line.split(',');
+	const city = data[0];
+	const productName = data[1];
+	const productPrice = parseFloat(data[2]);
+
+	if (resultMap.has(city)) {
+		const currentData = resultMap.get(city);
+		const newPrice = currentData.price + productPrice;
+		if (!currentData.products[productName]) {
+			currentData.products[productName] = productPrice;
 		} else {
-			let products = [];
-			products[productName] = productPrice;
-			resultMap.set(city, {
-				price: productPrice,
-				products,
-			});
+			if (currentData.products[productName] > productPrice) {
+				currentData.products[productName] = productPrice;
+			}
 		}
-	});
+		const updatedProducts = currentData.products;
+		resultMap.set(city, { price: newPrice, products: updatedProducts });
+	} else {
+		let products = {};
+		products[productName] = productPrice;
+		resultMap.set(city, {
+			price: productPrice,
+			products,
+		});
+	}
+});
 
+rl.on('close', () => {
 	const min = [...resultMap.entries()].reduce(
 		(min, current) => {
 			const currentPrice = current[1].price;
@@ -74,10 +76,10 @@ fs.readFile(INPUT_FILE, 'utf8', (err, data) => {
 		.map((product) => `${product[0]} ${product[1].toFixed(2)}`)
 		.join('\n');
 
-	fs.writeFile(OUTPUT_FILE, outputData, 'utf8', (err) => {
-		if (err) {
-			console.error('Error writing to output.txt:', err);
-			return;
-		}
-	});
+	outputStream.write(outputData);
+	outputStream.end();
+
+	const endTime = process.hrtime(startTime); // Capture end time
+	const execTimeInMs = (endTime[0] * 1000 + endTime[1] / 1000000).toFixed(2); // Calculate execution time in milliseconds
+	console.log(`Execution time: ${execTimeInMs} ms`);
 });
