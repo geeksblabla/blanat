@@ -80,7 +80,7 @@ def main():
         for cur in range(args.rows):
             line = random.choice(moroccan_cities) + "," + random.choice(fruits_and_vegetables) + "," + str(generate_random_decimal())
             lines += line + '\n'
-            if cur % args.flush:
+            if cur % args.flush == 0:
                 file.write(lines)
                 lines = ''
         if len(lines) > 0:
