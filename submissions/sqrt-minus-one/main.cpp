@@ -66,13 +66,21 @@ typedef int32_t b32;
 static inline u32 
 convert_to_int(char *number, u32 number_len)
 {
-  u32 result = 0;
-  switch (number_len)
-  {
-    case 1: result = number[0] - '0'; break;
-    case 2: result = 10 * number[0] + number[1] - 11 * '0'; break;
-    case 3: result = 100 * number[0] + 10 * number[1] + number[2] - 111 * '0'; break;
-  }
+  // NOTE(fakhri): this assumes number_len is always at least 1, and if it is 1 the next 2 bytes are 
+  // always valid, in our case this holds, if we are at the last line and the fraction part length is 1
+  // the next character will be '\n' and the next one will be the null terminator
+  static u32 sub_zeros[4] = {0, '0', 11 * '0', 111 * '0'};
+  static u32 coeffs[3][4] = {
+    {0, 1, 10, 100},
+    {0, 0, 1,   10},
+    {0, 0, 0,    1},
+  };
+  u32 result = (
+    coeffs[0][number_len] * number[0] + 
+    coeffs[1][number_len] * number[1] + 
+    coeffs[2][number_len] * number[2] -
+    sub_zeros[number_len]
+  ); 
   return result;
 }
 
@@ -352,16 +360,15 @@ process_file_chunk(char *chunk_buf, u64 chunk_size)
     __atomic_fetch_add(&cities_prices[city_idx], price, __ATOMIC_SEQ_CST);
     
     u64 stored_price = 0;
-    u64 new_min = 0;
+    u64 new_price = 0;
     b32 success = 0;
     do
     {
       stored_price = __atomic_load_n(&product_min_price_per_city[city_idx][product_idx], __ATOMIC_SEQ_CST);
       if (stored_price < price) break;
-      new_min = MIN(stored_price, price);
-      success = __atomic_compare_exchange_n(&product_min_price_per_city[city_idx][product_idx], &stored_price, new_min, false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
+      new_price = price;
+      success = __atomic_compare_exchange_n(&product_min_price_per_city[city_idx][product_idx], &stored_price, new_price, false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
     } while (!success);
-    product_min_price_per_city[city_idx][product_idx] = MIN(product_min_price_per_city[city_idx][product_idx], price);
   }
 }
 
