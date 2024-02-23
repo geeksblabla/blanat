@@ -101,7 +101,7 @@ def main():
     cheapest_city, lowest_price, cheapest_products = find_cheapest_city(final_result)
 
     with open('output.txt', 'w') as file:
-        file.write(f"{cheapest_city} {lowest_price}\n")
+        file.write(f"{cheapest_city} {lowest_price:.2f}\n")
         for product, price in cheapest_products:
             file.write(f"{product} {price}\n")
 
