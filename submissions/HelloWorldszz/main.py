@@ -1,7 +1,6 @@
 import csv
 from collections import defaultdict
 import heapq
-import time
 from concurrent.futures import ThreadPoolExecutor
 import os
 
@@ -31,8 +30,6 @@ def find_top_5_cheapest_products(products):
     return top_5_cheapest_products
 
 def main():
-    start_time = time.time()
-
     city_prices, products = read_input_file('inputM.txt')
 
     max_workers = os.cpu_count() or 1  # Default to 1 if cpu_count() returns None
@@ -47,10 +44,6 @@ def main():
         file.write(f"{cheapest_city} {cheapest_price:.2f}\n")
         for product, price in top_5_cheapest_products:
             file.write(f"{product} {price:.2f}\n")
-
-    end_time = time.time()
-    execution_time = end_time - start_time
-    print(f"Execution time: {execution_time:.2f} seconds")
 
 if __name__ == '__main__':
     main()
