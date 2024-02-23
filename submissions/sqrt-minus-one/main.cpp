@@ -92,6 +92,17 @@ static u64 THREAD_CHUNK_SIZE = (1ull << 30);
 #define CITIES_MAX 523
 #define PRODUCTS_MAX 409
 
+struct Thread_Ctx
+{
+  char *chunk_buf;
+  u64 chunk_size;
+  
+  u64 product_min_price_per_city[CITIES_MAX][PRODUCTS_MAX];
+  u64 cities_prices[CITIES_MAX];
+};
+
+static Thread_Ctx threads_ctx[MAX_THREDS_COUNT];
+
 static inline u32 
 convert_to_int(char *number, u32 number_len)
 {
@@ -243,10 +254,6 @@ fill_fruits_name_per_index_table()
     }
 }
 
-static u64 product_min_price_per_city[MAX_THREDS_COUNT][CITIES_MAX][PRODUCTS_MAX]; // about 20MB
-static u64 cities_prices[MAX_THREDS_COUNT][CITIES_MAX];
-static b8 valid_cities[CITIES_MAX];
-
 static char *mapped_file;
 static u64 mapped_file_size;
 static u64 offset_into_mapped_file;
@@ -264,6 +271,8 @@ map_file_to_memory(int fd)
 static void 
 process_file_chunk(char *chunk_buf, u64 chunk_size)
 {
+  Thread_Ctx *thread_ctx = threads_ctx + thread_id; 
+  
   u32 offset = 0;
   if (chunk_buf != mapped_file && chunk_buf[- 1] != '\n')
   {
@@ -302,26 +311,18 @@ process_file_chunk(char *chunk_buf, u64 chunk_size)
         u32 product_idx = compute_product_index(fruit, fruit_len);
         
         offset += city_len + fruit_len + price_decimal_len + price_fractional_len + 4;
-        valid_cities[city_idx] = 1;
-        cities_prices[thread_id][city_idx] += price;
-        product_min_price_per_city[thread_id][city_idx][product_idx] = MIN(price, product_min_price_per_city[thread_id][city_idx][product_idx]);
+        thread_ctx->cities_prices[city_idx] += price;
+        thread_ctx->product_min_price_per_city[city_idx][product_idx] = MIN(price, thread_ctx->product_min_price_per_city[city_idx][product_idx]);
       }
     }
   }
 }
 
-struct Thread_Ctx
-{
-  char *chunk_buf;
-  u64 chunk_size;
-};
-
-static Thread_Ctx threads_ctx[MAX_THREDS_COUNT];
-
 static void *thread_main(void *args)
 {
   thread_id = (u64)args;
   Thread_Ctx *thread_ctx = threads_ctx + thread_id;
+  memset(thread_ctx->product_min_price_per_city, -1, sizeof(thread_ctx->product_min_price_per_city));
   profile_code("File Chunk Processing")
   {
     process_file_chunk(thread_ctx->chunk_buf, thread_ctx->chunk_size);
@@ -341,8 +342,6 @@ int main()
     int fd = open("input.txt", O_RDONLY);
     Assert(fd != -1);
     map_file_to_memory(fd);
-    
-    memset(product_min_price_per_city, -1, sizeof(product_min_price_per_city));
     
     THREAD_CHUNK_SIZE = mapped_file_size / thread_cnt;
     running_threads_count = thread_cnt;
@@ -389,19 +388,17 @@ int main()
       for (u32 i = 0; i < ArrayLength(city_names); i += 1)
       {
         u32 city_idx = compute_city_index(city_names[i].data, city_names[i].len);
-        if (valid_cities[city_idx])
+        
+        u64 price = 0;
+        for (u32 tid = 0; tid < thread_cnt; tid += 1)
         {
-          u64 price = 0;
-          for (u32 tid = 0; tid < thread_cnt; tid += 1)
-          {
-            price += cities_prices[tid][city_idx];
-          }
-          
-          if (price < min_price)
-          {
-            min_price = price;
-            min_city_idx = city_idx;
-          }
+          price += threads_ctx[tid].cities_prices[city_idx];
+        }
+        
+        if (price && price < min_price)
+        {
+          min_price = price;
+          min_city_idx = city_idx;
         }
       }
       
@@ -411,7 +408,7 @@ int main()
         u64 price = (u64)-1;
         for (u32 tid = 0; tid < thread_cnt; tid += 1)
         {
-          price = MIN(price, product_min_price_per_city[tid][min_city_idx][fruit_idx]);
+          price = MIN(price, threads_ctx[tid].product_min_price_per_city[min_city_idx][fruit_idx]);
         }
         
         if (price < (u64)(-1))
