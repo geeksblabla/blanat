@@ -1,4 +1,3 @@
-
 #include <unistd.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -6,17 +5,15 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-
 #include <emmintrin.h>
-
 #include <sys/mman.h>
 #include <sys/stat.h>
-
 #include <stdlib.h>
 #include <time.h>
-
 #include <thread>
+#include <x86intrin.h>
 
+#define ENABLE_PROFILING 0
 #define ENABLE_ASSERTS 0
 
 #if ENABLE_ASSERTS
@@ -28,48 +25,102 @@
 #endif
 
 #define MIN(a, b) (((a) < (b))? (a) : (b))
+#define MAX(a, b) (((a) > (b))? (a) : (b))
 #define SWAP(a, b, T) do {T t = (a); (a) = (b); (b) = t;} while(0)
 
 #define ArrayLength(arr) (sizeof(arr) / sizeof(*arr))
 
 #define defer_loop(begin, end) for(int _i_ = ((begin), 0); _i_ < 1; _i_ += 1, (end))
-#define compute_timing(res) defer_loop(start_timer(), res = end_timer())
-
-static clock_t clock_record;
-static void start_timer()
-{
-  clock_record = clock();
-}
-static double end_timer()
-{
-  double duration = (double)(clock() - clock_record ) / CLOCKS_PER_SEC;
-  return duration;
-}
 
 typedef uint64_t u64;
 typedef uint32_t u32;
 typedef uint8_t u8;
-
 typedef int64_t i64;
 typedef int32_t i32;
 typedef int8_t i8;
-
 typedef int8_t b8;
 typedef int32_t b32;
 
-#define CHUNK_SIZE (1ull << 30)
+#define MAX_THREDS_COUNT 16
+
+u64 thread_cnt = std::thread::hardware_concurrency();
+static volatile u32 running_threads_count;
+static __thread u64 thread_id;
+
+struct Timing
+{
+  u32 parent;
+  u64 last_timing;
+  u64 sum_timing;
+  u32 samples;
+};
+struct Profile_Data
+{
+  char *name;
+  Timing timings[MAX_THREDS_COUNT];
+};
+static u32 profil_active_scope[MAX_THREDS_COUNT];
+static Profile_Data profile_data_points[1024];
+static void start_profiling(int i, char *name)
+{
+  profile_data_points[i].name = name;;
+  profile_data_points[i].timings[thread_id].parent = profil_active_scope[thread_id];
+  profile_data_points[i].timings[thread_id].last_timing = __rdtsc();
+  profil_active_scope[thread_id] = i;
+}
+static void end_profiling(int i)
+{
+  Timing *timing = &profile_data_points[i].timings[thread_id];
+  
+  timing->last_timing = __rdtsc() - timing->last_timing;
+  timing->sum_timing += timing->last_timing;
+  timing->samples += 1;
+  
+  profil_active_scope[thread_id] = timing->parent;
+};
+
+#if ENABLE_PROFILING
+# define profile_code_idx(name, idx) defer_loop(start_profiling(idx, name), end_profiling(idx))
+# define profile_code(name) profile_code_idx(name, __COUNTER__)
+#else
+# define profile_code_idx(name, idx)
+# define profile_code(name)
+#endif
+
+static u64 THREAD_CHUNK_SIZE = (1ull << 30);
 
 #define CITIES_MAX 523
 #define PRODUCTS_MAX 409
 
-static u32 
+struct Thread_Ctx
+{
+  char *chunk_buf;
+  u64 chunk_size;
+  
+  u64 product_min_price_per_city[CITIES_MAX][PRODUCTS_MAX];
+  u64 cities_prices[CITIES_MAX];
+};
+
+static Thread_Ctx threads_ctx[MAX_THREDS_COUNT];
+
+static inline u32 
 convert_to_int(char *number, u32 number_len)
 {
-  u32 result = 0;
-  for (u32 i = 0; i < number_len; i += 1)
-  {
-    result = result * 10 + (number[i] - '0');
-  }
+  // NOTE(fakhri): this assumes number_len is always at least 1, and if it is 1 the next 2 bytes are 
+  // always valid, in our case this holds, if we are at the last line and the fraction part length is 1
+  // the next character will be '\n' and the next one will be the null terminator
+  static u32 sub_zeros[4] = {0, '0', 11 * '0', 111 * '0'};
+  static u32 coeffs[3][4] = {
+    {0, 1, 10, 100},
+    {0, 0, 1,   10},
+    {0, 0, 0,    1},
+  };
+  u32 result = (
+    coeffs[0][number_len] * number[0] + 
+    coeffs[1][number_len] * number[1] + 
+    coeffs[2][number_len] * number[2] -
+    sub_zeros[number_len]
+  );
   return result;
 }
 
@@ -79,7 +130,6 @@ static u32 fruits_coefs[4] = {253, 46, 119, 133};
 static u32
 compute_product_index(char *product, u32 len)
 {
-  //printf("%c%c%c%c\n", product[0], product[1], product[2], product[len - 1]);
   Assert(len >= 3);
   
   u64 result = 0;
@@ -179,117 +229,30 @@ static String city_names[]= {
 static char *cities_name_per_index[CITIES_MAX];
 static char *fruits_name_per_index[PRODUCTS_MAX];
 
-#define GENERATE_CITIES_PH_COEFICIENTS 0
-#define GENERATE_FRUITS_PH_COEFICIENTS 0
-
 // NOTE(fakhri): THIS ASSUMES THE CITIES AND PRODUCTS WE WILL BE TESTED AGAINST
 // ARE THE SAME AS THE ONE IN GEN.PY!!!!!!!
 
 static void 
 fill_cities_name_per_index_table()
 {
-#if GENERATE_CITIES_PH_COEFICIENTS
-  time_t t;
-  srand(time(&t));
-  for(;;)
-  {
-    // NOTE(fakhri): pick random coeffs and check if the universal hash function
-    // has collisions
-    for (int i = 0; i < ArrayLength(cities_coefs); i += 1)
-    {
-      cities_coefs[i] = rand() % CITIES_MAX;
-    }
-    memset(cities_name_per_index, 0, sizeof(cities_name_per_index));
-    b32 success = 1;
-#endif
-    
     for (u32 i = 0; i < ArrayLength(city_names); i += 1)
     {
       u32 city_idx = compute_city_index(city_names[i].data, city_names[i].len);
-
-#if GENERATE_CITIES_PH_COEFICIENTS
-      // NOTE(fakhri): make sure we don't have collisions
-      if (cities_name_per_index[city_idx])
-      {
-        printf("%s is conflicting with %s\n", city_names[i].data, cities_name_per_index[city_idx]);
-        success = 0;
-        break;
-      }
-#endif
       Assert(!cities_name_per_index[city_idx]);
       cities_name_per_index[city_idx] = city_names[i].data;
     }
-
-#if GENERATE_CITIES_PH_COEFICIENTS
-    if (success)
-    {
-      printf("found good coefficients for perfect hashing: ");
-      for (int c = 0; c < 4; c += 1)
-      {
-        printf("%d ", cities_coefs[c]);
-      }
-      printf("\n");
-      break;
-    }
-  }
-#endif
 }
 
 static void 
 fill_fruits_name_per_index_table()
 {
-#if GENERATE_FRUITS_PH_COEFICIENTS
-  time_t t;
-  srand(time(&t));
-  for(;;)
-  {
-    // NOTE(fakhri): pick random coeffs and check if the universal hash function
-    // has collisions
-    for (int i = 0; i < ArrayLength(fruits_coefs); i += 1)
-    {
-      fruits_coefs[i] = rand() % PRODUCTS_MAX;
-    }
-    memset(fruits_name_per_index, 0, sizeof(fruits_name_per_index));
-    b32 success = 1;
-#endif
-    
     for (u32 i = 0; i < ArrayLength(fuits_and_vegs); i += 1)
     {
       u32 fruits_idx = compute_product_index(fuits_and_vegs[i].data, fuits_and_vegs[i].len);
-      
-#if GENERATE_FRUITS_PH_COEFICIENTS
-      // NOTE(fakhri): make sure we don't have collisions
-      if (fruits_name_per_index[fruits_idx])
-      {
-        //printf("%s is conflicting with %s\n", fuits_and_vegs[i].data, fruits_name_per_index[fruits_idx]);
-        success = 0;
-        break;
-      }
-#endif
-
       Assert(!fruits_name_per_index[fruits_idx]);
       fruits_name_per_index[fruits_idx] = fuits_and_vegs[i].data;
     }
-    
-#if GENERATE_FRUITS_PH_COEFICIENTS
-    if (success)
-    {
-      printf("found good coefficients for perfect hashing: ");
-      for (int c = 0; c < ArrayLength(fruits_coefs); c += 1)
-      {
-        printf("%d ", fruits_coefs[c]);
-      }
-      printf("\n");
-      break;
-    }
-  }
-#endif
 }
-
-static u64 product_min_price_per_city[CITIES_MAX][PRODUCTS_MAX]; // about 1.5MB
-
-static u64 cities_prices[CITIES_MAX];
-static b8 valid_cities[CITIES_MAX];
 
 static char *mapped_file;
 static u64 mapped_file_size;
@@ -301,7 +264,6 @@ map_file_to_memory(int fd)
   struct stat buf;
   fstat(fd, &buf);
   mapped_file_size = buf.st_size;
-  
   mapped_file = (char*)mmap(0, mapped_file_size, PROT_READ, MAP_PRIVATE, fd, 0);
   Assert(mapped_file != MAP_FAILED);
 }
@@ -309,6 +271,8 @@ map_file_to_memory(int fd)
 static void 
 process_file_chunk(char *chunk_buf, u64 chunk_size)
 {
+  Thread_Ctx *thread_ctx = threads_ctx + thread_id; 
+  
   u32 offset = 0;
   if (chunk_buf != mapped_file && chunk_buf[- 1] != '\n')
   {
@@ -316,75 +280,62 @@ process_file_chunk(char *chunk_buf, u64 chunk_size)
     for (offset = 0; (offset < chunk_size) && (chunk_buf[offset++] != '\n'););
   }
   
-  for (;offset < chunk_size;)
+  //profile_code("Process All Line")
   {
-    // TODO(fakhri): attempt prefetching?
-    char *city = chunk_buf + offset;
-    u32 city_len = 0;
-    for (;city[city_len] != ',';city_len++);
-    
-    char *fruit = city + city_len + 1;
-    u32 fruit_len = 0;
-    for (;fruit[fruit_len] != ',';fruit_len++);
-    
-    char *price_decimal_str = fruit + fruit_len + 1;
-    u32 price_decimal_len = 0;
-    for (;price_decimal_str[price_decimal_len] != '.';price_decimal_len++);
-    u32 price_decimal = convert_to_int(price_decimal_str, price_decimal_len);
-    
-    char *price_fractional_str = price_decimal_str + price_decimal_len + 1;
-    u32 price_fractional_len = 0;
-    for (;price_fractional_str[price_fractional_len] != '\n';price_fractional_len++);
-    u32 price_fractional = convert_to_int(price_fractional_str, price_fractional_len);
-    price_fractional *= (price_fractional_len < 2)? 10:1; 
-    
-    u32 price = price_decimal * 100 + price_fractional;
-    
-    u32 city_idx = compute_city_index(city, city_len);
-    u32 product_idx = compute_product_index(fruit, fruit_len);
-    
-    offset += city_len + fruit_len + price_decimal_len + price_fractional_len + 4;
-    
-    __atomic_store_n(&valid_cities[city_idx], 1, __ATOMIC_SEQ_CST);
-    __atomic_fetch_add(&cities_prices[city_idx], price, __ATOMIC_SEQ_CST);
-    
-    u64 stored_price = 0;
-    u64 new_min = 0;
-    b32 success = 0;
-    do
+    for (;offset < chunk_size;)
     {
-      stored_price = __atomic_load_n(&product_min_price_per_city[city_idx][product_idx], __ATOMIC_SEQ_CST);
-      if (stored_price < price) break;
-      new_min = MIN(stored_price, price);
-      success = __atomic_compare_exchange_n(&product_min_price_per_city[city_idx][product_idx], &stored_price, new_min, false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
-    } while (!success);
-    product_min_price_per_city[city_idx][product_idx] = MIN(product_min_price_per_city[city_idx][product_idx], price);
+      //profile_code("Process Line")
+      {
+        char *city = chunk_buf + offset;
+        u32 city_len = 0;
+        for (;city[city_len] != ',';city_len++);
+        
+        char *fruit = city + city_len + 1;
+        u32 fruit_len = 0;
+        for (;fruit[fruit_len] != ',';fruit_len++);
+        
+        char *price_decimal_str = fruit + fruit_len + 1;
+        u32 price_decimal_len = 0;
+        for (;price_decimal_str[price_decimal_len] != '.';price_decimal_len++);
+        u32 price_decimal = convert_to_int(price_decimal_str, price_decimal_len);
+        
+        char *price_fractional_str = price_decimal_str + price_decimal_len + 1;
+        u32 price_fractional_len = 0;
+        for (;price_fractional_str[price_fractional_len] != '\n';price_fractional_len++);
+        u32 price_fractional = convert_to_int(price_fractional_str, price_fractional_len);
+        price_fractional *= (price_fractional_len < 2)? 10:1; 
+        
+        u32 price = price_decimal * 100 + price_fractional;
+        
+        u32 city_idx = compute_city_index(city, city_len);
+        u32 product_idx = compute_product_index(fruit, fruit_len);
+        
+        offset += city_len + fruit_len + price_decimal_len + price_fractional_len + 4;
+        thread_ctx->cities_prices[city_idx] += price;
+        thread_ctx->product_min_price_per_city[city_idx][product_idx] = MIN(price, thread_ctx->product_min_price_per_city[city_idx][product_idx]);
+      }
+    }
   }
 }
 
 static void *thread_main(void *args)
 {
-  volatile u32 *running_threads_count = (volatile u32 *)args;
-  for (;offset_into_mapped_file < mapped_file_size;)
+  thread_id = (u64)args;
+  Thread_Ctx *thread_ctx = threads_ctx + thread_id;
+  memset(thread_ctx->product_min_price_per_city, -1, sizeof(thread_ctx->product_min_price_per_city));
+  profile_code("File Chunk Processing")
   {
-    u64 my_offset = __atomic_fetch_add(&offset_into_mapped_file, CHUNK_SIZE, __ATOMIC_SEQ_CST);
-    u64 chunk_size = MIN(CHUNK_SIZE, mapped_file_size - my_offset);
-    process_file_chunk(mapped_file + my_offset, chunk_size);
+    process_file_chunk(thread_ctx->chunk_buf, thread_ctx->chunk_size);
   }
-  
-  __atomic_fetch_sub(running_threads_count, 1, __ATOMIC_SEQ_CST);
+  __atomic_fetch_sub(&running_threads_count, 1, __ATOMIC_SEQ_CST);
   return 0;
 }
 
-#define COMPUTE_TIMING 0
-
 int main()
 {
-  double timing = 0;
-#if COMPUTE_TIMING
-  compute_timing(timing)
+  thread_id = 0;
+  profile_code("Main Code")
   {
-#endif
     fill_cities_name_per_index_table();
     fill_fruits_name_per_index_table();
     
@@ -392,60 +343,88 @@ int main()
     Assert(fd != -1);
     map_file_to_memory(fd);
     
-    memset(product_min_price_per_city, -1, sizeof(product_min_price_per_city));
+    THREAD_CHUNK_SIZE = mapped_file_size / thread_cnt;
+    running_threads_count = thread_cnt;
+    char *chunk_buf = mapped_file;
     
-    u32 thread_cnt = std::thread::hardware_concurrency();
-    volatile u32 thread_cnt_arg = thread_cnt;
-    
-    for (u32 i = 1; i < thread_cnt; i += 1)
+    profile_code("Main Work")
     {
-      pthread_t pid;
-      pthread_create(&pid, 0, thread_main, (void*)&thread_cnt_arg);
-    }
-    
-    thread_main((void*)&thread_cnt_arg);
-
-    // NOTE(fakhri): wait for all threads to finishe
-    while (thread_cnt_arg)
-    {
-      _mm_pause();
-    }
-    
-    // NOTE(fakhri): find cheapest city
-    u64 min_price = (u64)-1;
-    u64 min_city_idx = (u64)-1;
-    
-    for (u32 i = 0; i < ArrayLength(city_names); i += 1)
-    {
-      u32 city_idx = compute_city_index(city_names[i].data, city_names[i].len);
-      if (valid_cities[city_idx] && cities_prices[city_idx] < min_price)
+      for (u64 i = 1; i < thread_cnt; i += 1)
       {
-        min_price = cities_prices[city_idx];
-        min_city_idx = city_idx;
+        Thread_Ctx *thread_ctx = threads_ctx + i;
+        thread_ctx->chunk_buf = chunk_buf; 
+        chunk_buf += THREAD_CHUNK_SIZE;
+        thread_ctx->chunk_size = THREAD_CHUNK_SIZE;
+        pthread_t pid;
+        pthread_create(&pid, 0, thread_main, (void*)i);
+      }
+      
+      
+      // NOTE(fakhri): main thread handles the last chunk and the remaining data
+      {
+        Thread_Ctx *thread_ctx = &threads_ctx[0];
+        thread_ctx->chunk_buf = chunk_buf;
+        thread_ctx->chunk_size = mapped_file_size - THREAD_CHUNK_SIZE * (thread_cnt - 1);
+        thread_main((void*)thread_id);
+      }
+      
+      // NOTE(fakhri): wait for all threads to finishe
+      while (running_threads_count)
+      {
+        _mm_pause();
       }
     }
+    
+    u64 min_price = (u64)-1;
+    u64 min_city_idx = (u64)-1;
     
     u64 min_fruits_prices[6] = {(u64)-1, (u64)-1, (u64)-1, (u64)-1, (u64)-1, (u64)-1};
     u32 min_fruits_idx[6];
     u32 fruits_cnt = 0;
     
-    for (u32 i = 0; i < ArrayLength(fuits_and_vegs); i += 1)
+    // NOTE(fakhri): find cheapest city
+    profile_code("Combine Results From Threads")
     {
-      u32 fruit_idx = compute_product_index(fuits_and_vegs[i].data, fuits_and_vegs[i].len);
-      u64 price = product_min_price_per_city[min_city_idx][fruit_idx];
-      if (price < (u64)(-1))
+      for (u32 i = 0; i < ArrayLength(city_names); i += 1)
       {
-        min_fruits_prices[5] = price;
-        min_fruits_idx[5] = fruit_idx;
-        u32 correct_place = 5;
-        while (
-          correct_place > 0 && 
-          min_fruits_prices[correct_place] < min_fruits_prices[correct_place - 1]
-        ) {
-          SWAP(min_fruits_prices[correct_place], min_fruits_prices[correct_place - 1], u64);
-          SWAP(min_fruits_idx[correct_place], min_fruits_idx[correct_place - 1], u32);
-          
-          correct_place -= 1;
+        u32 city_idx = compute_city_index(city_names[i].data, city_names[i].len);
+        
+        u64 price = 0;
+        for (u32 tid = 0; tid < thread_cnt; tid += 1)
+        {
+          price += threads_ctx[tid].cities_prices[city_idx];
+        }
+        
+        if (price && price < min_price)
+        {
+          min_price = price;
+          min_city_idx = city_idx;
+        }
+      }
+      
+      for (u32 i = 0; i < ArrayLength(fuits_and_vegs); i += 1)
+      {
+        u32 fruit_idx = compute_product_index(fuits_and_vegs[i].data, fuits_and_vegs[i].len);
+        u64 price = (u64)-1;
+        for (u32 tid = 0; tid < thread_cnt; tid += 1)
+        {
+          price = MIN(price, threads_ctx[tid].product_min_price_per_city[min_city_idx][fruit_idx]);
+        }
+        
+        if (price < (u64)(-1))
+        {
+          min_fruits_prices[5] = price;
+          min_fruits_idx[5] = fruit_idx;
+          u32 correct_place = 5;
+          while (
+            correct_place > 0 && 
+            min_fruits_prices[correct_place] < min_fruits_prices[correct_place - 1]
+          ) {
+            SWAP(min_fruits_prices[correct_place], min_fruits_prices[correct_place - 1], u64);
+            SWAP(min_fruits_idx[correct_place], min_fruits_idx[correct_place - 1], u32);
+            
+            correct_place -= 1;
+          }
         }
       }
     }
@@ -462,11 +441,32 @@ int main()
     }
     fclose(fout);
 
-#if COMPUTE_TIMING    
   }
-  printf("timing: %fs\n", timing);
-#endif
   
-  munmap(mapped_file, mapped_file_size);
+  profile_code("Unmapping timing")
+  {
+    munmap(mapped_file, mapped_file_size);
+  }
+
+#if ENABLE_PROFILING
+  for (int i = 0; i < __COUNTER__; i += 1)
+  {
+    printf("[timings: %s]:\n", profile_data_points[i].name);
+    for (u32 t = 0; t < thread_cnt; t += 1)
+    {
+      Timing *timing = &profile_data_points[i].timings[t];
+      if (timing->samples)
+      {
+        Timing *parent_timing = &profile_data_points[timing->parent].timings[t];
+        
+        double avg_timing = (double)timing->sum_timing / (double)timing->samples;
+        double parent_avg_timing = (double)parent_timing->sum_timing / (double)parent_timing->samples;
+        
+        printf("\t[thread:%d---avg:%f---perc_par:%f]\n", t, (double)timing->sum_timing / (double)timing->samples, avg_timing / parent_avg_timing);
+      }
+    }
+  }
+#endif
+
   return 0;
 }
