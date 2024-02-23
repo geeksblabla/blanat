@@ -36,7 +36,6 @@ struct CityTotalHashTable {
 struct ThreadData {
     int start;
     int end;
-    FILE *file;
 };
 
 // Function to create a new key-value pair
@@ -219,12 +218,18 @@ void* processBatch(void* arg) {
     struct ThreadData* data = (struct ThreadData*)arg;
     
     struct CityTotalHashTable* cityTotalHashTable = createCityTotalHashTable(102);
+    
+    FILE *file = fopen("input.txt", "r"); // SPECIFY THE INPUT FILE PATH
+    if (file == NULL) {
+        printf("Could not open file\n");
+        pthread_exit(NULL);
+    }
 
     char* line = (char*)malloc(MAX_LINE_SIZE * sizeof(char));
     int i = 0;
 
     // Process data in the batch
-    while (fgets(line, MAX_LINE_SIZE, data->file) && i < data->end) {
+    while (fgets(line, MAX_LINE_SIZE, file) && i < data->end) {
         if (i >= data->start) {
             char* city = strtok(line, ",");
             char* product = strtok(NULL, ",");
@@ -234,6 +239,8 @@ void* processBatch(void* arg) {
         }
         i++;
     }
+
+    fclose(file);
 
     return (void*)cityTotalHashTable;
 }
@@ -255,17 +262,10 @@ int main() {
     pthread_t threads[NUM_THREADS];
     struct ThreadData threadData[NUM_THREADS];
 
-    FILE *file = fopen("input.txt", "r"); // SPECIFY THE INPUT FILE PATH
-    if (file == NULL) {
-        printf("Could not open file\n");
-        pthread_exit(NULL);
-    }
-
     // Create threads
     for (int i = 0; i < NUM_THREADS; i++) {
         threadData[i].start = i * (MAX_ROWS / NUM_THREADS);
         threadData[i].end = (i + 1) * (MAX_ROWS / NUM_THREADS);
-        threadData[i].file = file;
         pthread_create(&threads[i], NULL, processBatch, &threadData[i]);
     }
 
@@ -274,8 +274,6 @@ int main() {
         pthread_join(threads[i], (void**)&cityTotalHashTableArray[i]);
     }
 
-    fclose(file);
-    
     struct CityTotal* current;
 
     // Merge the results from the threads
