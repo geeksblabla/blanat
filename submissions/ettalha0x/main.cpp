@@ -7,8 +7,10 @@
 #include <map>
 #include <vector>
 #include <queue>
+#include <chrono>
 
 using namespace std;
+using namespace std::chrono;
 
 struct Compare {
     bool operator()(pair<string, double> const& p1, pair<string, double> const& p2) {
@@ -17,13 +19,32 @@ struct Compare {
     }
 };
 
+// Custom comparison function
+bool comparePairs(const pair<string, double> &a, const pair<string, double> &b) {
+    // First, compare by price
+    if (a.second != b.second) {
+        return a.second < b.second; // Sort by price
+    }
+    // If prices are equal, sort alphabetically by product name
+    return a.first < b.first;
+}
+
 int main() {
-    ifstream inputFile("../../input.txt");
+
+    // auto startTime = high_resolution_clock::now(); // Declare and initialize startTime
+    
+    ifstream inputFile("input.txt");
     if (!inputFile) {
         cout << "Failed to open input.txt" << endl;
         return 1;
     }
 
+    std::ofstream outputFile("output.txt");
+    if (!outputFile) {
+        cout << "Failed to open output.txt" << endl;
+        return 1;
+    }
+    
     string line;
     map<string, double> city_costs;
     map<string, double> product_costs;
@@ -39,9 +60,6 @@ int main() {
         auto city_costs_insertion = city_costs.insert({city, cost});
         if (!city_costs_insertion.second) // if the insertion did not take place, the city is already in the map
             city_costs_insertion.first->second += cost; // add the cost to the existing cost
-        auto product_costs_insertion = product_costs.insert({product, cost});
-         if (!product_costs_insertion.second) // if the insertion did not take place, the product is already in the map
-            product_costs_insertion.first->second = min(product_costs_insertion.first->second, cost); // update with the sheapest cost
     }
 
     // Create a min heap
@@ -52,29 +70,50 @@ int main() {
         sheapest_cities.push(pair);
     }
 
-    cout << sheapest_cities.top().first << " " << fixed << setprecision(2) << sheapest_cities.top().second << endl; //print the sheapest city that is in the top
-    // sheapest_cities.erase(); // erase the min heap
+    outputFile << sheapest_cities.top().first << " " << fixed << setprecision(2) << sheapest_cities.top().second << endl; //print the sheapest city that is in the top
+
+    // Seek back to the beginning of the file
+    inputFile.clear(); // Clear any error flags
+    inputFile.seekg(0, ios::beg); // Move the file pointer to the beginning
+
+    while (getline(inputFile, line)) {
+        stringstream ss(line);
+        string city, product, price;
+        getline(ss, city, ',');
+        getline(ss, product, ',');
+        getline(ss, price, ',');
+        double cost = stof(price);
+        if (city == sheapest_cities.top().first) {
+            auto product_costs_insertion = product_costs.insert({product, cost});
+            if (!product_costs_insertion.second) // if the insertion did not take place, the product is already in the map
+               product_costs_insertion.first->second = min(product_costs_insertion.first->second, cost); // update with the sheapest cost
+        }
+    }
+
     priority_queue<pair<string, double>, vector<pair<string, double>>, Compare> sheapest_products;
 
      // Insert all elements into the min heap
     for (auto& pair : product_costs) {
         sheapest_products.push(pair);
     }
-    vector<pair<string, double>> res;
+
+    vector<pair<string, double>> products;
     for (size_t i = 0; i < 5 && !sheapest_products.empty(); i++) {
-        res.push_back({sheapest_products.top().first, sheapest_products.top().second});
-        // cout << sheapest_products.top().first << " " << fixed << sheapest_products.top().second << endl;
+        products.push_back({sheapest_products.top().first, sheapest_products.top().second});
         sheapest_products.pop();
     }
+
+    sort(products.begin(), products.end(), comparePairs); //sort equal cost products by alpha
     // Print the elements in ascending order of cost
 
-    for(vector<pair<string, double>>::iterator it = res.begin(); it != res.end(); it++)
-    {
-        if (it->second == (it+1)->second)
-            iter_swap(it, it+1);
-        cout << it->first << " " << fixed << setprecision(2) << it->second << endl;
+     for (auto& product : products) {
+        outputFile << product.first << " " << fixed << setprecision(2) << product.second << endl;
     }
-    
-    inputFile.close();
+
+    // Calculate execution time
+    // auto endTime = high_resolution_clock::now();
+    // auto duration = duration_cast<milliseconds>(endTime - startTime);
+    // cout << "Execution time: " << duration.count() << " milliseconds" << endl;
+
     return 0;
 }
