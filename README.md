@@ -77,6 +77,14 @@ Assist Adnan by writing a program, using any allowed language, to find the city 
 
 You can find an example of the input file [here](./input.txt). This file contains 1 million line to run your tests and validate your solution. The result contaning the correct answer from running the program against the 1M input file is saved in [this file](./output.txt)
 
+You can also use the script found at `gen.py` to generate arbitrarily large test cases similar to the ones that we will use to validate your submission on the blanat server.
+
+```
+python3 gen.py --rows <number_of_rows>
+```
+
+> Note that to generate the 1B row file, it will require a couple of minutes to generate and would take around `~22Gb` of disk space.
+
 ### INPUT
 Below are short examples for better understanding:
 
@@ -141,8 +149,19 @@ The competition focuses solely on correctness and speed of execution to gauge pa
 The challenge will run from the 19th of February 2024 until 29th of February 2024. The winner will be announced during March 1st 2024 in our social media challenges
 
 ## Leaderboard
+> Last updated: Thu 23 Feb 2024, 11am Moroccan time
+ 
+| Username       | Avg Time (ms) | Median Time (ms) | Language | Humanized Time                |
+|----------------|---------------|------------------|----------|-------------------------------|
+| dauom          | 56548         | 57044            | C++      | 56.55 sec (≈ 56.55 sec)       |
+| sqrt-minus-one | 59972         | 60880            | C++      | 59.97 sec (≈ 59.97 sec)       |
+| NotAsheraf     | 99730         | 97091            | Rust     | 99.73 sec (≈ 1 min 39.73 sec) |
+| mohammedfatihX | 249995        | 252203           | Java     | 249.99 sec (≈ 4 min 9.99 sec) |
+| aboullaite     | 368758        | 368167           | Java     | 368.76 sec (≈ 6 min 8.76 sec) |
+| essmehdi       | 475119        | 486776           | Rust     | 475.12 sec (≈ 7 min 55.12 sec)|
+| sm3xy          | 903274        | 900806           | Python   | 903.27 sec (≈ 15 min 3.27 sec)|
 
-> Coming soon
+We only list solutions with correct results that run within ~15 min. We unfortunately can't give feedback on every submission and we invite you to read the full assignement.
 
 ## Prize
 
