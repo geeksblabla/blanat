@@ -50,7 +50,6 @@ const sortAndSliceCheapestProducts = (products) => {
       (product, index, self) =>
         self.findIndex((p) => p.name === product.name) === index
     )
-
     .slice(0, 5);
 };
 
