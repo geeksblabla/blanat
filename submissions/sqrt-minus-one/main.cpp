@@ -89,8 +89,8 @@ static void end_profiling(int i)
 
 static u64 THREAD_CHUNK_SIZE = (1ull << 30);
 
-#define CITIES_MAX 523
-#define PRODUCTS_MAX 409
+#define CITIES_MAX 313
+#define PRODUCTS_MAX 251
 
 struct Thread_Ctx
 {
@@ -124,8 +124,8 @@ convert_to_int(char *number, u32 number_len)
   return result;
 }
 
-static u32 cities_coefs[4] = {226, 371, 516, 292};
-static u32 fruits_coefs[4] = {253, 46, 119, 133};
+static u32 cities_coefs[4] = {259, 237, 261, 287};
+static u32 fruits_coefs[4] = {144, 15, 3, 84};
 
 static u32
 compute_product_index(char *product, u32 len)
