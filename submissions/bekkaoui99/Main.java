@@ -41,16 +41,12 @@ public class Main {
 
     public static void main(String[] args){
 
-        long startTime;
-        long endTime;
-        startTime = System.currentTimeMillis();
-
         List<City> cities = new ArrayList<>();
         String dataSet = "input.txt";
         String output = "output.txt";
 
 
-        // read data
+        // reading the dataset and collecting information
         try (BufferedReader reader = new BufferedReader(new FileReader(dataSet))){
             String line;
             while ((line = reader.readLine()) != null){
@@ -86,6 +82,8 @@ public class Main {
         // searching for the cheapest city in the country and sort the list of products
         City cheapestCity = cities.stream().min(Comparator.comparing(City::totalPrice)).get();
         cheapestCity.products().sort(Comparator.comparing(Product::price).thenComparing(Product::name));
+        System.out.println(cheapestCity.products().size());
+        cheapestCity.products().forEach(product -> System.out.println(product.name() + " " + product.price()));
 
         // write the result in the output file
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(output))) {
@@ -97,13 +95,6 @@ public class Main {
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
-
-
-        // calculate the time of execution
-        endTime = System.currentTimeMillis();
-        long duration = endTime - startTime ;
-        System.out.println(duration + "ms");
-
 
 
 
