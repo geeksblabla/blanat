@@ -13,9 +13,7 @@ public class Main {
 
         Map<String, Double> map = new HashMap<>();
 
-        try {
-
-		  Stream<String> lines = Files.lines(Paths.get("input.txt"));
+        try (Stream<String> lines = Files.lines(Paths.get("input.txt"))) {
             List<String> linesList = lines.collect(Collectors.toList());
 
             linesList.forEach((line) -> {
