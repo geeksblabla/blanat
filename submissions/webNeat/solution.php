@@ -1,16 +1,5 @@
 <?php
 
-if ($argc < 2) {
-  $command = "php"
-    . " -d opcache.enable_cli=1"
-    . " -d opcache.jit_buffer_size=128M"
-    . " -d opcache.jit=1235"
-    . " -d memory_limit=20G"
-    . " -f " . escapeshellarg(__FILE__) . " -- jit";
-  shell_exec($command);
-  exit(0);
-}
-
 gc_disable();
 pcntl_async_signals(true);
 
