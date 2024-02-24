@@ -1,21 +1,19 @@
+/*
+Author: @AnasImloul
+compile: g++ -std=c++17 -Ofast -o main main.cpp
+*/
+
 #include <fstream>
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include <chrono>
 #include <unordered_map>
-#include <iomanip>
 #include <queue>
+#include <cstdint>
 
-#pragma GCC optimize("O7,unroll-loops")
-#pragma GCC target("avx2,bmi,bmi2,lzcnt,popcnt")
+using namespace std;
 
-int64_t currentTimeMillis() {
-    using namespace std::chrono;
-    return duration_cast<milliseconds>(high_resolution_clock::now().time_since_epoch()).count();
-}
-
-std::string morrocan_cities[101] = {
+string moroccan_cities[101] = {
         "Casablanca", "Rabat", "Marrakech", "Fes", "Tangier",
         "Agadir", "Meknes", "Oujda", "Kenitra", "Tetouan",
         "Safi", "El_Jadida", "Beni_Mellal", "Errachidia",
@@ -43,7 +41,7 @@ std::string morrocan_cities[101] = {
 };
 
 
-std::string fruits_and_vegetables[94] = {
+string fruits_and_vegetables[94] = {
         "Cauliflower", "Banana", "Lime", "Cucumber", "Bok_Choy",
         "Orange", "Garlic", "Thyme", "Cranberry", "Mango",
         "Jackfruit", "Strawberry", "Dill", "Potato", "Parsnip",
@@ -61,52 +59,53 @@ std::string fruits_and_vegetables[94] = {
         "Watercress", "Watermelon", "Pineapple", "Lemon", "Blueberry",
         "Cabbage", "Acorn_Squash", "Plantain", "Endive", "Raspberry",
         "Chard", "Green_Beans", "Fig", "Butternut_Squash", "Sage",
-        "Rutabaga", "Avocado", "Beet", "Zucchini", "Kiwi", "Salsify"};
+        "Rutabaga", "Avocado", "Beet", "Zucchini", "Kiwi", "Salsify"
+};
 
 
 int main() {
-    // int64_t start = currentTimeMillis();
-
-    std::cin.tie(nullptr);
-    std::cout.tie(nullptr);
-    std::ios_base::sync_with_stdio(false);
+    cin.tie(nullptr);
+    cout.tie(nullptr);
+    ios_base::sync_with_stdio(false);
 
     freopen("input.txt", "r", stdin);
 
-    std::unordered_map<std::string, std::unordered_map<std::string, double>> map;
+    // map to store the prices of each product in each city
+    unordered_map<string, unordered_map<string, int64_t>> map;
     map.reserve(613);
-    for (const auto& city : morrocan_cities) {
+    for (const auto& city : moroccan_cities) {
         map[city].reserve(512);
         for (const auto& product : fruits_and_vegetables)
-            map[city][product] = INT_MAX;
+            map[city][product] = INT64_MAX;
     }
 
-    std::unordered_map<std::string, double> index_totals;
-    for (const auto& city : morrocan_cities) {
-        index_totals[city] = 0;
+    // map to store the total price of each city (sum of all products)
+    unordered_map<string, int64_t> total_per_city;
+    total_per_city.reserve(613);
+    for (const auto& city : moroccan_cities) {
+        total_per_city[city] = 0;
     }
 
-    std::string city, product;
+    ofstream output("output.txt");
+
+    string city, product;
     char c;
-
-    int count = 0;
-
-    while (!std::cin.eof()) {
+    while (!cin.eof()) {
         city.clear(), product.clear();
 
-        while (std::cin.get(c) && c != ',') city.push_back(c);
+        while (cin.get(c) && c != ',') city.push_back(c);
 
-        while (std::cin.get(c) && c != ',') product.push_back(c);
+        while (cin.get(c) && c != ',') product.push_back(c);
 
         int price = 0;
-        while (std::cin.get(c) && c != '\n') {
+        while (cin.get(c) && c != '\n') {
             if (c == '.') break;
             else price = price * 10 + (c - '0');
         }
 
         int decimal = 0;
         if (c == '.') {
-            while (std::cin.get(c) && c != '\n') {
+            while (cin.get(c) && c != '\n') {
                 price = price * 10 + (c - '0');
                 decimal++;
             }
@@ -114,54 +113,45 @@ int main() {
 
         if (price == 0) break;
 
-        double price_double = price;
-        if (decimal == 1) price_double /= 10;
-        else if (decimal == 2) price_double /= 100;
+        if (decimal == 0) price *= 100;
+        else if (decimal == 1) price *= 10;
 
-        double& current_price = map[city][product];
-        if (price_double < current_price)
-            current_price = price_double;
-
-        index_totals[city] += price_double;
-
-        count++;
+        if (price < 1000) {
+            int64_t &current_price = map[city][product];
+            if (current_price == 0 || price < current_price) current_price = price;
+        }
+        total_per_city[city] += price;
     }
-
-    std::ofstream output("output.txt");
 
     // get city with the lowest price
-    std::string cheapest_city;
-    double cheapest_price = std::numeric_limits<double>::max();
-
-    for (const auto& [city, total] : index_totals) {
-        if (total < cheapest_price) {
-            cheapest_price = total;
-            cheapest_city = city;
-        }
+    pair<int64_t, string> cheapest = {INT64_MAX, ""};
+    for (const auto& [city, total] : total_per_city) {
+        if (total == 0) continue;
+        cheapest = min(cheapest, {total, city});
     }
 
-    output << cheapest_city << " " << std::fixed << std::setprecision(2) << cheapest_price << std::endl;
+    output << fixed << setprecision(2);
+
+    // print the city with the lowest price
+    output << cheapest.second << " " << (double)cheapest.first / 100. << endl;
 
     // get 5 products with the lowest price
-    std::priority_queue<std::pair<double, std::string>> pq;
-    for (const auto& [product, price] : map[cheapest_city]) {
+    priority_queue<pair<int64_t , string>> pq;
+    for (const auto& [product, price] : map[cheapest.second]) {
         pq.emplace(price, product);
         if (pq.size() > 5) pq.pop();
     }
 
-    std::vector<std::pair<double, std::string>> products;
-    products.reserve(5);
-    while (!pq.empty()) {
-        products.push_back(pq.top());
-        pq.pop();
+    // get the products in ascending order
+    vector<pair<int64_t , string>> products(pq.size());
+    for (int i = (int)pq.size() - 1; i >= 0; i--, pq.pop()) {
+        products[i] = pq.top();
     }
 
-    for (int i = 4; i >= 0; i--) {
-        output << products[i].second << " " << std::fixed << std::setprecision(2) << products[i].first << std::endl;
+    // print the products
+    for (const auto& [price, product] : products) {
+        output << product << " " << (double)price / 100. << endl;
     }
 
     output.close();
-
-    // int64_t end = currentTimeMillis();
-    // std::cout << "Execution time: " << end - start << "ms" << std::endl;
 }

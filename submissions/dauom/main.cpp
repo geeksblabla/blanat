@@ -4,16 +4,19 @@
 #include <unistd.h>  // For close()
 
 #include <algorithm>
-// #include <cassert>
 #include <cstring>
+#include <ext/pb_ds/assoc_container.hpp>
 #include <future>
-// #include <iostream>
 #include <string>
 #include <thread>
 #include <unordered_map>
 #include <vector>
 
+using namespace __gnu_pbds;
 using namespace std;
+
+template <class K, class V>
+using ht = gp_hash_table<K, V>;
 
 #define NUM_CITIES 102
 const char *INPUT_FILENAME = "input.txt";
@@ -34,9 +37,11 @@ struct MappedFile {
 struct Result {
   long long city_cost[NUM_CITIES];
   long long product_cost[NUM_CITIES][NUM_CITIES];
-  unordered_map<string, int> product_id;
-  unordered_map<string, int> city_id;
-  Result() {
+  ht<string, int> product_id;
+  ht<string, int> city_id;
+  Result()
+      : product_id({}, {}, {}, {}, {1 << 7}),
+        city_id({}, {}, {}, {}, {1 << 7}) {
     fill_n(city_cost, NUM_CITIES, 0);
     fill_n((long long *)product_cost, NUM_CITIES * NUM_CITIES, (long long)4e18);
   }
@@ -57,16 +62,13 @@ inline const MappedFile map_input() {
   return {fd, (size_t)sb.st_size, addr};
 }
 
-inline const string consume_str(char *&start) {
-  string s;
-  s.reserve(40);
+inline const void consume_str(char *&start, string &s) {
   char c;
   while ((c = *start) != 0 && c != ',' && c != '\n') {
     s += c;
     ++start;
   }
   ++start;
-  return s;
 }
 
 inline long long consume_float_as_long(char *&start) {
@@ -93,7 +95,7 @@ inline long long consume_float_as_long(char *&start) {
   return ans;
 }
 
-inline int find_or_create(unordered_map<string, int> &id_map, const string &k) {
+inline int find_or_create(ht<string, int> &id_map, const string &k) {
   int id = -1;
   if (id_map.find(k) == id_map.end()) {
     id = id_map[k] = id_map.size();
@@ -104,6 +106,7 @@ inline int find_or_create(unordered_map<string, int> &id_map, const string &k) {
 }
 
 Result process_chunk(char *start, char *end) {
+  // madvise((void *)start, end - start, MADV_SEQUENTIAL);
   if (*start != '\n') {
     start = (char *)rawmemchr(start, '\n');
   }
@@ -111,11 +114,15 @@ Result process_chunk(char *start, char *end) {
 
   Result r;
   char *cur = start;
+  string city;
+  city.reserve(40);
+  string product;
+  product.reserve(40);
   while (cur < end) {
-    string city = consume_str(cur);
-    string product = consume_str(cur);
-    // string sprice = consume_str(cur);
-    // long long price = stoll(sprice);
+    city.clear();
+    consume_str(cur, city);
+    product.clear();
+    consume_str(cur, product);
     long long price = consume_float_as_long(cur);
 
     int cid = find_or_create(r.city_id, city);
@@ -127,25 +134,25 @@ Result process_chunk(char *start, char *end) {
   return r;
 }
 
-vector<Result> process_concurrently(const MappedFile &mp) {
+inline void process_concurrently(const MappedFile &mp,
+                                 vector<Result> &results) {
   char *start = (char *)mp.file_data;
   char *end = start + mp.file_size;
-  const int block_size = mp.file_size / NUM_THREADS;
+  const size_t block_size = mp.file_size / NUM_THREADS;
 
   vector<future<Result>> future_results;
   for (int i = 0; i < NUM_THREADS; i++) {
-    future_results.emplace_back(async(process_chunk, start + i * block_size,
-                                      min(start + (i + 1) * block_size, end)));
+    future_results.emplace_back(
+        async(process_chunk, start + i * block_size,
+              i == NUM_THREADS - 1 ? end : (start + (i + 1) * block_size)));
   }
 
-  vector<Result> results;
   for (auto &fr : future_results) {
     results.emplace_back(fr.get());
   }
-  return results;
 }
 
-Result merge(vector<Result> &results) {
+inline Result merge(vector<Result> &results) {
   Result mr;
   for (auto &r : results) {
     for (auto &cid : r.city_id) {
@@ -170,7 +177,7 @@ inline void ans(Result &result) {
   int city_id = -1;
   for (auto &cid : result.city_id) {
     long long c = result.city_cost[cid.second];
-    if (c < min_city_cost) {
+    if (min_city_cost > c) {
       min_city_cost = c;
       city = cid.first;
       city_id = cid.second;
@@ -191,13 +198,16 @@ inline void ans(Result &result) {
   for (auto &p : products) {
     fprintf(f, "%s %.2f\n", p.second.c_str(), p.first / 100.0);
   }
+  fflush(f);
   fclose(f);
 }
 
 int main() {
   const MappedFile mp = map_input();
 
-  vector<Result> results = process_concurrently(mp);
+  vector<Result> results;
+  results.reserve(NUM_THREADS);
+  process_concurrently(mp, results);
   Result result = merge(results);
   ans(result);
 
