@@ -1,8 +1,8 @@
 const fs = require("fs");
 const readline = require("readline");
 
-const input = fs.createReadStream("input.txt");
-const output = fs.createWriteStream("output.txt");
+const inputFile = fs.createReadStream("input.txt");
+const outputFile = fs.createWriteStream("output.txt");
 
 const bestCity = async () => {
   try {
@@ -24,12 +24,14 @@ const bestCity = async () => {
               cityData[city].price[ind].price = price;
             }
           } else {
+            // add new product
             cityData[city].product[product] = cityData[city].index;
             cityData[city].price.push({ name: product, price: price });
             cityData[city].index += 1;
           }
           cityData[city].sum += price;
         } else {
+          // add new city
           cityData[city] = {
             product: {},
             price: [{ name: product, price: price }],
