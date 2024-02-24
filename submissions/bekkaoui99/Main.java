@@ -4,20 +4,51 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.*;
 
+
+class City {
+    private final String name;
+    private final List<Main.Product> products;
+    private double totalPrice;
+
+    public City(String name, List<Main.Product> products, double totalPrice) {
+        this.name = name;
+        this.products = products;
+        this.totalPrice = totalPrice;
+    }
+
+    public String name() {
+        return name;
+    }
+
+    public List<Main.Product> products() {
+        return products;
+    }
+
+    public double totalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(double totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
+}
+
 public class Main {
 
-    public record City(String name , List<Product> products) {}
     public record Product(String name , double price) {}
+
 
     public static void main(String[] args){
 
         long startTime;
         long endTime;
-        startTime = System.nanoTime();
+        startTime = System.currentTimeMillis();
 
         List<City> cities = new ArrayList<>();
         String dataSet = "input.txt";
         String output = "output.txt";
+
 
         // read data
         try (BufferedReader reader = new BufferedReader(new FileReader(dataSet))){
@@ -36,9 +67,10 @@ public class Main {
 
                 if(isExist.isPresent()){
                     isExist.get().products().add(product);
+                    isExist.get().setTotalPrice( isExist.get().totalPrice() + getPrice);
                 }
                 else {
-                    City city = new City(getCity , new ArrayList<>());
+                    City city = new City(getCity , new ArrayList<>() , getPrice );
                     city.products().add(product);
                     cities.add(city);
                 }
@@ -51,61 +83,30 @@ public class Main {
 
 
 
-        // calculate the total price of each city :
-        Map<String , Double> totalPrice = new HashMap<>();
-
-        cities.forEach(city -> {
-            totalPrice.put(city.name() ,
-                    city.products().stream()
-                            .map(Product::price)
-                            .reduce(Double::sum).get());
-
-        });
-
-
-
-        // find the lowest city in the country :
-        Map.Entry<String, Double> cityWithLowestPrice = findCityWithLowestPrice(totalPrice);
-
-        // get the cheapest city from the list
-        City getTheCheapestCity = cities.stream()
-                .filter(city -> city.name().equals(cityWithLowestPrice.getKey()))
-                .findFirst().get();
-        // sort the products based on the price
-        getTheCheapestCity.products().sort(Comparator.comparingDouble(Product::price));
-
+        // searching for the cheapest city in the country and sort the list of products
+        City cheapestCity = cities.stream().min(Comparator.comparing(City::totalPrice)).get();
+        cheapestCity.products().sort(Comparator.comparing(Product::price).thenComparing(Product::name));
 
         // write the result in the output file
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(output))) {
-            writer.write(cityWithLowestPrice.getKey() + " " + cityWithLowestPrice.getValue());
+            writer.write(cheapestCity.name() + " " + String.format("%.2f" ,cheapestCity.totalPrice()) );
             for (int i = 0; i < 5; i++) {
-                writer.write("\n" + getTheCheapestCity.products().get(i).name() + " "
-                        + String.format("%.2f" , getTheCheapestCity.products().get(i).price()));
+                writer.write("\n" + cheapestCity.products().get(i).name() + " "
+                        + String.format("%.2f" , cheapestCity.products().get(i).price()));
             }
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
 
+
         // calculate the time of execution
-        endTime = System.nanoTime();
-        long duration = (endTime - startTime)/ 1_000_000 ;
+        endTime = System.currentTimeMillis();
+        long duration = endTime - startTime ;
         System.out.println(duration + "ms");
 
 
-    }
 
-    public static Map.Entry<String, Double> findCityWithLowestPrice(Map<String, Double> cityPrices) {
-        Map.Entry<String, Double> lowestPriceEntry = null;
-        double lowestPrice = Double.MAX_VALUE;
 
-        for (Map.Entry<String, Double> entry : cityPrices.entrySet()) {
-            if (entry.getValue() < lowestPrice) {
-                lowestPrice = entry.getValue();
-                lowestPriceEntry = entry;
-            }
-        }
-
-        return lowestPriceEntry;
     }
 
 
