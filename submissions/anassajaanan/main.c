@@ -758,27 +758,16 @@ static inline const struct CityEntry *city_hash(const char *str, unsigned int le
 
 static inline void process_line(const char* start, size_t length) {
     const char *end = start + length;
-<<<<<<< HEAD
     char *separator1 = (char *)memchr(start, ',', end - start);
     if (!separator1) return;
 
     char *separator2 = (char *)memchr(separator1 + 1, ',', end - separator1 - 1);
-=======
-    char *separator1 = memchr(start, ',', end - start);
-    if (!separator1) return;
-
-    char *separator2 = memchr(separator1 + 1, ',', end - separator1 - 1);
->>>>>>> cae9102acd1b0a6572ec4dfb5de936ce03aa030a
     if (!separator2) return;
 
     
     size_t cityNameLength = separator1 - start;
     size_t productNameLength = separator2 - separator1 - 1;
-<<<<<<< HEAD
     // size_t productPriceLength = end - separator2 - 1;
-=======
-    size_t productPriceLength = end - separator2 - 1;
->>>>>>> cae9102acd1b0a6572ec4dfb5de936ce03aa030a
 
 	// Allocate buffers for city name, product name, and product price
     char cityName[cityNameLength + 1];
@@ -800,11 +789,7 @@ static inline void process_line(const char* start, size_t length) {
 		struct City *city = cities[cityEntry->cityIndex];
 		if (!city)
 		{
-<<<<<<< HEAD
 			city = (struct City *)malloc(sizeof(struct City));
-=======
-			city = malloc(sizeof(struct City));
->>>>>>> cae9102acd1b0a6572ec4dfb5de936ce03aa030a
 			city->total = price;
 			city->name = cityEntry->name;
 			cities[cityEntry->cityIndex] = city;
@@ -812,11 +797,7 @@ static inline void process_line(const char* start, size_t length) {
 			const struct ProductEntry *productEntry = product_hash(productName, productNameLength);
 			if (productEntry)
 			{
-<<<<<<< HEAD
 				struct Product *product = (struct Product *)malloc(sizeof(struct Product));
-=======
-				struct Product *product = malloc(sizeof(struct Product));
->>>>>>> cae9102acd1b0a6572ec4dfb5de936ce03aa030a
 				product->price = price;
 				product->name = productEntry->name;
 				city->products[productEntry->productIndex] = product;
@@ -837,11 +818,7 @@ static inline void process_line(const char* start, size_t length) {
 				struct Product *product = city->products[productEntry->productIndex];
 				if (!product)
 				{
-<<<<<<< HEAD
 					product = (struct Product *)malloc(sizeof(struct Product));
-=======
-					product = malloc(sizeof(struct Product));
->>>>>>> cae9102acd1b0a6572ec4dfb5de936ce03aa030a
 					product->price = price;
 					product->name = productEntry->name;
 					city->products[productEntry->productIndex] = product;
@@ -888,11 +865,7 @@ static inline int compareProducts(const void *a, const void *b) {
 int main(void)
 {
 
-<<<<<<< HEAD
     int fd = open("../../input.txt", O_RDONLY);
-=======
-    int fd = open("input.txt", O_RDONLY);
->>>>>>> cae9102acd1b0a6572ec4dfb5de936ce03aa030a
     if (fd == -1) {
         perror("Error opening file");
         exit(EXIT_FAILURE);
@@ -905,11 +878,7 @@ int main(void)
         exit(EXIT_FAILURE);
     }
 
-<<<<<<< HEAD
     char *file_in_memory = (char *)mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-=======
-    char *file_in_memory = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
->>>>>>> cae9102acd1b0a6572ec4dfb5de936ce03aa030a
     if (file_in_memory == MAP_FAILED) {
         perror("Error mapping file");
         close(fd);
