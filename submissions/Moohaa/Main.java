@@ -53,8 +53,6 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
 
-        startTime = System.currentTimeMillis();
-
         executorService.submit(Main::fileReader);
 
         for (int i = 0; i < THREAD_POOL_SIZE - 3; i++) {
@@ -71,15 +69,6 @@ public class Main {
         });
 
         Files.write(Paths.get(OUTPUT_TXT), output.get().getBytes());
-
-        // Get the current time after the code execution
-        long endTime = System.currentTimeMillis();
-
-        // Calculate the execution time
-        long executionTime = endTime - startTime;
-
-        // Print the execution time
-        System.out.println("Execution Time: " + executionTime + " milliseconds");
 
         executorService.shutdownNow();
 
