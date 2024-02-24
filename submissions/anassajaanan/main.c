@@ -865,7 +865,7 @@ static inline int compareProducts(const void *a, const void *b) {
 int main(void)
 {
 
-    int fd = open("../../input.txt", O_RDONLY);
+    int fd = open("./input.txt", O_RDONLY);
     if (fd == -1) {
         perror("Error opening file");
         exit(EXIT_FAILURE);
