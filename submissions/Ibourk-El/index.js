@@ -7,7 +7,7 @@ const outputFile = fs.createWriteStream("output.txt");
 const bestCity = async () => {
   try {
     const rl = readline.createInterface({
-      input: input,
+      input: inputFile,
       crlfDelay: Infinity,
     });
     let cityData = {};
@@ -69,8 +69,8 @@ const bestCity = async () => {
       i++;
     }
 
-    output.write(result);
-    output.end();
+    outputFile.write(result);
+    outputFile.end();
   } catch (e) {
     console.log(e);
   }
