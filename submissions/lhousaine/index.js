@@ -1,10 +1,11 @@
 const fs = require('fs');
 const readline = require('readline');
 
-const highWaterMarkBytes = 8 * 1024 * 1024; // 8 MB
+const highWaterMarkBytes = 16 * 1024 * 1024; // 8 MB
 const inputStream = fs.createReadStream('input.txt', {
   highWaterMark: highWaterMarkBytes,
 });
+
 const outputStream = fs.createWriteStream('output.txt');
 
 const getCityProductsSum = (cityProducts) =>
@@ -38,15 +39,18 @@ const findCheapestCity = (citiesPrices) => {
 };
 
 const sortAndSliceCheapestProducts = (products) => {
-  products.sort((product1, product2) => {
-    return (
-      product1.price - product2.price ||
-      product1.name.localeCompare(product2.name)
-    );
-  });
-
   return products
-    .filter((product1, index) => products[index + 1]?.name !== product1.name)
+    .sort((product1, product2) => {
+      return (
+        product1.price - product2.price ||
+        product1.name.localeCompare(product2.name)
+      );
+    })
+    .filter(
+      (product, index, self) =>
+        self.findIndex((p) => p.name === product.name) === index
+    )
+
     .slice(0, 5);
 };
 
