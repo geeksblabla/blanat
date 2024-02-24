@@ -1,19 +1,24 @@
 const fs = require('fs');
 const readline = require('readline');
 
-const inputStream = fs.createReadStream('input.txt');
+const highWaterMarkBytes = 8 * 1024 * 1024; // 8 MB
+const inputStream = fs.createReadStream('input.txt', {
+  highWaterMark: highWaterMarkBytes,
+});
 const outputStream = fs.createWriteStream('output.txt');
 
 const getCityProductsSum = (cityProducts) =>
-  Object.values(cityProducts).reduce((acc, current) => acc + current, 0);
+  cityProducts.reduce((acc, current) => acc + current.price, 0);
 
 const updateCityPrices = (city, product, priceValue, citiesPrices) => {
   const cityData = citiesPrices.get(city);
-  if (!cityData?.[product] || priceValue < cityData[product]) {
-    citiesPrices.set(city, {
-      ...(cityData || {}),
-      [product]: priceValue,
+  if (cityData) {
+    cityData.push({
+      name: product,
+      price: priceValue,
     });
+  } else {
+    citiesPrices.set(city, [{ name: product, price: priceValue }]);
   }
 };
 
@@ -25,35 +30,42 @@ const findCheapestCity = (citiesPrices) => {
     const citySum = getCityProductsSum(products);
     if (citySum < minSum) {
       minSum = citySum;
-      cheapestCity = { city, products };
+      cheapestCity = { city, citySum, products };
     }
   }
 
   return cheapestCity;
 };
 
-const sortAndSliceCheapestProducts = (cheapestCity) => {
-  return Object.entries(cheapestCity.products)
-    .sort(([productA, priceA], [productB, priceB]) => {
-      return priceA - priceB || productA.localeCompare(productB);
-    })
+const sortAndSliceCheapestProducts = (products) => {
+  products.sort((product1, product2) => {
+    return (
+      product1.price - product2.price ||
+      product1.name.localeCompare(product2.name)
+    );
+  });
+
+  return products
+    .filter((product1, index) => products[index + 1]?.name !== product1.name)
     .slice(0, 5);
 };
 
-const displayCheapestCity = (cheapestCity, cheapestProducts) => {
+const displayCheapestCity = (city, citySum, cheapestProducts) => {
   const outputResult = [];
-  outputResult.push(
-    `${cheapestCity.city} ${getCityProductsSum(cheapestCity.products).toFixed(
-      2
-    )}`
-  );
+  outputResult.push(`${city} ${citySum.toFixed(2)}`);
 
-  cheapestProducts.forEach(([product, price]) => {
-    outputResult.push(`${product} ${price.toFixed(2)}`);
+  cheapestProducts.forEach((product) => {
+    outputResult.push(`${product.name} ${product.price.toFixed(2)}`);
   });
 
-  outputStream.write(outputResult.join('\n'));
-  outputStream.end();
+  outputStream.write(outputResult.join('\n'), (err) => {
+    if (err) {
+      console.error('Error occurred while writing to output file:', err);
+    } else {
+      console.log('Output file has been written successfully.');
+    }
+    outputStream.end();
+  });
 };
 
 function main() {
@@ -83,9 +95,9 @@ function main() {
 
   rl.on('close', () => {
     try {
-      const cheapestCity = findCheapestCity(citiesPrices);
-      const cheapestProducts = sortAndSliceCheapestProducts(cheapestCity);
-      displayCheapestCity(cheapestCity, cheapestProducts);
+      const { city, citySum, products } = findCheapestCity(citiesPrices);
+      const cheapestProducts = sortAndSliceCheapestProducts(products);
+      displayCheapestCity(city, citySum, cheapestProducts);
     } catch (err) {
       console.error('Error occurred while processing:', err);
     }
