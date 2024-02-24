@@ -1,12 +1,13 @@
 import std.stdio;
 import std.array : array;
-import std.range : enumerate;
+import std.conv : to;
+import std.range : enumerate, front;
 import std.file : readText;
 import std.format : formattedRead;
-import std.algorithm : min, multiSort, reduce;
+import std.algorithm : min, multiSort, reduce, splitter;
 import std.parallelism : parallel, taskPool;
 import std.mmfile : MmFile;
-import std.string : lineSplitter, strip;
+import std.string : lineSplitter, strip, split;
 
 struct Dataset
 {
@@ -21,21 +22,26 @@ Dataset parseChunk(string chunk)
 
     //writeln(chunk);
 
-    foreach(i, line; chunk.lineSplitter().enumerate)
+    foreach(line; chunk.lineSplitter())
     {
-        string city;
-        string product;
-        double price;
+        auto parts = line.splitter(",");
+        string city = parts.front();
+        parts.popFront();
+        string product = parts.front();
+        parts.popFront();
+        double price = parts.front().to!double;
 
-        line.formattedRead!`%s,%s,%f`(city, product, price);
-
+        //writeln("city = ", city);
+        //writeln("product = ", product);
+        //writeln("price = ", price);
         //writeln(i, ", line = ", city, ",", product, ",", price);
         cityCosts[city] += price;
-        if(null == (city in products) || null == (product in products[city]))
-        {
-            products[city][product] = price;
-        }
-        products[city][product] = min(price, products[city][product]);
+        //writeln(i, ", line = ", city, ",", product, ",", price);
+        //if(null == (city in products) || null == (product in products[city]))
+        //{
+        //    products[city][product] = price;
+        //}
+        products[city][product] = min(price, products.get(city, (double[string]).init).get(product, int.max));
         //writeln(i, ", line = ", city, ",", product, ",", price);
     }
 
@@ -139,11 +145,11 @@ string[] splitChunks(string input, int n)
         {
             end++;
         }
-        chunks ~= input[start .. end].strip();
+        chunks ~= input[start .. end];
         start = end + 1;
         end += chunkSize;
     }
-    chunks ~= input[start .. $].strip();
+    chunks ~= input[start .. $];
     return chunks;
 }
 
@@ -170,7 +176,7 @@ casa,oil,9.24";
 
 void main()
 {
-    //auto fh = new MmFile("input.txt");
+    //auto fh = new MmFile("input.txt", MmFile.Mode.read, 0, null);
     //string input = cast(string) fh[];
     string input = "input.txt".readText();
     //writeln("mmfile loaded");
@@ -202,16 +208,17 @@ void main()
         }
     }
     
+    auto fout = File("output.txt", "w");
     string[] cheapestProducts = dataset.products[cheapestCity].keys().array();
     //writeln("cheapestProducts = ", cheapestProducts);
-    writefln!`%s %.2f`(cheapestCity, dataset.cityCosts[cheapestCity]);
+    fout.writefln!`%s %.2f`(cheapestCity, dataset.cityCosts[cheapestCity]);
     cheapestProducts.multiSort!(
         (a, b) => dataset.products[cheapestCity][a] < dataset.products[cheapestCity][b],
         (a, b) => a < b
     );
     foreach(i, product; cheapestProducts[0 .. 5])
     {
-        writefln!`%s %.2f`(product, dataset.products[cheapestCity][product]);
+        fout.writefln!`%s %.2f`(product, dataset.products[cheapestCity][product]);
     }
 }
 
