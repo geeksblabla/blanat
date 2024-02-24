@@ -1,0 +1,33 @@
+name: Benchmark
+
+on: [push]
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - uses: dlang-community/setup-dlang@v1
+      name: Install LDC
+      with:
+        compiler: ldc-latest
+
+    - name: Unit tests
+      run: |
+        ldc2 -unittest submissions/azihassan/azihassan.d && \
+            chmod +x azihassan && \
+            ./azihassan
+
+    - name: Build release
+      run: ldc2 -O -release submissions/azihassan/azihassan.d
+
+    - name: Benchmark
+      run: |
+        mv output.txt expected.txt
+        time ./azihassan
+
+    - name: Compare results
+      run: |
+        diff output.txt expected.txt && echo OK || (echo KO && exit 1)
