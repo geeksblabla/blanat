@@ -176,9 +176,9 @@ casa,oil,9.24";
 
 void main()
 {
-    //auto fh = new MmFile("input.txt", MmFile.Mode.read, 0, null);
-    //string input = cast(string) fh[];
-    string input = "input.txt".readText();
+    auto fh = new MmFile("input.txt", MmFile.Mode.read, 0, null);
+    string input = cast(string) fh[];
+    //string input = "input.txt".readText();
     //writeln("mmfile loaded");
     Dataset[4] chunks;
 
