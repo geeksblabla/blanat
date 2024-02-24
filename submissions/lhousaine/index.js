@@ -2,7 +2,7 @@ const fs = require('fs');
 const readline = require('readline');
 
 const highWaterMarkBytes = 8 * 1024 * 1024; // 8 MB
-const inputStream = fs.createReadStream('../../input.txt', {
+const inputStream = fs.createReadStream('input.txt', {
   highWaterMark: highWaterMarkBytes,
 });
 const outputStream = fs.createWriteStream('output.txt');
