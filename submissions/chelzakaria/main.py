@@ -17,17 +17,15 @@ def fun():
     result = (
         cheapest_city_df.group_by("Product")
         .agg(pl.min("Price").alias("Min_Price"))
-        .sort("Min_Price")
+        .sort(["Min_Price", "Product"])
         .select(["Product", "Min_Price"])
         .limit(5)
         .collect(streaming=True)
     )
 
-    cheapest_city.drop_in_place("Total_Price")
     with open("output.txt", "w") as f:
-        cheapest_city.write_csv(f, include_header=False, separator=" ")
-        result.write_csv(f, include_header=False, separator=" ")
-
+        cheapest_city.write_csv(f, has_header=False, separator=" ")
+        result.write_csv(f, has_header=False, separator=" ")
 
 
 if __name__ == "__main__":
