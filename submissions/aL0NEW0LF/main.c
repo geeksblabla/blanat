@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <windows.h>
+#include <windows.h> // YES WINDOWS :) IKR
 #include <pthread.h>
 
 // SPECIFY THE NUMBER OF ROWS IN HERE (EX FOR THE CHALLENGE TESTING DATA: 1000000000)
@@ -10,10 +10,14 @@
 #define MAX_CITY_NAME_LENGTH 50
 // SPECIFY THE MAXIMUM LENGTH OF PRODUCT city
 #define MAX_PRODUCT_NAME_LENGTH 50
+// SPECIFY THE INPUT FILE PATH
+#define INPUT_FILE_PATH "input.csv"
+// SPECIFY THE OUTPUT FILE PATH
+#define OUTPUT_FILE_PATH "output.txt"
 
 #define MAX_LINE_SIZE 2048
 
-#define NUM_THREADS 4
+#define NUM_THREADS 6
 
 struct KeyValuePair {
     char product[MAX_PRODUCT_NAME_LENGTH];
@@ -173,7 +177,7 @@ void findCheapestProducts(const char* key, FILE* fp) {
     struct KeyValuePair cheapest_products_stack[100];
     int cheapest_products_stack_size = 0;
 
-    FILE *file = fopen("input.txt", "r"); // SPECIFY THE INPUT FILE PATH
+    FILE *file = fopen(INPUT_FILE_PATH, "r"); // SPECIFY THE INPUT FILE PATH
     if (file == NULL) {
         printf("Could not open file\n");
         exit(0);
@@ -219,7 +223,7 @@ void* processBatch(void* arg) {
     
     struct CityTotalHashTable* cityTotalHashTable = createCityTotalHashTable(102);
     
-    FILE *file = fopen("input.txt", "r"); // SPECIFY THE INPUT FILE PATH
+    FILE *file = fopen(INPUT_FILE_PATH, "r"); // SPECIFY THE INPUT FILE PATH
     if (file == NULL) {
         printf("Could not open file\n");
         pthread_exit(NULL);
@@ -312,7 +316,7 @@ int main() {
     free(cityTotalHashTableArray);
     free_city_total_hash_table(cityTotalHashTable);
 
-    FILE* fp = fopen("output.txt", "w"); // SPECIFY THE OUTPUT FILE PATH
+    FILE* fp = fopen(OUTPUT_FILE_PATH, "w"); // SPECIFY THE OUTPUT FILE PATH
 
     fprintf(fp, "%s %.2f\n", cheapest_city, cheapest_price);
 
