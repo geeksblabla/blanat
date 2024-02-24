@@ -7,9 +7,11 @@ This script is a desperate attempt to preserve Python's dignity
 even though we know it won't beat C++ nor Rust ;)
 """
 
-def find_cheapest_city(input_file_path, output_file_path):
-    start_time = time.time()
-
+def read_and_process_data(input_file_path):
+    """
+    Reads the CSV file and processes the data to determine 
+    the cheapest prices per product in each city
+    """
     # This dictionary is where we will be storing the cheapest prices and city totals
     city_totals = defaultdict(float)
     city_products = defaultdict(lambda: defaultdict(lambda: float('inf')))
@@ -27,23 +29,47 @@ def find_cheapest_city(input_file_path, output_file_path):
                 else:
                     city_totals[city] += price
                 city_products[city][product] = price
-    
-    # Let's find the cheapest city
-    cheapest_city = min(city_totals, key=city_totals.get)
-    cheapest_total = city_totals[cheapest_city]
-    
-    # and sort the products by price and then alphabetically taking the first 5
-    cheapest_products = sorted(city_products[cheapest_city].items(), key=lambda x: (x[1], x[0]))[:5]
-    
-    # And finally write the output file
+
+    return city_totals, city_products
+
+
+def find_cheapest_city(city_totals):
+    """
+    Determines the cheapest city based on the total price of products
+    """
+    return min(city_totals, key=city_totals.get), city_totals[min(city_totals, key=city_totals.get)]
+
+
+def sort_products(city_products, city):
+    """
+    Sorts the products for a given city by price and then alphabetically,
+    and return the top 5
+    """
+    return sorted(city_products[city].items(), key=lambda x: (x[1], x[0]))[:5]
+
+
+def write_output(output_file_path, cheapest_city, cheapest_total, cheapest_products):
+    """
+    Writes the output data to output.txt in our case
+    """
     with open(output_file_path, mode='w', newline='') as file:
         file.write(f"{cheapest_city} {cheapest_total:.2f}\n")
         for product, price in cheapest_products:
             file.write(f"{product} {price:.2f}\n")
 
+
+def main(input_file_path, output_file_path):
+    start_time = time.time()
+
+    city_totals, city_products = read_and_process_data(input_file_path)
+    cheapest_city, cheapest_total = find_cheapest_city(city_totals)
+    cheapest_products = sort_products(city_products, cheapest_city)
+    write_output(output_file_path, cheapest_city, cheapest_total, cheapest_products)
+
     end_time = time.time()
     execution_time_minutes = (end_time - start_time) / 60
     print(f"Execution time: {execution_time_minutes:.2f} minutes")
 
+
 # Example usage
-find_cheapest_city("input_1m.txt", "output.txt")
+main("input_10m.txt", "output.txt")
