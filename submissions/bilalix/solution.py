@@ -1,10 +1,10 @@
 import csv
 from collections import defaultdict
-import time
 
 """
 This script is a desperate attempt to preserve Python's dignity
 even though we know it won't beat C++ nor Rust ;)
+'Python hada jhdi 3lik! ¯\_(ツ)_/¯'
 """
 
 def read_and_process_data(input_file_path):
@@ -59,17 +59,12 @@ def write_output(output_file_path, cheapest_city, cheapest_total, cheapest_produ
 
 
 def main(input_file_path, output_file_path):
-    start_time = time.time()
-
+    # Let's Go
     city_totals, city_products = read_and_process_data(input_file_path)
     cheapest_city, cheapest_total = find_cheapest_city(city_totals)
     cheapest_products = sort_products(city_products, cheapest_city)
     write_output(output_file_path, cheapest_city, cheapest_total, cheapest_products)
 
-    end_time = time.time()
-    execution_time_minutes = (end_time - start_time) / 60
-    print(f"Execution time: {execution_time_minutes:.2f} minutes")
-
 
 # Example usage
-main("input_10m.txt", "output.txt")
+main("input_1b.txt", "output.txt")
