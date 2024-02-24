@@ -157,6 +157,7 @@ The challenge will run from the 19th of February 2024 until 29th of February 202
 | dauom          | 56548         | 57044            | C++      | 56.55 sec (≈ 56.55 sec)       |
 | NotAsheraf     | 99730         | 97091            | Rust     | 99.73 sec (≈ 1.66 min)       |
 | essmehdi       | 108141        | 108182           | Rust     | 108.14 sec (≈ 1.80 min)      |
+| webNeat        | 160221        | 150202           | PHP      | 160.22 sec (≈ 2.67 min)      |
 | mohammedfatihX | 249995        | 252203           | Java     | 250.00 sec (≈ 4.17 min)      |
 | anassajaanan   | 258322        | 259895           | C        | 258.32 sec (≈ 4.30 min)      |
 | aboullaite     | 368758        | 368167           | Java     | 368.76 sec (≈ 6.15 min)      |
