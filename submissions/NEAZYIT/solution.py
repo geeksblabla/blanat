@@ -71,7 +71,11 @@ def validate_data(data):
 
         # Check for invalid product names
         if ('Product' not in data.columns) or (data['Product'].isnull().any().compute()):
-            logging.warning("⚠️ Data contains missing or invalid product names.")
+            logging.warning(
+                "⚠️ Data contains missing or invalid product names.")
+
+        # Change the 'Price' column to numbers. If there are any issues, mark those places as "Not a Number" (NaN)
+        data['Price'] = pd.to_numeric(data['Price'], errors='coerce')
 
         return data
     except Exception as e:
@@ -154,7 +158,8 @@ def write_results(output_file, cheapest_city, total_price, sorted_products):
 
             # Remaining lines: Top 5 cheapest products
             for _, row in sorted_products.iterrows():
-                print(f"{row['Product']} {row['Price']:.2f}", file=f, end='\n' if row is not sorted_products.iloc[-1] else '')
+                print(f"{row['Product']} {row['Price']:.2f}", file=f,
+                      end='\n' if row is not sorted_products.iloc[-1] else '')
 
         logging.info(f"✅ Results written to {output_file}")
     except Exception as e:
