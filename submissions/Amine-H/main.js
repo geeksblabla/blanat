@@ -153,6 +153,7 @@ function tallyAndPrintResult(totalsMap, pricesMap) {
       ([vegetable, price]) =>
         `${vegetable.slice(resultCityLength + 1)} ${round(price)}`
     ),
+    "", // empty line at the end
   ].join("\n");
 
   fs.writeFileSync(OUTPUT_FILE, result, "utf-8");
@@ -229,13 +230,16 @@ function parseFloatBufferIntoInt(buffer, length) {
 
   for (let index = 0; index < length; index++) {
     if (index === decimalIndex) {
-      multiplier = 10; // Adjust multiplier when encountering decimal point
+      multiplier = 1; // Reset the multiplier when encountering decimal point
     } else {
       result = result * 10 + parseOneDigit(buffer[index]);
+      if (decimalIndex !== -1) {
+        multiplier *= 0.1; // Adjust multiplier for digits after decimal point
+      }
     }
   }
 
-  return result * multiplier; // Multiply the result by the multiplier
+  return Math.round(result * multiplier * 100); // Apply multiplier to the result only once
 }
 
 function parseOneDigit(char) {
