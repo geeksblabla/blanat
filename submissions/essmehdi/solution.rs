@@ -61,7 +61,7 @@ fn process_chunk(result: Arc<Mutex<ProductsIndex>>, start: u64, end: u64) -> Res
     
     let mut reader = BufReader::with_capacity(16 * 1024 * 1024, input);
     let mut buf: Vec<u8> = Vec::new();
-    reader.read_until(b'\\n', &mut buf)?;
+    reader.read_until(b'\n', &mut buf)?;
 
     let mut cursor = start + buf.len() as u64;
     let mut last = false;
