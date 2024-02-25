@@ -37,7 +37,7 @@ function getElement($item, array &$cities)
 $cities = array();
 
 //loop for getting elements from each lien of the input.txt file
-foreach (getLines("input_petit.txt") as $item) {
+foreach (getLines("input.txt") as $item) {
     if(strlen($item)>0) {
         getElement($item, $cities);
     }
