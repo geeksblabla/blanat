@@ -312,5 +312,4 @@ int main() {
         k++;
     }
     fclose(fout);
-
 }
