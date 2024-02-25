@@ -73,10 +73,24 @@ def main():
     input_filename = 'input.txt'
     output_filename = 'output.txt'
 
-    cities = process_city_data(input_filename)
-    min_city = find_cheapest_city(cities)
-    min_products = find_cheapest_products(cities, min_city)
+    cities = {}
+    with open(input_filename, 'r') as file:
+        reader = csv.reader(file)
+        next(reader)  # Skip header row
+        for row in reader:
+            city, product, price = row[0], row[1], float(row[2])
+            if city not in cities:
+                cities[city] = {'total_price': 0, 'cheapest_products': []}
+            cities[city]['total_price'] += price
+            cities[city]['cheapest_products'].append((product, price))
+
+    min_city = min(cities, key=lambda city: cities[city]['total_price'])
+    min_products = cities[min_city]['cheapest_products']
+    min_products.sort(key=lambda x: x[1])  # Sort cheapest products by price
+    min_products = min_products[:NUM_CHEAPEST_PRODUCTS]
+
     write_output(output_filename, min_city, min_products)
 
 if __name__ == "__main__":
     main()
+
