@@ -115,7 +115,6 @@ void min_product(Store *store, int pos, float min, FILE *fdd)
     }
     store[pos].price[rank2] = 1000000;
     fprintf(fdd, "%s %.2f", min_product, min_price);
-    
 }
 
 
