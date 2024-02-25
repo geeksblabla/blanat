@@ -20,6 +20,8 @@ const KEY_SEPARATOR = "#";
 const INPUT_FILE = "input.txt";
 const OUTPUT_FILE = "output.txt";
 
+const vegetableNames = getVegetableNames();
+
 (function main() {
   if (workerThreads.isMainThread) {
     initMainThread();
@@ -136,23 +138,23 @@ function tallyAndPrintResult(totalsMap, pricesMap) {
     }
   }
 
-  const vegetables = [...pricesMap.entries()]
-    .filter(([key]) => key.startsWith(resultCity))
-    .sort(([firstName, firstTotal], [secondName, secondTotal]) => {
-      const result = firstTotal - secondTotal;
-
-      return result !== 0 ? result : firstName.localeCompare(secondName);
-    })
-    .slice(0, 5);
-
-  const resultCityLength = resultCity.length;
+  const vegetablePrices = vegetableNames.reduce((acc, vegetableName) => {
+    const price = pricesMap.get(
+      `${resultCity}${KEY_SEPARATOR}${vegetableName}`
+    );
+    return price ? [...acc, [vegetableName, price]] : acc;
+  }, []);
 
   const result = [
     `${resultCity} ${round(resultTotal)}`,
-    ...vegetables.map(
-      ([vegetable, price]) =>
-        `${vegetable.slice(resultCityLength + 1)} ${round(price)}`
-    ),
+    ...vegetablePrices
+      .sort(([firstName, firstTotal], [secondName, secondTotal]) => {
+        const result = firstTotal - secondTotal;
+
+        return result !== 0 ? result : firstName.localeCompare(secondName);
+      })
+      .slice(0, 5)
+      .map(([vegetable, price]) => `${vegetable} ${round(price)}`),
     "", // empty line at the end
   ].join("\n");
 
@@ -244,4 +246,109 @@ function parseFloatBufferIntoInt(buffer, length) {
 
 function parseOneDigit(char) {
   return char - 0x30;
+}
+
+function getVegetableNames() {
+  return [
+    "Apple",
+    "Banana",
+    "Orange",
+    "Strawberry",
+    "Grapes",
+    "Watermelon",
+    "Pineapple",
+    "Mango",
+    "Kiwi",
+    "Peach",
+    "Plum",
+    "Cherry",
+    "Pear",
+    "Blueberry",
+    "Raspberry",
+    "Blackberry",
+    "Cantaloupe",
+    "Honeydew",
+    "Coconut",
+    "Pomegranate",
+    "Lemon",
+    "Lime",
+    "Grapefruit",
+    "Avocado",
+    "Papaya",
+    "Guava",
+    "Fig",
+    "Passion_Fruit",
+    "Apricot",
+    "Nectarine",
+    "Cucumber",
+    "Carrot",
+    "Broccoli",
+    "Spinach",
+    "Kale",
+    "Lettuce",
+    "Tomato",
+    "Bell_Pepper",
+    "Zucchini",
+    "Eggplant",
+    "Cabbage",
+    "Cauliflower",
+    "Brussels_Sprouts",
+    "Radish",
+    "Beet",
+    "Asparagus",
+    "Artichoke",
+    "Green_Beans",
+    "Peas",
+    "Celery",
+    "Onion",
+    "Garlic",
+    "Potato",
+    "Sweet_Potato",
+    "Yam",
+    "Butternut_Squash",
+    "Acorn_Squash",
+    "Pumpkin",
+    "Cranberry",
+    "Goji_Berry",
+    "Currant",
+    "Date",
+    "Clementine",
+    "Cranberry",
+    "Rhubarb",
+    "Chard",
+    "Collard_Greens",
+    "Parsley",
+    "Cilantro",
+    "Mint",
+    "Basil",
+    "Thyme",
+    "Rosemary",
+    "Sage",
+    "Dill",
+    "Oregano",
+    "Cantaloupe",
+    "Honeydew",
+    "Coconut",
+    "Pomegranate",
+    "Jackfruit",
+    "Starfruit",
+    "Persimmon",
+    "Ginger",
+    "Turnip",
+    "Jicama",
+    "Kohlrabi",
+    "Watercress",
+    "Okra",
+    "Artichoke",
+    "Plantain",
+    "Cactus_Pear",
+    "Kiwano",
+    "Squash_Blossom",
+    "Dragon_Fruit",
+    "Parsnip",
+    "Rutabaga",
+    "Salsify",
+    "Bok_Choy",
+    "Endive",
+  ];
 }
