@@ -67,6 +67,7 @@ Assist Adnan by writing a program, using any allowed language, to find the city 
 - When you feel that your code is ready, create a folder under the "/submissions" folder with your GitHub handle as the name. Add the code to this folder and open a pull request (PR).
 - Before creating the PR, your code has to produce the same result as the output below.
 - You are allowed to submit the code several times with different langs.
+- Only standard libraries provided by te language you picked can be used. No external/additional libs can be used
 - Each code will be reviewed manually. Any fraudulent attempt will result in your account being banned, and you will be disqualified from the challenge.
 - Java solutions should use `Main.java` and have a `public class Main` as a top-level class.
 - Contestants are supposed to read input from the file in their current working directory named `input.txt` and write the output to a file in the same directory named `output.txt`.
