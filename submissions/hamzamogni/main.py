@@ -2,6 +2,7 @@ import os
 import multiprocessing as mp
 import mmap
 import collections
+import threading
 
 
 def find_end(mm, offset):
@@ -12,7 +13,7 @@ def find_end(mm, offset):
         offset += 1
 
 
-def worker(start, end, filename):
+def worker(start, end, filename, result_queue):
     with open(filename, "r+b") as f:
         mm = mmap.mmap(f.fileno(), 0)
         if start > 0:
@@ -25,7 +26,11 @@ def worker(start, end, filename):
 
         example = collections.defaultdict(default_value_factory)
         for row in chunk.rstrip(b"\n").split(b"\n"):
-            city, product, price = row.split(b",")
+            try:
+                city, product, price = row.split(b",")
+            except ValueError as e:
+                print("Error in chunk:", chunk)
+                continue
             price = float(price)
 
             city_data = example[city]
@@ -35,8 +40,8 @@ def worker(start, end, filename):
 
             city_data["total"] += price
 
+        result_queue.put(example)
         mm.close()
-        return example
 
 
 # I need this since multiprocessing cant pickle lambda functions
@@ -44,29 +49,47 @@ def default_value_factory():
     return collections.defaultdict(float)
 
 
+def queue_consumer(result_queue, results):
+    while True:
+        item = result_queue.get()
+        if item is None:  # Stop thread when None is received
+            break
+        results.append(item)
+
+
 def main():
-    filename = "test.txt"
+    filename = "input.txt"
     file_size = os.path.getsize(filename)
 
     cpu_count = mp.cpu_count()
     chunk_size = file_size // cpu_count
 
-    pool = mp.Pool(cpu_count)
-
-    tasks = []
+    processes = []
+    result_queue = mp.Queue()
+    results = []
+    
+    # Start the consumer thread
+    consumer_thread = threading.Thread(target=queue_consumer, args=(result_queue, results))
+    consumer_thread.start()
+    
     for i in range(cpu_count):
         start = i * chunk_size
         end = start + chunk_size if i < cpu_count - 1 else file_size
-        p = pool.apply_async(worker, (start, end, filename))
-        tasks.append(p)
+        p = mp.Process(target=worker, args=(start, end, filename, result_queue))
+        processes.append(p)
+        p.start()
 
-    pool.close()
-    pool.join()
+    for p in processes:
+        p.join()
     
+    # Signal the consumer thread to terminate
+    result_queue.put(None)
+    consumer_thread.join()
+
     # Combine results from individual chunks
     final_example = {}
-    for chunk_result in tasks:
-        for key, value in chunk_result.get().items():
+    for chunk_result in results:
+        for key, value in chunk_result.items():
             if key not in final_example:
                 final_example[key] = value
             else:
@@ -91,7 +114,7 @@ def post_processing(example: dict):
                              key=lambda item: item[1])[:6]
     answer["products"] = {k: v for k, v in sorted_products}
 
-    with open("test_output.txt", "w") as f:
+    with open("output.txt", "w") as f:
         f.write(f"{answer['city'].decode()} {answer['total']:.2f}\n")
         for k, v in answer['products'].items():
             f.write(f"{k.decode()} {v:.2f}\n")
