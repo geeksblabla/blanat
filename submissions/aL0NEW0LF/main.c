@@ -210,10 +210,22 @@ void findCheapestProducts(const char* key, FILE* fp) {
 
     fclose(file);
 
+    for (int i = 0; i < cheapest_products_stack_size; i++) {
+        for (int j = i + 1; j < cheapest_products_stack_size; j++) {
+            if (strcmp(cheapest_products_stack[i].product, cheapest_products_stack[j].product) > 0 ) {
+                struct KeyValuePair temp = cheapest_products_stack[i];
+                cheapest_products_stack[i] = cheapest_products_stack[j];
+                cheapest_products_stack[j] = temp;
+            }
+        }
+    }
+
     mergeSortProducts(cheapest_products_stack, 0, cheapest_products_stack_size - 1);
 
     for (int i = 0; i < 5; i++) {
-        fprintf(fp, "%s %.2f\n", cheapest_products_stack[i].product, cheapest_products_stack[i].price);
+        if (cheapest_products_stack[i].price != 0.00 && strcmp(cheapest_products_stack[i].product, "") != 0) {
+            fprintf(fp, "%s %.2f\n", cheapest_products_stack[i].product, cheapest_products_stack[i].price);
+        }
     }
 }
 
