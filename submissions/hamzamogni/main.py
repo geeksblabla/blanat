@@ -26,11 +26,7 @@ def worker(start, end, filename, result_queue):
 
         example = collections.defaultdict(default_value_factory)
         for row in chunk.rstrip(b"\n").split(b"\n"):
-            try:
-                city, product, price = row.split(b",")
-            except ValueError as e:
-                print("Error in chunk:", chunk)
-                continue
+            city, product, price = row.split(b",")
             price = float(price)
 
             city_data = example[city]
@@ -67,21 +63,23 @@ def main():
     processes = []
     result_queue = mp.Queue()
     results = []
-    
+
     # Start the consumer thread
-    consumer_thread = threading.Thread(target=queue_consumer, args=(result_queue, results))
+    consumer_thread = threading.Thread(
+        target=queue_consumer, args=(result_queue, results))
     consumer_thread.start()
-    
+
     for i in range(cpu_count):
         start = i * chunk_size
         end = start + chunk_size if i < cpu_count - 1 else file_size
-        p = mp.Process(target=worker, args=(start, end, filename, result_queue))
+        p = mp.Process(target=worker, args=(
+            start, end, filename, result_queue))
         processes.append(p)
         p.start()
 
     for p in processes:
         p.join()
-    
+
     # Signal the consumer thread to terminate
     result_queue.put(None)
     consumer_thread.join()
