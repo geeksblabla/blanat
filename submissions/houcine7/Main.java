@@ -81,7 +81,7 @@ public class Main {
 
             Map<String,Price> cityProduct = mp.get(city);
             
-            PriorityQueue<String> pq = new PriorityQueue<>((b,a)->{
+            PriorityQueue<String> pq = new PriorityQueue<>((a,b)->{
                 String[] splitedB = b.split(":");
                 String[] splittedA = a.split(":");
                 if(Double.parseDouble(splitedB[1])-Double.parseDouble(splittedA[1])>0.0) {
@@ -95,16 +95,24 @@ public class Main {
 
             for (Map.Entry<String,Price> item :  cityProduct.entrySet()) {
                 pq.add(item.getKey()+":"+item.getValue().getMin());
+                if(pq.size() > 5) pq.poll();
             }
 
-            for(int i=0;i<5;i++) {
+
+            String[] holder = new String[5];
+            for(int i=4;i>=0;i--) {
                 String row = pq.poll();
                 String temp= row.split(":")[0]+" "+row.split(":")[1];
-                bw.append("\n" + temp);
+                holder[i] = temp;
+            }
+
+            for (String row : holder) {
+                bw.append("\n"+row);
             }
 
             bf.close();
             bw.close();
+
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
