@@ -67,6 +67,7 @@ Assist Adnan by writing a program, using any allowed language, to find the city 
 - When you feel that your code is ready, create a folder under the "/submissions" folder with your GitHub handle as the name. Add the code to this folder and open a pull request (PR).
 - Before creating the PR, your code has to produce the same result as the output below.
 - You are allowed to submit the code several times with different langs.
+- Only standard libraries provided by te language you picked can be used. No external/additional libs can be used
 - Each code will be reviewed manually. Any fraudulent attempt will result in your account being banned, and you will be disqualified from the challenge.
 - Java solutions should use `Main.java` and have a `public class Main` as a top-level class.
 - Contestants are supposed to read input from the file in their current working directory named `input.txt` and write the output to a file in the same directory named `output.txt`.
@@ -76,6 +77,14 @@ Assist Adnan by writing a program, using any allowed language, to find the city 
 ### Testing
 
 You can find an example of the input file [here](./input.txt). This file contains 1 million line to run your tests and validate your solution. The result contaning the correct answer from running the program against the 1M input file is saved in [this file](./output.txt)
+
+You can also use the script found at `gen.py` to generate arbitrarily large test cases similar to the ones that we will use to validate your submission on the blanat server.
+
+```
+python3 gen.py --rows <number_of_rows>
+```
+
+> Note that to generate the 1B row file, it will require a couple of minutes to generate and would take around `~22Gb` of disk space.
 
 ### INPUT
 Below are short examples for better understanding:
@@ -141,8 +150,25 @@ The competition focuses solely on correctness and speed of execution to gauge pa
 The challenge will run from the 19th of February 2024 until 29th of February 2024. The winner will be announced during March 1st 2024 in our social media challenges
 
 ## Leaderboard
+> Last updated: Thu 25 Feb 2024, 8pm Moroccan time
 
-> Coming soon
+| Username       | Avg Time (ms) | Median Time (ms) | Language | Humanized Time                |
+|----------------|---------------|------------------|----------|-------------------------------|
+| sqrt-minus-one | 40426         | 39308            | CPP      | 40.43 sec (≈ 40.43 sec)      |
+| dauom          | 56548         | 57044            | CPP      | 56.55 sec (≈ 56.55 sec)      |
+| NotAsheraf     | 99730         | 97091            | RS       | 99.73 sec (≈ 1.66 min)       |
+| essmehdi       | 108141        | 108182           | RS       | 108.14 sec (≈ 1.80 min)      |
+| webNeat        | 160221        | 150202           | PHP      |160.22 sec (≈2.67 min)        |
+| anassajaanan   | 258322        | 259895           | C        | 258.32 sec (≈ 4.31 min)      |
+| mohammedfatihX | 249995        | 252203           | Java     | 249.99 sec (≈ 4.17 min)      |
+| Moohaa         | 356836        | 359523           | Java     | 356.84 sec (≈ 5.95 min)      |
+| aboullaite     | 368758        | 368167           | Java     | 368.76 sec (≈ 6.15 min)      |
+| j-mounim       | 437373        | 439534           | JS       | 437.37 sec (≈ 7.29 min)      |
+| houcine7       | 617469        | 607997           | Java     | 617.47 sec (≈ 10.29 min)     |
+| Smartdev110    | 776007        | 792428           | Java     | 776.01 sec (≈ 12.93 min)     |
+| sm3xy          | 903274        | 900806           | PY       | 903.27 sec (≈ 15.05 min)     |
+
+We only list solutions with correct results that run within ~15 min. We unfortunately can't give feedback on every submission and we invite you to read the full assignement.
 
 ## Prize
 

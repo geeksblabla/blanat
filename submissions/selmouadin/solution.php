@@ -13,7 +13,7 @@ function process_file($file_name)
 
         $price = (float)$price;
 
-        $products[$product] = isset($products[$product]) ? min($products[$product], $price) : $price;
+        $products[$city][$product] = isset($products[$city][$product]) ? min($products[$city][$product], $price) : $price;
 
         $cities[$city] = isset($cities[$city]) ? $cities[$city] + $price : $price;
     }
@@ -23,14 +23,16 @@ function process_file($file_name)
     $cheapest_city = array_slice($cities, 0, 1, true);
     unset($cities);
 
+    $cheapest_city_name     = key($cheapest_city);
+    $cheapest_city_total    = $cheapest_city[$cheapest_city_name];
+
     // sort products and get the first 5 cheapest product
-    asort($products);
-    $products       = array_slice($products, 0, 5, true);
+    $products = $products[$cheapest_city_name];
     $product_names  = array_keys($products);
     $product_prices = array_values($products);
     array_multisort($product_prices, SORT_ASC, $product_names, SORT_ASC, $products);
-
-    $output = key($cheapest_city) . " " . $cheapest_city[key($cheapest_city)];
+    $products       = array_slice($products, 0, 5, true);
+    $output = $cheapest_city_name . " " . $cheapest_city_total;
     foreach ($products as $product => $price) {
         $output .= PHP_EOL . $product . " " . $price;
     }
