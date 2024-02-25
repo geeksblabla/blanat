@@ -54,22 +54,28 @@ def read_data(input_file):
         raise
 
 
-def validate_prices(data):
+def validate_data(data):
     """
-    ✅ Validate prices to be within the specified range.
+    ✅ Validate data for potential issues.
 
     Parameters:
     - data (dd.DataFrame): Dask DataFrame containing the data.
 
     Returns:
-    - dd.DataFrame: Filtered Dask DataFrame with valid prices.
+    - dd.DataFrame: Filtered Dask DataFrame with valid data.
     """
     try:
-        # Filter out unreasonable prices
-        valid_price_range = (data['Price'] >= 1.00) & (data['Price'] <= 100.00)
-        return data[valid_price_range]
+        # Check for missing city names
+        if ('City' not in data.columns) or (data['City'].isnull().any().compute()):
+            logging.warning("⚠️ Data contains missing or invalid city names.")
+
+        # Check for invalid product names
+        if ('Product' not in data.columns) or (data['Product'].isnull().any().compute()):
+            logging.warning("⚠️ Data contains missing or invalid product names.")
+
+        return data
     except Exception as e:
-        logging.error(f"❌ Error validating prices: {e}")
+        logging.error(f"❌ Error validating data: {e}")
         raise
 
 
@@ -148,7 +154,7 @@ def write_results(output_file, cheapest_city, total_price, sorted_products):
 
             # Remaining lines: Top 5 cheapest products
             for _, row in sorted_products.iterrows():
-                print(f"{row['Product']} {row['Price']:.2f}", file=f)
+                print(f"{row['Product']} {row['Price']:.2f}", file=f, end='\n' if row is not sorted_products.iloc[-1] else '')
 
         logging.info(f"✅ Results written to {output_file}")
     except Exception as e:
@@ -169,7 +175,7 @@ def process_data(input_file, output_file):
         data = read_data(input_file)
 
         # Step 2: Validate prices
-        data = validate_prices(data)
+        data = validate_data(data)
 
         # Step 3: Clean data
         data = clean_data(data)
