@@ -28,7 +28,7 @@ public class Main {
                     Files.writeString(Paths.get("output.txt"), String.format("%s %.2f%n", minEntry.getKey(), minEntry.getValue()));
 
                     Map<String, Double> cheapestCityProducts = new BufferedReader(new FileReader("input.txt"))
-					   .lines()
+					                  .lines()
                             .parallel()
                             .filter(line -> line.startsWith(minEntry.getKey() + ","))
                             .map(line -> line.split(","))

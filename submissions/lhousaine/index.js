@@ -1,36 +1,35 @@
 const fs = require('fs');
 const readline = require('readline');
 
-const highWaterMarkBytes = 8 * 1024 * 1024; // 8 MB
+const highWaterMarkBytes = 16 * 1024 * 1024; // 16 MB
 const inputStream = fs.createReadStream('input.txt', {
   highWaterMark: highWaterMarkBytes,
 });
+
 const outputStream = fs.createWriteStream('output.txt');
 
-const getCityProductsSum = (cityProducts) =>
-  cityProducts.reduce((acc, current) => acc + current.price, 0);
-
 const updateCityPrices = (city, product, priceValue, citiesPrices) => {
-  const cityData = citiesPrices.get(city);
-  if (cityData) {
-    cityData.push({
-      name: product,
-      price: priceValue,
-    });
-  } else {
-    citiesPrices.set(city, [{ name: product, price: priceValue }]);
+  let cityData = citiesPrices.get(city);
+  if (!cityData) {
+    cityData = { sum: 0, products: new Map() };
+    citiesPrices.set(city, cityData);
   }
+
+  const currentPrice = cityData.products.get(product);
+  if (currentPrice === undefined || priceValue < currentPrice) {
+    cityData.products.set(product, priceValue);
+  }
+  cityData.sum += priceValue;
 };
 
 const findCheapestCity = (citiesPrices) => {
   let cheapestCity = {};
   let minSum = Infinity;
 
-  for (const [city, products] of citiesPrices.entries()) {
-    const citySum = getCityProductsSum(products);
-    if (citySum < minSum) {
-      minSum = citySum;
-      cheapestCity = { city, citySum, products };
+  for (const [city, data] of citiesPrices.entries()) {
+    if (data.sum < minSum) {
+      minSum = data.sum;
+      cheapestCity = { city, citySum: data.sum, products: data.products };
     }
   }
 
@@ -38,16 +37,12 @@ const findCheapestCity = (citiesPrices) => {
 };
 
 const sortAndSliceCheapestProducts = (products) => {
-  products.sort((product1, product2) => {
-    return (
-      product1.price - product2.price ||
-      product1.name.localeCompare(product2.name)
-    );
-  });
-
-  return products
-    .filter((product1, index) => products[index + 1]?.name !== product1.name)
-    .slice(0, 5);
+  return Array.from(products.entries())
+    .sort(([nameA, priceA], [nameB, priceB]) => {
+      return priceA - priceB || nameA.localeCompare(nameB);
+    })
+    .slice(0, 5)
+    .map(([name, price]) => ({ name, price }));
 };
 
 const displayCheapestCity = (city, citySum, cheapestProducts) => {
