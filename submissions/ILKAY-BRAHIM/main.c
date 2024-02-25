@@ -114,7 +114,7 @@ void min_product(Store *store, int pos, float min, FILE *fdd)
         rank1++;
     }
     store[pos].price[rank2] = 1000000;
-    fprintf(fdd, "%s %.2f\n", min_product, min_price);
+    fprintf(fdd, "%s %.2f", min_product, min_price);
     
 }
 
@@ -307,6 +307,8 @@ int main() {
     while(k < 5)
     {
         min_product(main_store, pos, min, fout);
+        if(k != 4)
+            fprintf(fout, "\n");
         k++;
     }
     fclose(fout);
