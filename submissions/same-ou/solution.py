@@ -1,34 +1,34 @@
-### blanat competition submission
-### Author: same-ou
 from collections import defaultdict
-import multiprocessing
 from heapq import nsmallest
-import threading
-import queue
+import multiprocessing
+import os
 
 def get_chunks_offsets(filename, chunks_number):
-    offsets = [0]
+    offsets = []
+    start = 0
     with open(filename, 'r') as file:
         file_size = file.seek(0, 2)
         file.seek(0) # return to the begining of the file
         chunk_size = file_size // chunks_number
         
         for _ in range(chunks_number - 1):
-            seek_position = offsets[-1] + chunk_size
+            seek_position = start + chunk_size
             file.seek(seek_position)
             
             while file.tell() < file_size:
                 char = file.read(1)
                 if char =='\n':
-                    offsets.append(file.tell())
+                    next_offset = file.tell()
+                    offsets.append((start,next_offset))
+                    start = next_offset
                     break
-            
-    return file_size,offsets
+    offsets.append((offsets[-1][1], file_size))        
+    return offsets
 
 def process_chunk(filename, start, end):
     city_prices = defaultdict(float)
     city_products = defaultdict(lambda: defaultdict(float))
-          
+    print('{} reading {}'.format(multiprocessing.current_process().name, filename))      
     with open(filename, 'r') as file:
         file.seek(start)
         chunk = file.read(end - start)
@@ -56,14 +56,13 @@ def process_chunk(filename, start, end):
 
     return dict(result)
 
-def process_chunk_and_put_result(filename, start, end, result_queue):
-    result = process_chunk(filename, start, end)
-    result_queue.put(result)
+def map_function(start, end):
+    return process_chunk('input.txt', start, end) 
 
 def find_cheapest_city(merged_results):
     cheapest_city = min(merged_results, key=lambda city: merged_results[city]['total_price'])
     cheapest_price = merged_results[cheapest_city]['total_price']
-    cheapest_products = nsmallest(5, merged_results[cheapest_city]['products'].items(), key=lambda x:  (x[1], x[0]))
+    cheapest_products = nsmallest(5, merged_results[cheapest_city]['products'].items(), key=lambda x: (x[1], x[0]))
     return cheapest_city, cheapest_price, cheapest_products
 
 def merge_dicts(prev, new):
@@ -76,34 +75,19 @@ def merge_dicts(prev, new):
                     prev[city]['products'][product] = price
             prev[city]['total_price'] += new[city]['total_price']
 
-def main():
+if __name__ == '__main__':
     filename = 'input.txt'
-    num_threads = multiprocessing.cpu_count()
-    file_size, offsets = get_chunks_offsets(filename, num_threads)
-    result_queue = queue.Queue()
-    threads = []
-    for i in range(num_threads):  
-        start = offsets[i]
-        end = offsets[i + 1] if i < num_threads - 1 else file_size
-        
-        t = threading.Thread(target=process_chunk_and_put_result, args=(filename, start, end,result_queue))
-        threads.append(t)
-        t.start()
-
-    # Wait for all threads to finish
-    for t in threads:
-        t.join()
-
-    # Retrieve results from the queue
+    num_processes = len(os.sched_getaffinity(0))
+    offsets = get_chunks_offsets(filename, num_processes)
+    pool = multiprocessing.Pool(num_processes)
+    map_response = pool.starmap(map_function, offsets)
     final_result = {}
-    while not result_queue.empty():
-        merge_dicts(final_result,result_queue.get())
+    for result in map_response:
+        merge_dicts(final_result,result)
     cheapest_city, lowest_price, cheapest_products = find_cheapest_city(final_result)
-
+    
+    
     with open('output.txt', 'w') as file:
         file.write(f"{cheapest_city} {lowest_price:.2f}\n")
         for product, price in cheapest_products:
             file.write(f"{product} {price}\n")
-
-if __name__ == "__main__":
-    main()
