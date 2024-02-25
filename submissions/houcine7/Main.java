@@ -10,22 +10,22 @@ import java.util.PriorityQueue;
 public class Main {
     public class Price {
         double total;
-        Double min ;
+        double min ;
 
-        Price(double total, int length) {
+        Price(double total) {
             this.total= total;
-            this.min = Double.MAX_VALUE;
+            this.min =total;
         }
 
          void increaseTotal(double price) {
             total+= price;
-            this.min = Math.min(min, price);
+            this.min = Math.min(price, this.min);
         }
 
         public double getTotal() {
             return total;
         }
-        public Double getMin() {
+        public double getMin() {
             return min;
         }
     }
@@ -42,12 +42,12 @@ public class Main {
                     if(cityProducts.containsKey(st[1])) {
                         cityProducts.get(st[1]).increaseTotal(Double.parseDouble(st[2]));
                     }else{
-                        Price p = new Main().new Price(Double.parseDouble(st[2]), 1);
+                        Price p = new Main().new Price(Double.parseDouble(st[2]));
                         cityProducts.put(st[1], p);
                     }
                 }else {
                     Map<String,Price> tmp = new HashMap<>();
-                    Price p = new Main().new Price(Double.parseDouble(st[2]), 1);
+                    Price p = new Main().new Price(Double.parseDouble(st[2]));
 
                     tmp.put(st[1], p);
                     mp.put(st[0],  tmp );
@@ -60,8 +60,7 @@ public class Main {
             for (Map.Entry<String,Map<String,Price>> item:  mp.entrySet()) {
                for (Map.Entry<String,Price> pr : item.getValue().entrySet()) {
                     result.put(item.getKey(), 
-                    (pr.getValue().getTotal()) +
-                     result.getOrDefault(item.getKey(), 0.0)
+                     pr.getValue().getTotal() + result.getOrDefault(item.getKey(), 0.0)
                     );
                }
             }
@@ -77,11 +76,11 @@ public class Main {
 
             BufferedWriter bw = new BufferedWriter(new FileWriter("./output.txt"));
 
-            bw.write(city+" "+min);
+            bw.write(city+" "+String.format("%.2f",min));
 
             Map<String,Price> cityProduct = mp.get(city);
             
-            PriorityQueue<String> pq = new PriorityQueue<>((b,a)->{
+            PriorityQueue<String> pq = new PriorityQueue<>((a,b)->{
                 String[] splitedB = b.split(":");
                 String[] splittedA = a.split(":");
                 if(Double.parseDouble(splitedB[1])-Double.parseDouble(splittedA[1])>0.0) {
@@ -94,17 +93,25 @@ public class Main {
             });
 
             for (Map.Entry<String,Price> item :  cityProduct.entrySet()) {
-                pq.add(item.getKey()+":"+item.getValue().getMin());
+                pq.add(item.getKey()+":"+String.format("%.2f", item.getValue().getMin()));
+                if(pq.size() > 5) pq.poll();
             }
 
-            for(int i=0;i<5;i++) {
+
+            String[] holder = new String[5];
+            for(int i=4;i>=0;i--) {
                 String row = pq.poll();
                 String temp= row.split(":")[0]+" "+row.split(":")[1];
-                bw.append("\n" + temp);
+                holder[i] = temp;
+            }
+
+            for (String row : holder) {
+                bw.append("\n"+row);
             }
 
             bf.close();
             bw.close();
+
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
