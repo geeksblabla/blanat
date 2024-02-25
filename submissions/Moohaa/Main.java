@@ -39,9 +39,9 @@ public class Main {
     public static final String INPUT_TXT = "input.txt";
     public static final String OUTPUT_TXT = "./output.txt";
 
-    private static final int PARSER_QUEUE_SIZE = 2000;
+    private static final int PARSER_QUEUE_SIZE = 4000;
     private static final int REDUCER_QUEUE_SIZE = 60;
-    private static final int THREAD_POOL_SIZE = Math.max(Runtime.getRuntime().availableProcessors() - 4, 4);
+    private static final int THREAD_POOL_SIZE = 20;
     private static final int LINES_BACH_SIZE = 5000;
 
     private static final BlockingQueue<String[]> rowLinesChunksQueue = new ArrayBlockingQueue<>(PARSER_QUEUE_SIZE);
