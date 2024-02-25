@@ -45,7 +45,7 @@ def default_value_factory():
 
 
 def main():
-    filename = "test.txt"
+    filename = "input.txt"
     file_size = os.path.getsize(filename)
 
     cpu_count = mp.cpu_count()
@@ -91,7 +91,7 @@ def post_processing(example: dict):
                              key=lambda item: item[1])[:6]
     answer["products"] = {k: v for k, v in sorted_products}
 
-    with open("test_output.txt", "w") as f:
+    with open("output.txt", "w") as f:
         f.write(f"{answer['city'].decode()} {answer['total']:.2f}\n")
         for k, v in answer['products'].items():
             f.write(f"{k.decode()} {v:.2f}\n")
