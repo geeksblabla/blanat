@@ -54,7 +54,7 @@ def queue_consumer(result_queue, results):
 
 
 def main():
-    filename = "input.txt"
+    filename = "test.txt"
     file_size = os.path.getsize(filename)
 
     cpu_count = mp.cpu_count()
@@ -109,13 +109,12 @@ def post_processing(example: dict):
     }
     del example[min_key]['total']
     sorted_products = sorted(example[min_key].items(),
-                             key=lambda item: item[1])[:6]
+                             key=lambda item: (item[1], item[0]))[:5]
     products = [f"{k.decode()} {v:.2f}" for k, v in sorted_products]
 
     with open("output.txt", "w") as f:
         f.write(f"{answer['city']} {answer['total']:.2f}\n")
         f.write("\n".join(products))
-
 
 
 if __name__ == "__main__":
