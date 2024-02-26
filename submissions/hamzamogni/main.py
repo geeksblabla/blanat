@@ -54,7 +54,7 @@ def queue_consumer(result_queue, results):
 
 
 def main():
-    filename = "test.txt"
+    filename = "input.txt"
     file_size = os.path.getsize(filename)
 
     cpu_count = mp.cpu_count()
