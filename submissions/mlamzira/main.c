@@ -39,9 +39,9 @@ City *binarySearch(City *cities[], int n, char *targetName);
 void addProduct(City *pCity, char *product, double price);
 
 int main() {
-    FILE *input = fopen("../input.txt", "r");
-    FILE *sortedCities = fopen("../sorted-cities.txt", "r");
-    FILE *output = fopen("../output.txt", "w");
+    FILE *input = fopen("./input.txt", "r");
+    FILE *sortedCities = fopen("./sorted-cities.txt", "r");
+    FILE *output = fopen("./output.txt", "w");
 
     char cityLine[50];
     City *cities[101];
