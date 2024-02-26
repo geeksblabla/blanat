@@ -1,4 +1,5 @@
 /*
+ *  NB: still not sure about the term cheapest city! (cheap by total or by lower cheap_products indexes total<can be translated to cost of living>)
  *  made by love by @kmoz000 and Stack Overflow answers
  */
 
