@@ -10,7 +10,7 @@ import java.util.*;
 public class Main {
     public static void main(String[] args) throws FileNotFoundException, IOException {
         try {
-            File input = new File("input100M.txt");
+            File input = new File("input.txt");
             BufferedReader reader = new BufferedReader(new FileReader(input));
 
             HashMap<String, City> cities = new HashMap<>();
