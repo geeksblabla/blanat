@@ -206,7 +206,7 @@ inline void process_concurrently(const MappedFile &mp,
                                  vector<Result> &results) {
   char *start = (char *)mp.file_data;
   char *end = start + mp.file_size;
-  const size_t block_size = 1024 * 1024;  // 1gb
+  const size_t block_size = 1024 * 200;  // 200mb
   const size_t chunks_count = mp.file_size / block_size;
 
   ThreadPool thread_pool;
