@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
 typedef struct City City;
 typedef struct Product Product;
@@ -204,6 +203,8 @@ City *binarySearch(City *cities[], int n, char *targetName) {
             high = mid - 1;
         }
     }
+
+    return NULL;
 }
 
 short cTos(char digitC) {
