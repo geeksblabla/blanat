@@ -155,7 +155,7 @@ The challenge will run from the 19th of February 2024 until 29th of February 202
 | Username       | Avg Time (ms) | Median Time (ms) | Language | Humanized Time                |
 |----------------|---------------|------------------|----------|-------------------------------|
 | anassajaanan   | 16106         | 14465            | C        | 16.11 sec (≈ 16.11 sec)      |
-| sqrt-minus-one  	|40426         	|39308            |CPP       |40.43sec(≈40min43sec)        |
+| sqrt-minus-one  	|40426         	|39308            |CPP       |40.43sec(≈ 40.43 sec)        |
 | dauom          | 56548         | 57044            | CPP      | 56.55 sec (≈ 56.55 sec)      |
 | webNeat        | 61003         | 57203            | CPP      | 61.00 sec (≈ 1 min 1.00 sec) |
 | samir-         | 63933         | 67410            | CPP      | 63.93 sec (≈ 1 min 3.93 sec)  |
@@ -174,7 +174,7 @@ The challenge will run from the 19th of February 2024 until 29th of February 202
 | Smartdev110    | 776007        | 792428           | Java     | 776.01 sec (≈ 12 min 56.01 sec)|
 | sm3xy          | 903274        | 900806           | Py       | 903.27 sec (≈ 15 min 3.27 sec)|
 
-We only list solutions with correct results that run within ~15 min. We unfortunately can't give feedback on every submission and we invite you to read the full assignement.
+We only list solutions with correct results that run within ~15 min. We unfortunately can't give feedback on every submission and we invite you to read the full assignment.
 
 ## Prize
 
