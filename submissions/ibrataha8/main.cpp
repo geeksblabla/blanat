@@ -1,14 +1,16 @@
 /*
-    Created By : Ibrahim Taher
+    Created By : Brahim Taher
  */
-
+#ifndef NDEBUG
 #define NDEBUG
+#endif
 #pragma GCC optimize("Ofast")
 #include <cassert>
 #include <cstring>
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
+#include <unistd.h> 
 
 #include <algorithm>
 #include <fstream>
@@ -484,7 +486,7 @@ struct MappedFile
 
     std::string_view view() const
     { //
-        return {file_data, file_data + file_size};
+        return {file_data, file_size};
     }
 
     void close()
@@ -519,8 +521,7 @@ using Cost = std::intmax_t;
 
 struct Result
 {
-    using Table = std::array<Cost, Cities::NUM>;
-    Table city_total{};
+    std::array<Cost, Cities::NUM> city_total{};
 
     void registerPricing(std::string_view city, std::string_view, Cost price)
     {
@@ -528,25 +529,28 @@ struct Result
         assert(Products::in_word_set(prod));
         auto ca = Cities::hash(city);
 
+#if __cpp_lib_atomic_ref // c++20
         std::atomic_ref(city_total[ca]) += price;
+#else
+        __atomic_add_fetch(&city_total[ca], price, __ATOMIC_ACQ_REL);
+#endif
     }
 };
 
-inline std::string_view consume_str(char const *&start)
+inline constexpr std::string_view consume_str(char const *&start)
 {
-    auto saved = start;
-    char c;
-    while ((c = *start) != 0 && c != ',' && c != '\n')
-    {
-        ++start;
-    }
-    return std::string_view(saved, start++);
+    int i = 0;
+    while (start[i] != ',')
+        ++i;
+    auto ret = std::string_view(start, i);
+    start += 1 + i; // eat comma as well
+    return ret;
 }
 
-inline Cost consume_float_as_long(char const *&start)
+inline constexpr Cost consume_float_as_long(char const *&start)
 {
     Cost val = 0;
-    char c;
+    char c = 0;
 
     // integral part
     while ((c = *start) <= '9' && c >= '0')
@@ -628,7 +632,11 @@ inline void ans(Result &result)
         Cost total;
         std::string_view name;
         unsigned id;
-        auto operator<=>(CityRec const &) const = default;
+
+        constexpr bool operator<(CityRec const &rhs) const
+        {
+            return std::tie(total, name) < std::tie(rhs.total, rhs.name);
+        }
     };
     std::vector<CityRec> city_records;
 
@@ -639,7 +647,7 @@ inline void ans(Result &result)
         auto name = Cities::reverse(id); // valid hash key?
         if (name.empty())
             continue;
-        city_records.emplace_back(result.city_total[id], name, id);
+        city_records.push_back({result.city_total[id], name, id});
     }
 
     if (city_records.empty())
