@@ -143,21 +143,26 @@ fn process_chunk(
         let split = line.split(|char| *char == b',').collect::<Vec<&[u8]>>();
         let price = unsafe { std::str::from_utf8_unchecked(split[2]) }.parse::<f64>()?;
 
-        let city_entry = products_map_by_city
-            .entry(unsafe { std::str::from_utf8_unchecked(split[0]).to_string() })
-            .or_insert_with(|| (HashMap::with_capacity_and_hasher(100, FxHasher::default()), 0.0));
+        let city_str = unsafe { std::str::from_utf8_unchecked(split[0]) };
+        let product_str = unsafe { std::str::from_utf8_unchecked(split[1]) };
 
-        city_entry
-            .0
-            .entry(unsafe { std::str::from_utf8_unchecked(split[1]).to_string() })
-            .and_modify(|old| {
-                if *old > price {
-                    *old = price
+        let city_entry = products_map_by_city.get_mut(&city_str[..]);
+        if let Some(tup) = city_entry {
+            let products_map = tup.0.get_mut(&product_str[..]);
+            if let Some(old_price) = products_map {
+                if *old_price > price {
+                    *old_price = price;
                 }
-            })
-            .or_insert_with(|| price);
-
-        city_entry.1 += price;
+            } else {
+                tup.0.insert(product_str.to_string(), price);
+            }
+            tup.1 += price;
+        } else {
+            products_map_by_city.insert(
+                city_str.to_string(),
+                (HashMap::<String, f64, FxHasher>::with_capacity_and_hasher(100, FxHasher::default()), 0.0)
+            );
+        }
 
         line_unprocessed.clear();
     }
