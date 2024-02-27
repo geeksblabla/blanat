@@ -9,7 +9,7 @@ const {
 } = require('worker_threads');
 
 if (isMainThread) {
-  const inputFile = '../../input.txt';
+  const inputFile = 'input.txt';
   const outputFile = 'output.txt';
   const numCPUs = os.cpus().length;
   const { size } = fs.statSync(inputFile);
