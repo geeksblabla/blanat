@@ -10,7 +10,7 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
-#include <unistd.h> // for ::close
+#include <unistd.h> 
 
 #include <algorithm>
 #include <fstream>
