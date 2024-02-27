@@ -10,279 +10,85 @@
 #define MAX_PRODUCT_NAME_LENGTH 100
 #define MAX_PRODUCTS 5
 
-char printed_product_names[MAX_PRODUCTS][MAX_PRODUCT_NAME_LENGTH] = {0};
-
-const char *moroccan_cities[NUM_CITIES] = {
-    "Assa",
-    "Ksar_es_Seghir",
-    "Sefrou",
-    "Khenifra",
-    "Chefchaouen",
-    "Jorf_El_Melha",
-    "Fes",
-    "Layoune",
-    "Casablanca",
-    "casa",
-    "Ben_guerir",
-    "Skhirate",
-    "Midelt",
-    "Imzouren",
-    "Temara",
-    "Béni_Mellal",
-    "Sidi_Bouzid",
-    "Guelta_Zemmur",
-    "El_Jadida",
-    "Sidi_Bennour",
-    "Taroudant",
-    "Smara",
-    "Drarga",
-    "Laâyoune",
-    "Fquih_Ben_Salah",
-    "Khemisset",
-    "Taourirt",
-    "Ahfir",
-    "Errachidia",
-    "Ifrane",
-    "Bir_Anzerane",
-    "Mohammedia",
-    "Nador",
-    "Rabat",
-    "rabat",
-    "Demnate",
-    "Boulemane",
-    "Ksar_El_Kebir",
-    "Khouribga",
-    "Ouazzane",
-    "Tiflet",
-    "Al_Hoceima",
-    "Oujda_Angad",
-    "Bni_Hadifa",
-    "Berrechid",
-    "Guercif",
-    "Aourir",
-    "Azilal",
-    "Ouarzazate",
-    "Settat",
-    "Berkane",
-    "had_soualem",
-    "Saidia",
-    "Taza",
-    "Oujda",
-    "Tangier",
-    "Tafraout",
-    "Goulmima",
-    "Marrakech",
-    "Ait_Melloul",
-    "Bir_Lehlou",
-    "Tichka",
-    "Midar",
-    "Youssoufia",
-    "Sidi_Slimane",
-    "Oulad_Teima",
-    "Souk_Larbaa",
-    "Kalaat_MGouna",
-    "Sidi_Ifni",
-    "Chichaoua",
-    "Tichla",
-    "Guelmim",
-    "Asilah",
-    "Agadir",
-    "Kenitra",
-    "Jerada",
-    "Sale",
-    "Moulay_Bousselham",
-    "Tarfaya",
-    "Boujdour",
-    "Tetouan",
-    "Safi",
-    "Arfoud",
-    "Sidi_Kacem",
-    "Inezgane",
-    "Meknes",
-    "Tiznit",
-    "Bab_Taza",
-    "Beni_Mellal",
-    "Tinghir",
-    "Essaouira",
-    "Dakhla",
-    "Bab_Berred",
-    "Figuig",
-    "Tan-Tan",
-    "Bouarfa",
-    "Guerguerat",
-    "Laayoune",
-    "Azrou",
-    "Larache",
-    "Zemamra",
-    "Zagora",
-    "Khouribga",
-    "Akhfenir"};
-
-const char *fruits_and_vegetables[NUM_PRODUCTS] = {
-    "Coconut",
-    "Gaz",
-    "Sugar",
-    "Flour",
-    "Cherry",
-    "Pomegranate",
-    "Lime",
-    "Green_Beans",
-    "Pineapple",
-    "Salsify",
-    "Fig",
-    "Kale",
-    "Eggplant",
-    "Plum",
-    "Okra",
-    "Ginger",
-    "Oregano",
-    "Jackfruit",
-    "Plantain",
-    "Spinach",
-    "Peach",
-    "Avocado",
-    "Asparagus",
-    "Carrot",
-    "Rutabaga",
-    "Potato",
-    "Peas",
-    "Parsnip",
-    "Oil",
-    "Cranberry",
-    "Lemon",
-    "Collard_Greens",
-    "Nectarine",
-    "Rhubarb",
-    "Radish",
-    "Zucchini",
-    "Squash_Blossom",
-    "Cactus_Pear",
-    "Kiwano",
-    "Honeydew",
-    "Apricot",
-    "Persimmon",
-    "Acorn_Squash",
-    "Dill",
-    "Raspberry",
-    "Lettuce",
-    "Endive",
-    "Butternut_Squash",
-    "Mint",
-    "Kiwi",
-    "Kohlrabi",
-    "Mango",
-    "Blackberry",
-    "Basil",
-    "Cantaloupe",
-    "Thyme",
-    "Clementine",
-    "Apple",
-    "Grapes",
-    "Pear",
-    "Blueberry",
-    "Bok_Choy",
-    "Grapefruit",
-    "Cilantro",
-    "Artichoke",
-    "Yam",
-    "Strawberry",
-    "Broccoli",
-    "Chard",
-    "Dragon_Fruit",
-    "Parsley",
-    "Watercress",
-    "Date",
-    "Garlic",
-    "Jicama",
-    "Cauliflower",
-    "Orange",
-    "Brussels_Sprouts",
-    "Guava",
-    "Pumpkin",
-    "Rosemary",
-    "Turnip",
-    "Banana",
-    "Papaya",
-    "Onion",
-    "Passion_Fruit",
-    "Starfruit",
-    "Tomato",
-    "Bell_Pepper",
-    "Sage",
-    "Cabbage",
-    "Goji_Berry",
-    "Celery",
-    "Watermelon",
-    "Beet",
-    "Currant",
-    "Sweet_Potato",
-    "Cucumber"
-};
-
-struct ProductPrice {
+// Define a structure for product information
+struct Product {
     const char *name;
-    float price;
+    int price;
 };
 
-struct CityData {
-    int city_index;
+// Define a structure for city information
+struct City {
+    const char *name;
     int64_t total_price;
-    struct ProductPrice cheapest_products[5];
+    struct Product cheapest_products[MAX_PRODUCTS];
 };
+
+// Hash function to generate indices
+int hash(const char *str) {
+    int hash = 0;
+    while (*str) {
+        hash += *str++;
+    }
+    return hash % NUM_CITIES;
+}
 
 int main() {
     FILE *input_file = fopen("input.txt", "r");
     FILE *output_file = fopen("output.txt", "w");
 
-    int64_t total_per_city[NUM_CITIES] = {0};
-    struct CityData cities[NUM_CITIES] = {{0}};
+    // Ensure files are opened successfully
+    if (!input_file || !output_file) {
+        fprintf(stderr, "Error opening files.\n");
+        return 1;
+    }
+
+    // Define hash tables for city and product lookup
+    struct City cities[NUM_CITIES] = {{0}};
+    struct Product products[NUM_PRODUCTS] = {{0}};
 
     char line[MAX_LINE_LENGTH];
-    char city[100], product[100];
+    char city[MAX_PRODUCT_NAME_LENGTH], product[MAX_PRODUCT_NAME_LENGTH];
     float price;
 
     // Read prices from the input file
     while (fgets(line, sizeof(line), input_file)) {
         if (sscanf(line, "%[^,],%[^,],%f", city, product, &price) == 3) {
-            int city_idx = -1;
-
             // Find city index
-            for (int i = 0; i < NUM_CITIES; ++i) {
-                if (strcmp(moroccan_cities[i], city) == 0) {
-                    city_idx = i;
-                    break;
-                }
+            int city_idx = hash(city);
+            if (cities[city_idx].name == NULL) {
+                cities[city_idx].name = strdup(city);
             }
 
-            if (city_idx != -1) {
-                int64_t price_in_cents = price * 100;
-                total_per_city[city_idx] += price_in_cents;
-
-                // Find the index of the product
-                int product_idx = -1;
-                for (int i = 0; i < NUM_PRODUCTS; ++i) {
-                    if (strcmp(fruits_and_vegetables[i], product) == 0) {
-                        product_idx = i;
-                        break;
-                    }
-                }
-
-                // Update cheapest products for the city
-                struct ProductPrice *cheapest = cities[city_idx].cheapest_products;
-                for (int i = 0; i < 5; ++i) {
-                    if (cheapest[i].price == 0 || price_in_cents < cheapest[i].price) {
-                        // Shift cheaper products down
-                        for (int j = 4; j > i; --j) {
-                            cheapest[j] = cheapest[j - 1];
-                        }
-                        cheapest[i].name = fruits_and_vegetables[product_idx];
-                        cheapest[i].price = price_in_cents;
-                        break;
-                    }
-                }
-            } else {
-                fprintf(stderr, "Unknown city: %s\n", city);
+            // Find product index
+            int product_idx = hash(product);
+            if (products[product_idx].name == NULL) {
+                products[product_idx].name = strdup(product);
             }
+
+            // Update city data
+            cities[city_idx].total_price += price * 100;
+
+            // Update cheapest products for the city
+for (int i = 0; i < MAX_PRODUCTS; ++i) {
+    if (cities[city_idx].cheapest_products[i].name != NULL && strcmp(cities[city_idx].cheapest_products[i].name, products[product_idx].name) == 0) {
+        // If the product already exists in the list, update its price if the new price is smaller
+        if (price * 100 < cities[city_idx].cheapest_products[i].price) {
+            cities[city_idx].cheapest_products[i].price = price * 100;
+        }
+        break; // Exit the loop since we've updated the price for the existing product
+    }
+    // If the product doesn't exist in the list and there's space, add it
+    if (cities[city_idx].cheapest_products[i].name == NULL || price * 100 < cities[city_idx].cheapest_products[i].price) {
+        // Shift cheaper products down
+        for (int j = MAX_PRODUCTS - 1; j > i; --j) {
+            cities[city_idx].cheapest_products[j] = cities[city_idx].cheapest_products[j - 1];
+        }
+        cities[city_idx].cheapest_products[i].name = products[product_idx].name;
+        cities[city_idx].cheapest_products[i].price = price * 100;
+        break;
+    }
+}
+
         } else {
             fprintf(stderr, "Error parsing line: %s\n", line);
         }
@@ -292,35 +98,29 @@ int main() {
     int cheapest_city_idx = -1;
     int64_t cheapest_city_price = INT64_MAX;
     for (int i = 0; i < NUM_CITIES; ++i) {
-        if (total_per_city[i] > 0 && total_per_city[i] < cheapest_city_price) {
-            cheapest_city_price = total_per_city[i];
+        if (cities[i].total_price > 0 && cities[i].total_price < cheapest_city_price) {
+            cheapest_city_price = cities[i].total_price;
             cheapest_city_idx = i;
         }
     }
 
     // Print the cheapest city and its 5 cheapest products
-    fprintf(output_file, "%s %.2f\n", moroccan_cities[cheapest_city_idx], (double)cheapest_city_price / 100.0);
-    struct ProductPrice *cheapest = cities[cheapest_city_idx].cheapest_products;
-    int printed_products = 0;
-    for (int i = 0; i < MAX_PRODUCTS; ++i) {
-        if (cheapest[i].name != NULL) {
-            int duplicate = 0;
-            for (int j = 0; j < printed_products; ++j) {
-                if (strcmp(cheapest[i].name, printed_product_names[j]) == 0) {
-                    duplicate = 1;
-                    break;
-                }
-            }
-            if (!duplicate) {
-                fprintf(output_file, "%s %.2f\n", cheapest[i].name, (double)cheapest[i].price / 100.0);
-                strncpy(printed_product_names[printed_products], cheapest[i].name, MAX_PRODUCT_NAME_LENGTH);
-                printed_products++;
-            }
-        }
-        if (printed_products == MAX_PRODUCTS) break; // Stop if we have printed 5 products
+    fprintf(output_file, "%s %.2f\n", cities[cheapest_city_idx].name, (double)cheapest_city_price / 100.0);
+    for (int i = 0; i < MAX_PRODUCTS && cities[cheapest_city_idx].cheapest_products[i].name != NULL; ++i) {
+        fprintf(output_file, "%s %.2f\n", cities[cheapest_city_idx].cheapest_products[i].name, (double)cities[cheapest_city_idx].cheapest_products[i].price / 100.0);
     }
 
+    // Close files and free allocated memory
     fclose(input_file);
     fclose(output_file);
+
+    for (int i = 0; i < NUM_CITIES; ++i) {
+        free((void *)cities[i].name);
+    }
+
+    for (int i = 0; i < NUM_PRODUCTS; ++i) {
+        free((void *)products[i].name);
+    }
+
     return 0;
 }
