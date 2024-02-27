@@ -160,7 +160,7 @@ fn process_chunk(
         } else {
             products_map_by_city.insert(
                 city_str.to_string(),
-                (HashMap::<String, f64, FxHasher>::with_capacity_and_hasher(100, FxHasher::default()), 0.0)
+                (HashMap::<String, f64, FxHasher>::with_capacity_and_hasher(100, FxHasher::default()), price)
             );
         }
 
