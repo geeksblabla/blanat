@@ -15,7 +15,6 @@ class C {
         m.compute(g, (k, v) -> va < v ? va : v);
         s.add(va);
     }
-
     C(String r) {
         this.n = r;
         s.add(-1.0);
@@ -23,11 +22,9 @@ class C {
         f.parallelStream().forEach(z -> m.put(z, Double.POSITIVE_INFINITY));
     }
 }
-
 public class Main {
     static ConcurrentHashMap<String, C> i = new ConcurrentHashMap<>();
     static List<String> mc = Arrays.asList("Casablanca", "Rabat", "Marrakech", "Fes", "Tangier", "Agadir", "Meknes", "Oujda", "Kenitra", "Tetouan", "Safi", "El_Jadida", "Beni_Mellal", "Errachidia", "Taza", "Essaouira", "Khouribga", "Guelmim", "Jorf_El_Melha", "Laayoune", "Ksar_El_Kebir", "Sale", "Bir_Lehlou", "Arfoud", "Temara", "Mohammedia", "Settat", "Béni_Mellal", "Nador", "Kalaat_MGouna", "Chichaoua", "Chefchaouen", "Al_Hoceima", "Taourirt", "Taroudant", "Guelta_Zemmur", "Dakhla", "La\u00E2youne", "Tiznit", "Tinghir", "Ifrane", "Azrou", "Bab_Taza", "Berrechid", "Sidi_Slimane", "Souk_Larbaa", "Tiflet", "Sidi_Bennour", "Larache", "Tan-Tan", "Sidi_Ifni", "Goulmima", "Midelt", "Figuig", "Azilal", "Jerada", "Youssoufia", "Ksar_es_Seghir", "Tichka", "Ait_Melloul", "Layoune", "Ben_guerir", "Ouarzazate", "Inezgane", "Oujda_Angad", "Sefrou", "Aourir", "Oulad_Teima", "Tichla", "Bni_Hadifa", "Fquih_Ben_Salah", "Guercif", "Bouarfa", "Demnate", "Ahfir", "Berkane", "Akhfenir", "Boulemane", "Khenifra", "Bir_Anzerane", "Assa", "Smara", "Boujdour", "Tarfaya", "Ouazzane", "Zagora", "had_soualem", "Saidia", "Bab_Berred", "Midar", "Moulay_Bousselham", "Khemisset", "Guerguerat", "Asilah", "Sidi_Bouzid", "Tafraout", "Imzouren", "Zemamra", "Sidi_Kacem", "Drarga", "Skhirate");
-
     public static void main(String[] args) {
         System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", String.valueOf(Runtime.getRuntime().availableProcessors()));
         mc.parallelStream().forEach(c -> i.put(c, new C(c)));
@@ -46,8 +43,9 @@ public class Main {
                     .min(Comparator.comparingDouble(c -> c.s.doubleValue()))
                     .ifPresent(a -> {
                         w.printf("%s %.2f%n", a.n, a.s.doubleValue() + 1.0);
-                        a.m.entrySet().parallelStream()
-                                .sorted(Map.Entry.comparingByValue())
+                        a.m.entrySet().stream()
+                                .sorted(Comparator.comparing(Map.Entry<String, Double>::getValue)
+                                        .thenComparing(Map.Entry::getKey))
                                 .limit(5)
                                 .forEach(entry -> w.printf("%s %.2f%n", entry.getKey(), entry.getValue()));
                     });
