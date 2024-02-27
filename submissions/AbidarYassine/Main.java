@@ -1,5 +1,3 @@
-package org.example.test.test2;
-
 /**
  * @author yassineabidar on 27/2/2024
  * use JDK 21
