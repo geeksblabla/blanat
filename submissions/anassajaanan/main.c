@@ -1,39 +1,51 @@
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <sys/fcntl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <limits.h>
+#include <sys/wait.h>
+
+
+
+#define MAX_CITIES 101
+#define MAX_PRODUCTS 100
+
+#define MAX_CITY_LENGTH 18 // 17 characters + null terminator
+#define MAX_PRODUCT_LENGTH 17 // 16 characters + null terminator
+#define MAX_LINE_LENGTH 44
+
 
 struct ProductEntry {
-	const char *name;
-	int productIndex;
+	const char	*name;
+	int			productIndex;
 };
 
 struct CityEntry {
     const char *name;
-    int cityIndex;  // This index can be used to access a City object in a global array.
+    int			cityIndex;
 };
 
 struct Product {
-	double 		price;
-	const char*	name;
+	uint32_t		price;
+	char			*name;
 };
 
 struct City {
-	double			total;
-	const char		*name;
-	int				productsCount;
-	struct Product	*products[100];
+	uint64_t		total;
+	char		    *name;
+	int				numProducts;
+	struct Product	products[MAX_PRODUCTS];
 };
 
-struct City *cities[101] = {0};
+struct City cities[MAX_CITIES] = {0};
 
-// #===================================== Product Hash Table =====================================#
+#define MAX_TASK_UNITS 16
 
+// #========================= Product Hash Table =========================#
 #if !((' ' == 32) && ('!' == 33) && ('"' == 34) && ('#' == 35) \
       && ('%' == 37) && ('&' == 38) && ('\'' == 39) && ('(' == 40) \
       && (')' == 41) && ('*' == 42) && ('+' == 43) && (',' == 44) \
@@ -58,21 +70,16 @@ struct City *cities[101] = {0};
       && ('w' == 119) && ('x' == 120) && ('y' == 121) && ('z' == 122) \
       && ('{' == 123) && ('|' == 124) && ('}' == 125) && ('~' == 126))
 /* The character set is not based on ISO-646.  */
-#error
+#error "This file is for ISO-646 based systems only."
 #endif
 
-#line 1 "products.gperf"
-#line 6 "products.gperf"
 
 
-// #define TOTAL_KEYWORDS 100
-#ifndef TOTAL_KEYWORDS
-#define TOTAL_KEYWORDS 100
-#endif
-#define MIN_WORD_LENGTH 3
-#define MAX_WORD_LENGTH 16
-#define MIN_HASH_VALUE 6
-#define MAX_HASH_VALUE 139
+
+#define TOTAL_PRODUCT_KEYWORDS 100
+#define MIN_PRODUCT_LENGTH 3
+#define MIN_PRODUCT_HASH_VALUE 6
+#define MAX_PRODUCT_HASH_VALUE 139
 /* maximum key range = 134, duplicates = 6 */
 
 #ifdef __GNUC__
@@ -83,9 +90,9 @@ inline
 #endif
 #endif
 
-static unsigned int hash (  const char *str,   size_t len)
+static unsigned int	hash_product( const char *str,  size_t len)
 {
-  static unsigned char asso_values[] =
+  	static unsigned char asso_values_product[] =
     {
       140, 140, 140, 140, 140, 140, 140, 140, 140, 140,
       140, 140, 140, 140, 140, 140, 140, 140, 140, 140,
@@ -114,217 +121,216 @@ static unsigned int hash (  const char *str,   size_t len)
       140, 140, 140, 140, 140, 140, 140, 140, 140, 140,
       140, 140, 140, 140, 140, 140
     };
-  return len + asso_values[(unsigned char)str[2]] + asso_values[(unsigned char)str[0]] + asso_values[(unsigned char)str[len - 1]];
+  	return len + asso_values_product[(unsigned char)str[2]] + asso_values_product[(unsigned char)str[0]] + asso_values_product[(unsigned char)str[len - 1]];
 }
 
-
-static inline const struct ProductEntry *product_hash(  const char *str,   size_t len)
+inline static struct ProductEntry *get_product( const char *str,  size_t len)
 {
-  static struct ProductEntry wordlist[] =
+  	static struct ProductEntry wordlist_product[] =
     {
-#line 63 "products.gperf"
+
       {"Potato", 52},
-#line 51 "products.gperf"
+
       {"Cabbage", 40},
-#line 23 "products.gperf"
+
       {"Pear", 12},
-#line 73 "products.gperf"
+
       {"Clementine", 62},
-#line 42 "products.gperf"
+
       {"Carrot", 31},
-#line 71 "products.gperf"
+
       {"Currant", 60},
-#line 101 "products.gperf"
+
       {"Plantain", 90},
-#line 17 "products.gperf"
+
       {"Pineapple", 6},
-#line 27 "products.gperf"
+
       {"Cantaloupe", 16},
-#line 87 "products.gperf"
+
       {"Cantaloupe", 76},
-#line 52 "products.gperf"
+
       {"Cauliflower", 41},
-#line 75 "products.gperf"
+
       {"Rhubarb", 64},
-#line 107 "products.gperf"
+
       {"Rutabaga", 96},
-#line 93 "products.gperf"
+
       {"Persimmon", 82},
-#line 36 "products.gperf"
+
       {"Guava", 25},
-#line 59 "products.gperf"
+
       {"Peas", 48},
-#line 33 "products.gperf"
+
       {"Grapefruit", 22},
-#line 22 "products.gperf"
+
       {"Cherry", 11},
-#line 46 "products.gperf"
+
       {"Lettuce", 35},
-#line 69 "products.gperf"
+
       {"Cranberry", 58},
-#line 74 "products.gperf"
+
       {"Cranberry", 63},
-#line 94 "products.gperf"
+
       {"Ginger", 83},
-#line 78 "products.gperf"
+
       {"Parsley", 67},
-#line 38 "products.gperf"
+
       {"Passion_Fruit", 27},
-#line 92 "products.gperf"
+
       {"Starfruit", 81},
-#line 16 "products.gperf"
+
       {"Watermelon", 5},
-#line 35 "products.gperf"
+
       {"Papaya", 24},
-#line 64 "products.gperf"
+
       {"Sweet_Potato", 53},
-#line 79 "products.gperf"
+
       {"Cilantro", 68},
-#line 80 "products.gperf"
+
       {"Mint", 69},
-#line 18 "products.gperf"
+
       {"Mango", 7},
-#line 15 "products.gperf"
+
       {"Grapes", 4},
-#line 106 "products.gperf"
+
       {"Parsnip", 95},
-#line 55 "products.gperf"
+
       {"Beet", 44},
-#line 20 "products.gperf"
+
       {"Peach", 9},
-#line 58 "products.gperf"
+
       {"Green_Beans", 47},
-#line 34 "products.gperf"
+
       {"Avocado", 23},
-#line 57 "products.gperf"
+
       {"Artichoke", 46},
-#line 100 "products.gperf"
+
       {"Artichoke", 89},
-#line 98 "products.gperf"
+
       {"Watercress", 87},
-#line 12 "products.gperf"
+
       {"Banana", 1},
-#line 39 "products.gperf"
+
       {"Apricot", 28},
-#line 43 "products.gperf"
+
       {"Broccoli", 32},
-#line 21 "products.gperf"
+
       {"Plum", 10},
-#line 70 "products.gperf"
+
       {"Goji_Berry", 59},
-#line 60 "products.gperf"
+
       {"Celery", 49},
-#line 83 "products.gperf"
+
       {"Rosemary", 72},
-#line 25 "products.gperf"
+
       {"Raspberry", 14},
-#line 14 "products.gperf"
+
       {"Strawberry", 3},
-#line 30 "products.gperf"
+
       {"Pomegranate", 19},
-#line 90 "products.gperf"
+
       {"Pomegranate", 79},
-#line 68 "products.gperf"
+
       {"Pumpkin", 57},
-#line 77 "products.gperf"
+
       {"Collard_Greens", 66},
-#line 76 "products.gperf"
+
       {"Chard", 65},
-#line 110 "products.gperf"
+
       {"Endive", 99},
-#line 109 "products.gperf"
+
       {"Bok_Choy", 98},
-#line 24 "products.gperf"
+
       {"Blueberry", 13},
-#line 26 "products.gperf"
+
       {"Blackberry", 15},
-#line 29 "products.gperf"
+
       {"Coconut", 18},
-#line 89 "products.gperf"
+
       {"Coconut", 78},
-#line 50 "products.gperf"
+
       {"Eggplant", 39},
-#line 32 "products.gperf"
+
       {"Lime", 21},
-#line 11 "products.gperf"
+
       {"Apple", 0},
-#line 53 "products.gperf"
+
       {"Brussels_Sprouts", 42},
-#line 44 "products.gperf"
+
       {"Spinach", 33},
-#line 41 "products.gperf"
+
       {"Cucumber", 30},
-#line 72 "products.gperf"
+
       {"Date", 61},
-#line 31 "products.gperf"
+
       {"Lemon", 20},
-#line 102 "products.gperf"
+
       {"Cactus_Pear", 91},
-#line 108 "products.gperf"
+
       {"Salsify", 97},
-#line 49 "products.gperf"
+
       {"Zucchini", 38},
-#line 45 "products.gperf"
+
       {"Kale", 34},
-#line 48 "products.gperf"
+
       {"Bell_Pepper", 37},
-#line 105 "products.gperf"
+
       {"Dragon_Fruit", 94},
-#line 28 "products.gperf"
+
       {"Honeydew", 17},
-#line 88 "products.gperf"
+
       {"Honeydew", 77},
-#line 104 "products.gperf"
+
       {"Squash_Blossom", 93},
-#line 82 "products.gperf"
+
       {"Thyme", 71},
-#line 62 "products.gperf"
+
       {"Garlic", 51},
-#line 67 "products.gperf"
+
       {"Acorn_Squash", 56},
-#line 84 "products.gperf"
+
       {"Sage", 73},
-#line 81 "products.gperf"
+
       {"Basil", 70},
-#line 66 "products.gperf"
+
       {"Butternut_Squash", 55},
-#line 56 "products.gperf"
+
       {"Asparagus", 45},
-#line 13 "products.gperf"
+
       {"Orange", 2},
-#line 86 "products.gperf"
+
       {"Oregano", 75},
-#line 97 "products.gperf"
+
       {"Kohlrabi", 86},
-#line 99 "products.gperf"
+
       {"Okra", 88},
-#line 95 "products.gperf"
+
       {"Turnip", 84},
-#line 65 "products.gperf"
+
       {"Yam", 54},
-#line 40 "products.gperf"
+
       {"Nectarine", 29},
-#line 61 "products.gperf"
+
       {"Onion", 50},
-#line 103 "products.gperf"
+
       {"Kiwano", 92},
-#line 19 "products.gperf"
+
       {"Kiwi", 8},
-#line 54 "products.gperf"
+
       {"Radish", 43},
-#line 47 "products.gperf"
+
       {"Tomato", 36},
-#line 96 "products.gperf"
+
       {"Jicama", 85},
-#line 91 "products.gperf"
+
       {"Jackfruit", 80},
-#line 37 "products.gperf"
+
       {"Fig", 26},
-#line 85 "products.gperf"
+
       {"Dill", 74}
     };
 
-  static short lookup[] =
+  	static short lookup[] =
     {
         -1,   -1,   -1,   -1,   -1,   -1,    0,    1,
         -1,    2,    3,    4,    5,    6,    7, -122,
@@ -346,77 +352,80 @@ static inline const struct ProductEntry *product_hash(  const char *str,   size_
         -1,   -1,   -1,   99
     };
 
-  if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
+  	if (len <= MAX_PRODUCT_LENGTH && len >= MIN_PRODUCT_LENGTH)
     {
-        unsigned int key = hash (str, len);
+      	 unsigned int key = hash_product(str, len);
 
-      if (key <= MAX_HASH_VALUE)
+      	if (key <= MAX_PRODUCT_HASH_VALUE)
         {
-            int index = lookup[key];
+          	 int index = lookup[key];
 
-          if (index >= 0)
+          	if (index >= 0)
             {
-                const char *s = wordlist[index].name;
+				 const char *s = wordlist_product[index].name;
 
-              if (*str == *s && !strcmp (str + 1, s + 1))
-                return &wordlist[index];
+				// if (*str == *s && !strcmp (str + 1, s + 1))
+				// 	return &wordlist[index];
+				if (*str == *s && !strncmp (str + 1, s + 1, len - 1))
+					return &wordlist_product[index];
             }
-          else if (index < -TOTAL_KEYWORDS)
+          	else if (index < -TOTAL_PRODUCT_KEYWORDS)
             {
-                int offset = - 1 - TOTAL_KEYWORDS - index;
-                struct ProductEntry *wordptr = &wordlist[TOTAL_KEYWORDS + lookup[offset]];
-                struct ProductEntry *wordendptr = wordptr + -lookup[offset + 1];
+               int offset = - 1 - TOTAL_PRODUCT_KEYWORDS - index;
+               struct ProductEntry *wordptr = &wordlist_product[TOTAL_PRODUCT_KEYWORDS + lookup[offset]];
+               struct ProductEntry *wordendptr = wordptr + -lookup[offset + 1];
 
               while (wordptr < wordendptr)
                 {
-                    const char *s = wordptr->name;
+					 const char *s = wordptr->name;
 
-                  if (*str == *s && !strcmp (str + 1, s + 1))
-                    return wordptr;
-                  wordptr++;
+					// if (*str == *s && !strcmp (str + 1, s + 1))
+					// 	return wordptr;
+					if (*str == *s  && !strncmp (str + 1, s + 1, len - 1))
+						return wordptr;
+					wordptr++;
                 }
             }
         }
     }
   return 0;
 }
+// #========================= End of Product Hash Table =========================#
 
-// #===================================== End of Product Hash =====================================
-
-// #===================================== City Hash Table =====================================#
+// #========================= City Hash Table =========================#
 
 #if !((' ' == 32) && ('!' == 33) && ('"' == 34) && ('#' == 35) \
-      && ('%' == 37) && ('&' == 38) && ('\'' == 39) && ('(' == 40) \
-      && (')' == 41) && ('*' == 42) && ('+' == 43) && (',' == 44) \
-      && ('-' == 45) && ('.' == 46) && ('/' == 47) && ('0' == 48) \
-      && ('1' == 49) && ('2' == 50) && ('3' == 51) && ('4' == 52) \
-      && ('5' == 53) && ('6' == 54) && ('7' == 55) && ('8' == 56) \
-      && ('9' == 57) && (':' == 58) && (';' == 59) && ('<' == 60) \
-      && ('=' == 61) && ('>' == 62) && ('?' == 63) && ('A' == 65) \
-      && ('B' == 66) && ('C' == 67) && ('D' == 68) && ('E' == 69) \
-      && ('F' == 70) && ('G' == 71) && ('H' == 72) && ('I' == 73) \
-      && ('J' == 74) && ('K' == 75) && ('L' == 76) && ('M' == 77) \
-      && ('N' == 78) && ('O' == 79) && ('P' == 80) && ('Q' == 81) \
-      && ('R' == 82) && ('S' == 83) && ('T' == 84) && ('U' == 85) \
-      && ('V' == 86) && ('W' == 87) && ('X' == 88) && ('Y' == 89) \
-      && ('Z' == 90) && ('[' == 91) && ('\\' == 92) && (']' == 93) \
-      && ('^' == 94) && ('_' == 95) && ('a' == 97) && ('b' == 98) \
-      && ('c' == 99) && ('d' == 100) && ('e' == 101) && ('f' == 102) \
-      && ('g' == 103) && ('h' == 104) && ('i' == 105) && ('j' == 106) \
-      && ('k' == 107) && ('l' == 108) && ('m' == 109) && ('n' == 110) \
-      && ('o' == 111) && ('p' == 112) && ('q' == 113) && ('r' == 114) \
-      && ('s' == 115) && ('t' == 116) && ('u' == 117) && ('v' == 118) \
-      && ('w' == 119) && ('x' == 120) && ('y' == 121) && ('z' == 122) \
-      && ('{' == 123) && ('|' == 124) && ('}' == 125) && ('~' == 126))
+	  && ('%' == 37) && ('&' == 38) && ('\'' == 39) && ('(' == 40) \
+	  && (')' == 41) && ('*' == 42) && ('+' == 43) && (',' == 44) \
+	  && ('-' == 45) && ('.' == 46) && ('/' == 47) && ('0' == 48) \
+	  && ('1' == 49) && ('2' == 50) && ('3' == 51) && ('4' == 52) \
+	  && ('5' == 53) && ('6' == 54) && ('7' == 55) && ('8' == 56) \
+	  && ('9' == 57) && (':' == 58) && (';' == 59) && ('<' == 60) \
+	  && ('=' == 61) && ('>' == 62) && ('?' == 63) && ('A' == 65) \
+	  && ('B' == 66) && ('C' == 67) && ('D' == 68) && ('E' == 69) \
+	  && ('F' == 70) && ('G' == 71) && ('H' == 72) && ('I' == 73) \
+	  && ('J' == 74) && ('K' == 75) && ('L' == 76) && ('M' == 77) \
+	  && ('N' == 78) && ('O' == 79) && ('P' == 80) && ('Q' == 81) \
+	  && ('R' == 82) && ('S' == 83) && ('T' == 84) && ('U' == 85) \
+	  && ('V' == 86) && ('W' == 87) && ('X' == 88) && ('Y' == 89) \
+	  && ('Z' == 90) && ('[' == 91) && ('\\' == 92) && (']' == 93) \
+	  && ('^' == 94) && ('_' == 95) && ('a' == 97) && ('b' == 98) \
+	  && ('c' == 99) && ('d' == 100) && ('e' == 101) && ('f' == 102) \
+	  && ('g' == 103) && ('h' == 104) && ('i' == 105) && ('j' == 106) \
+	  && ('k' == 107) && ('l' == 108) && ('m' == 109) && ('n' == 110) \
+	  && ('o' == 111) && ('p' == 112) && ('q' == 113) && ('r' == 114) \
+	  && ('s' == 115) && ('t' == 116) && ('u' == 117) && ('v' == 118) \
+	  && ('w' == 119) && ('x' == 120) && ('y' == 121) && ('z' == 122) \
+	  && ('{' == 123) && ('|' == 124) && ('}' == 125) && ('~' == 126))
 /* The character set is not based on ISO-646.  */
-error "gperf generated tables don't work with this execution character set. Please report a bug to <bug-gnu-gperf@gnu.org>."
+#error "This file is for ISO-646 based systems only."
 #endif
 
 
-#define MIN_WORD_LENGTH 3
-#define MAX_WORD_LENGTH_ 17
-#define MIN_HASH_VALUE 6
-#define MAX_HASH_VALUE_ 306
+#define TOTAL_CITY_KEYWORDS 101
+#define MIN_CITY_LENGTH 3
+#define MIN_CITY_HASH_VALUE 6
+#define MAX_CITY_HASH_VALUE 306
 /* maximum key range = 301, duplicates = 0 */
 
 #ifdef __GNUC__
@@ -426,529 +435,671 @@ __inline
 inline
 #endif
 #endif
-static unsigned int hash_(const char *str, unsigned int len)
+static unsigned int	hash_city( const char *str,  size_t len)
 {
-  static unsigned short asso_values[] =
-    {
-      307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
-      307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
-      307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
-      307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
-      307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
-      307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
-      307, 307, 307, 307, 307, 307, 105,  50, 307,  25,
-      307, 307, 307,  65, 307,  35,   5,   0,   5, 307,
-      307, 307, 307,  25, 307,  25, 307, 307, 307, 307,
-      307, 307, 307, 307, 307,  65,   0,   0,  40,  95,
-       30,   5,  25, 120,   0,   5,  55,  70,  60,  30,
-       10,  15,   5,  10,   0,  20,  30,   0,  60, 307,
-      307,  10,  20,   0, 307, 307, 307, 307, 307, 307,
-      307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
-      307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
-      307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
-      307, 307, 307, 307, 307, 307, 307, 307, 307,   0,
-      307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
-      307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
-      307, 307, 307, 307, 307,  15, 307, 307, 307, 307,
-      307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
-      307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
-      307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
-      307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
-      307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
-      307, 307, 307, 307, 307, 307, 307
-    };
-    unsigned int hval = len;
+	static unsigned short asso_values_cities[] =
+	{
+	  307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
+	  307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
+	  307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
+	  307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
+	  307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
+	  307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
+	  307, 307, 307, 307, 307, 307, 105,  50, 307,  25,
+	  307, 307, 307,  65, 307,  35,   5,   0,   5, 307,
+	  307, 307, 307,  25, 307,  25, 307, 307, 307, 307,
+	  307, 307, 307, 307, 307,  65,   0,   0,  40,  95,
+	   30,   5,  25, 120,   0,   5,  55,  70,  60,  30,
+	   10,  15,   5,  10,   0,  20,  30,   0,  60, 307,
+	  307,  10,  20,   0, 307, 307, 307, 307, 307, 307,
+	  307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
+	  307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
+	  307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
+	  307, 307, 307, 307, 307, 307, 307, 307, 307,   0,
+	  307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
+	  307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
+	  307, 307, 307, 307, 307,  15, 307, 307, 307, 307,
+	  307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
+	  307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
+	  307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
+	  307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
+	  307, 307, 307, 307, 307, 307, 307, 307, 307, 307,
+	  307, 307, 307, 307, 307, 307, 307
+	};
+   unsigned int hval = len;
 
   switch (hval)
-    {
-      default:
-        hval += asso_values[(unsigned char)str[5]];
-      /*FALLTHROUGH*/
-      case 5:
-        hval += asso_values[(unsigned char)str[4]+1];
-      /*FALLTHROUGH*/
-      case 4:
-      case 3:
-        hval += asso_values[(unsigned char)str[2]];
-      /*FALLTHROUGH*/
-      case 2:
-        hval += asso_values[(unsigned char)str[1]];
-        break;
-    }
+	{
+	  default:
+		hval += asso_values_cities[(unsigned char)str[5]];
+	  /*FALLTHROUGH*/
+	  case 5:
+		hval += asso_values_cities[(unsigned char)str[4]+1];
+	  /*FALLTHROUGH*/
+	  case 4:
+	  case 3:
+		hval += asso_values_cities[(unsigned char)str[2]];
+	  /*FALLTHROUGH*/
+	  case 2:
+		hval += asso_values_cities[(unsigned char)str[1]];
+		break;
+	}
   return hval;
 }
 
-static inline const struct CityEntry *city_hash(const char *str, unsigned int len)
+inline static struct CityEntry *get_city( const char *str,  size_t len)
 {
-  static struct CityEntry wordlist[] =
-    {
-      {""}, {""}, {""}, {""}, {""}, {""},
-#line 110 "cities.gperf"
-      {"Drarga", 99},
-      {""},
-#line 95 "cities.gperf"
-      {"Ouazzane", 84},
-      {""},
-#line 73 "cities.gperf"
-      {"Ouarzazate", 62},
-      {""}, {""},
-#line 30 "cities.gperf"
-      {"Laayoune", 19},
-      {""},
-#line 103 "cities.gperf"
-      {"Guerguerat", 92},
-#line 66 "cities.gperf"
-      {"Jerada", 55},
-      {""},
-#line 46 "cities.gperf"
-      {"Guelta_Zemmur", 35},
-#line 41 "cities.gperf"
-      {"Chichaoua", 30},
-#line 33 "cities.gperf"
-      {"Bir_Lehlou", 22},
-      {""},
-#line 19 "cities.gperf"
-      {"Kenitra", 8},
-#line 74 "cities.gperf"
-      {"Inezgane", 63},
-#line 25 "cities.gperf"
-      {"Taza", 14},
-#line 72 "cities.gperf"
-      {"Ben_guerir", 61},
-#line 23 "cities.gperf"
-      {"Beni_Mellal", 12},
-#line 28 "cities.gperf"
-      {"Guelmim", 17},
-#line 14 "cities.gperf"
-      {"Fes", 3},
-#line 21 "cities.gperf"
-      {"Safi", 10},
-      {""},
-#line 56 "cities.gperf"
-      {"Souk_Larbaa", 45},
-#line 50 "cities.gperf"
-      {"Tinghir", 39},
-      {""}, {""}, {""}, {""},
-#line 59 "cities.gperf"
-      {"Larache", 48},
-#line 62 "cities.gperf"
-      {"Goulmima", 51},
-#line 68 "cities.gperf"
-      {"Ksar_es_Seghir", 57},
-#line 24 "cities.gperf"
-      {"Errachidia", 13},
-#line 76 "cities.gperf"
-      {"Sefrou", 65},
-#line 60 "cities.gperf"
-      {"Tan-Tan", 49},
-#line 93 "cities.gperf"
-      {"Boujdour", 82},
-#line 91 "cities.gperf"
-      {"Assa", 80},
-#line 12 "cities.gperf"
-      {"Rabat", 1},
-#line 42 "cities.gperf"
-      {"Chefchaouen", 31},
-#line 82 "cities.gperf"
-      {"Guercif", 71},
-#line 44 "cities.gperf"
-      {"Taourirt", 33},
-#line 27 "cities.gperf"
-      {"Khouribga", 16},
-#line 85 "cities.gperf"
-      {"Ahfir", 74},
-#line 51 "cities.gperf"
-      {"Ifrane", 40},
-#line 108 "cities.gperf"
-      {"Zemamra", 97},
-#line 29 "cities.gperf"
-      {"Jorf_El_Melha", 18},
-#line 26 "cities.gperf"
-      {"Essaouira", 15},
-#line 39 "cities.gperf"
-      {"Nador", 28},
-#line 70 "cities.gperf"
-      {"Ait_Melloul", 59},
-#line 94 "cities.gperf"
-      {"Tarfaya", 83},
-#line 31 "cities.gperf"
-      {"Ksar_El_Kebir", 20},
-#line 48 "cities.gperf"
-      {"La\303\242youne", 37},
-#line 100 "cities.gperf"
-      {"Midar", 89},
-#line 35 "cities.gperf"
-      {"Temara", 24},
-#line 86 "cities.gperf"
-      {"Berkane", 75},
-      {""},
-#line 32 "cities.gperf"
-      {"Sale", 21},
-#line 36 "cities.gperf"
-      {"Mohammedia", 25},
-#line 98 "cities.gperf"
-      {"Saidia", 87},
-#line 83 "cities.gperf"
-      {"Bouarfa", 72},
-      {""}, {""},
-#line 67 "cities.gperf"
-      {"Youssoufia", 56},
-#line 104 "cities.gperf"
-      {"Asilah", 93},
-#line 55 "cities.gperf"
-      {"Sidi_Slimane", 44},
-#line 53 "cities.gperf"
-      {"Bab_Taza", 42},
-      {""},
-#line 92 "cities.gperf"
-      {"Smara", 81},
-#line 77 "cities.gperf"
-      {"Aourir", 66},
-#line 15 "cities.gperf"
-      {"Tangier", 4},
-      {""},
-#line 88 "cities.gperf"
-      {"Boulemane", 77},
-#line 109 "cities.gperf"
-      {"Sidi_Kacem", 98},
-      {""},
-#line 101 "cities.gperf"
-      {"Moulay_Bousselham", 90},
-      {""}, {""},
-#line 52 "cities.gperf"
-      {"Azrou", 41},
-#line 97 "cities.gperf"
-      {"had_soualem", 86},
-#line 71 "cities.gperf"
-      {"Layoune", 60},
-#line 106 "cities.gperf"
-      {"Tafraout", 95},
-#line 102 "cities.gperf"
-      {"Khemisset", 91},
-#line 80 "cities.gperf"
-      {"Bni_Hadifa", 69},
-#line 57 "cities.gperf"
-      {"Tiflet", 46},
-      {""},
-#line 89 "cities.gperf"
-      {"Khenifra", 78},
-      {""},
-#line 81 "cities.gperf"
-      {"Fquih_Ben_Salah", 70},
-      {""}, {""},
-#line 111 "cities.gperf"
-      {"Skhirate", 100},
-#line 45 "cities.gperf"
-      {"Taroudant", 34},
-#line 18 "cities.gperf"
-      {"Oujda", 7},
-#line 63 "cities.gperf"
-      {"Midelt", 52},
-#line 20 "cities.gperf"
-      {"Tetouan", 9},
-      {""}, {""},
-#line 99 "cities.gperf"
-      {"Bab_Berred", 88},
-#line 47 "cities.gperf"
-      {"Dakhla", 36},
-      {""}, {""},
-#line 61 "cities.gperf"
-      {"Sidi_Ifni", 50},
-      {""},
-#line 37 "cities.gperf"
-      {"Settat", 26},
-#line 84 "cities.gperf"
-      {"Demnate", 73},
-#line 87 "cities.gperf"
-      {"Akhfenir", 76},
-      {""}, {""},
-#line 49 "cities.gperf"
-      {"Tiznit", 38},
-      {""},
-#line 107 "cities.gperf"
-      {"Imzouren", 96},
-#line 13 "cities.gperf"
-      {"Marrakech", 2},
-      {""},
-#line 34 "cities.gperf"
-      {"Arfoud", 23},
-      {""}, {""}, {""}, {""},
-#line 17 "cities.gperf"
-      {"Meknes", 6},
-      {""}, {""}, {""}, {""},
-#line 65 "cities.gperf"
-      {"Azilal", 54},
-#line 90 "cities.gperf"
-      {"Bir_Anzerane", 79},
-      {""},
-#line 54 "cities.gperf"
-      {"Berrechid", 43},
-      {""},
-#line 79 "cities.gperf"
-      {"Tichla", 68},
-      {""}, {""}, {""}, {""},
-#line 78 "cities.gperf"
-      {"Oulad_Teima", 67},
-      {""},
-#line 40 "cities.gperf"
-      {"Kalaat_MGouna", 29},
-      {""}, {""},
-#line 96 "cities.gperf"
-      {"Zagora", 85},
-#line 38 "cities.gperf"
-      {"B\303\251ni_Mellal", 27},
-      {""}, {""}, {""},
-#line 105 "cities.gperf"
-      {"Sidi_Bouzid", 94},
-#line 58 "cities.gperf"
-      {"Sidi_Bennour", 47},
-      {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
-      {""}, {""}, {""}, {""},
-#line 69 "cities.gperf"
-      {"Tichka", 58},
-      {""}, {""}, {""}, {""},
-#line 75 "cities.gperf"
-      {"Oujda_Angad", 64},
-      {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
-#line 16 "cities.gperf"
-      {"Agadir", 5},
-      {""}, {""}, {""},
-#line 11 "cities.gperf"
-      {"Casablanca", 0},
-      {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
-      {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
-#line 22 "cities.gperf"
-      {"El_Jadida", 11},
-      {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
-      {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
-      {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
-      {""}, {""}, {""},
-#line 43 "cities.gperf"
-      {"Al_Hoceima", 32},
-      {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
-      {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
-      {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
-      {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
-      {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
-      {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
-      {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
-      {""}, {""}, {""}, {""}, {""}, {""}, {""},
-#line 64 "cities.gperf"
-      {"Figuig", 53}
-    };
+	
+  	static struct CityEntry wordlist_cities[] =
+	{
+	  {""}, {""}, {""}, {""}, {""}, {""},
 
-  if (len <= MAX_WORD_LENGTH_ && len >= MIN_WORD_LENGTH)
-    {
-      unsigned int key = hash_ (str, len);
+	  {"Drarga", 99},
+	  {""},
 
-      if (key <= MAX_HASH_VALUE_)
-        {
-          const char *s = wordlist[key].name;
+	  {"Ouazzane", 84},
+	  {""},
 
-          if (*str == *s && !strcmp (str + 1, s + 1))
-            return &wordlist[key];
-        }
-    }
-  return 0;
-}
+	  {"Ouarzazate", 62},
+	  {""}, {""},
 
-// #===================================== End of City Hash Table =====================================#
+	  {"Laayoune", 19},
+	  {""},
 
+	  {"Guerguerat", 92},
 
+	  {"Jerada", 55},
+	  {""},
 
-static inline void process_line(const char* start, size_t length) {
-    const char *end = start + length;
-    char *separator1 = (char *)memchr(start, ',', end - start);
-    if (!separator1) return;
+	  {"Guelta_Zemmur", 35},
 
-    char *separator2 = (char *)memchr(separator1 + 1, ',', end - separator1 - 1);
-    if (!separator2) return;
+	  {"Chichaoua", 30},
 
-    
-    size_t cityNameLength = separator1 - start;
-    size_t productNameLength = separator2 - separator1 - 1;
-    // size_t productPriceLength = end - separator2 - 1;
+	  {"Bir_Lehlou", 22},
+	  {""},
 
-	// Allocate buffers for city name, product name, and product price
-    char cityName[cityNameLength + 1];
-    char productName[productNameLength + 1];
+	  {"Kenitra", 8},
 
+	  {"Inezgane", 63},
 
-    memcpy(cityName, start, cityNameLength);
-    cityName[cityNameLength] = '\0';
-    memcpy(productName, separator1 + 1, productNameLength);
-    productName[productNameLength] = '\0';
+	  {"Taza", 14},
+
+	  {"Ben_guerir", 61},
+
+	  {"Beni_Mellal", 12},
+
+	  {"Guelmim", 17},
+
+	  {"Fes", 3},
+
+	  {"Safi", 10},
+	  {""},
+
+	  {"Souk_Larbaa", 45},
+
+	  {"Tinghir", 39},
+	  {""}, {""}, {""}, {""},
+
+	  {"Larache", 48},
+
+	  {"Goulmima", 51},
+
+	  {"Ksar_es_Seghir", 57},
+
+	  {"Errachidia", 13},
+
+	  {"Sefrou", 65},
+
+	  {"Tan-Tan", 49},
+
+	  {"Boujdour", 82},
+
+	  {"Assa", 80},
+
+	  {"Rabat", 1},
+
+	  {"Chefchaouen", 31},
+
+	  {"Guercif", 71},
+
+	  {"Taourirt", 33},
+
+	  {"Khouribga", 16},
+
+	  {"Ahfir", 74},
+
+	  {"Ifrane", 40},
+
+	  {"Zemamra", 97},
+
+	  {"Jorf_El_Melha", 18},
+
+	  {"Essaouira", 15},
+
+	  {"Nador", 28},
+
+	  {"Ait_Melloul", 59},
+
+	  {"Tarfaya", 83},
+
+	  {"Ksar_El_Kebir", 20},
+
+	  {"La\303\242youne", 37},
+
+	  {"Midar", 89},
+
+	  {"Temara", 24},
+
+	  {"Berkane", 75},
+	  {""},
+
+	  {"Sale", 21},
+
+	  {"Mohammedia", 25},
+
+	  {"Saidia", 87},
+
+	  {"Bouarfa", 72},
+	  {""}, {""},
+
+	  {"Youssoufia", 56},
+
+	  {"Asilah", 93},
+
+	  {"Sidi_Slimane", 44},
+
+	  {"Bab_Taza", 42},
+	  {""},
+
+	  {"Smara", 81},
+
+	  {"Aourir", 66},
+
+	  {"Tangier", 4},
+	  {""},
+
+	  {"Boulemane", 77},
+
+	  {"Sidi_Kacem", 98},
+	  {""},
+
+	  {"Moulay_Bousselham", 90},
+	  {""}, {""},
+
+	  {"Azrou", 41},
+
+	  {"had_soualem", 86},
+
+	  {"Layoune", 60},
+
+	  {"Tafraout", 95},
+
+	  {"Khemisset", 91},
+
+	  {"Bni_Hadifa", 69},
+
+	  {"Tiflet", 46},
+	  {""},
+
+	  {"Khenifra", 78},
+	  {""},
+
+	  {"Fquih_Ben_Salah", 70},
+	  {""}, {""},
+
+	  {"Skhirate", 100},
+
+	  {"Taroudant", 34},
+
+	  {"Oujda", 7},
+
+	  {"Midelt", 52},
+
+	  {"Tetouan", 9},
+	  {""}, {""},
+
+	  {"Bab_Berred", 88},
+
+	  {"Dakhla", 36},
+	  {""}, {""},
+
+	  {"Sidi_Ifni", 50},
+	  {""},
+
+	  {"Settat", 26},
+
+	  {"Demnate", 73},
+
+	  {"Akhfenir", 76},
+	  {""}, {""},
+
+	  {"Tiznit", 38},
+	  {""},
+	  {"Imzouren", 96},
+	  {"Marrakech", 2},
+	  {""},
+	  {"Arfoud", 23},
+	  {""}, {""}, {""}, {""},
+	  {"Meknes", 6},
+	  {""}, {""}, {""}, {""},
+	  {"Azilal", 54},
+	  {"Bir_Anzerane", 79},
+	  {""},
+	  {"Berrechid", 43},
+	  {""},
+	  {"Tichla", 68},
+	  {""}, {""}, {""}, {""},
+	  {"Oulad_Teima", 67},
+	  {""},
+	  {"Kalaat_MGouna", 29},
+	  {""}, {""},
+	  {"Zagora", 85},
+	  {"B\303\251ni_Mellal", 27},
+	  {""}, {""}, {""},
+	  {"Sidi_Bouzid", 94},
+	  {"Sidi_Bennour", 47},
+	  {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
+	  {""}, {""}, {""}, {""},
+	  {"Tichka", 58},
+	  {""}, {""}, {""}, {""},
+	  {"Oujda_Angad", 64},
+	  {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
+	  {"Agadir", 5},
+	  {""}, {""}, {""},
+	  {"Casablanca", 0},
+	  {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
+	  {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
+	  {"El_Jadida", 11},
+	  {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
+	  {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
+	  {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
+	  {""}, {""}, {""},
+	  {"Al_Hoceima", 32},
+	  {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
+	  {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
+	  {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
+	  {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
+	  {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
+	  {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
+	  {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
+	  {""}, {""}, {""}, {""}, {""}, {""}, {""},
+	  {"Figuig", 53}
+	};
+
 	
 
-	double price = atof(separator2 + 1);
-
-
-	const struct CityEntry *cityEntry = city_hash(cityName, cityNameLength);
-	if (cityEntry)
+	if (len <= MAX_CITY_LENGTH && len >= MIN_CITY_LENGTH)
 	{
-		struct City *city = cities[cityEntry->cityIndex];
-		if (!city)
-		{
-			city = (struct City *)malloc(sizeof(struct City));
-			city->total = price;
-			city->name = cityEntry->name;
-			cities[cityEntry->cityIndex] = city;
+		 unsigned int key = hash_city(str, len);
 
-			const struct ProductEntry *productEntry = product_hash(productName, productNameLength);
-			if (productEntry)
-			{
-				struct Product *product = (struct Product *)malloc(sizeof(struct Product));
-				product->price = price;
-				product->name = productEntry->name;
-				city->products[productEntry->productIndex] = product;
-				city->productsCount++;
+		if (key <= MAX_CITY_HASH_VALUE)
+		{
+			 const char *s = wordlist_cities[key].name;
+
+			// if (*str == *s && !strcmp (str + 1, s + 1))
+			// 	return &wordlist[key];
+			if (*str == *s && !strncmp (str + 1, s + 1, len - 1))
+				return &wordlist_cities[key];
+			// if (*str == *s && !compare_strings_with_ptest(str + 1, s + 1, len - 1))
+			// 	return &wordlist_cities[key];
+		}
+	}
+  return 0;
+}
+// #========================= End of City Hash Table =========================#
+
+// #========================= Utility Functions =========================#
+inline static int compareProducts(const void *a, const void *b)
+{
+	const struct Product *productA = (const struct Product *)a;
+	const struct Product *productB = (const struct Product *)b;
+
+	if (productA->name == NULL) return (productB->name) ? 1 : 0;
+	if (productB->name == NULL) return -1;
+
+	if (productA->price < productB->price) return -1;
+	if (productA->price > productB->price) return 1;
+
+	return strcmp(productA->name, productB->name);
+}
+
+inline static uint32_t parse_price_component(char *component_str, uint32_t component_len)
+{
+  static uint32_t ascii_zero_offset[4] = {0, '0', 11 * '0', 111 * '0'};
+  
+  static uint32_t digit_multipliers[3][4] = {
+    {0, 1, 10, 100},   // Multipliers for the first digit
+    {0, 0, 1,  10},    // Multipliers for the second digit
+    {0, 0, 0,  1},     // Multipliers for the third digit
+  };
+  
+  // Calculate and return the integer value of the price component
+  uint32_t result = (
+    digit_multipliers[0][component_len] * component_str[0] + 
+    digit_multipliers[1][component_len] * component_str[1] + 
+    digit_multipliers[2][component_len] * component_str[2] -
+    ascii_zero_offset[component_len]
+  );
+  return result;
+}
+// #========================= End of Utility Functions =========================#
+
+// #========================= Serialization Functions =========================#
+
+inline static void	serialize_city(FILE *file, const struct City *city)
+{
+	size_t cityNameLength = strlen(city->name);
+	fwrite(&cityNameLength, sizeof(size_t), 1, file);
+	fwrite(city->name, sizeof(char), cityNameLength, file);
+	fwrite(&city->total, sizeof(uint64_t), 1, file);
+
+	fwrite(&city->numProducts, sizeof(int), 1, file);
+
+	for (int i = 0; i < MAX_PRODUCTS; i++)
+	{
+		if (city->products[i].name != NULL)
+		{
+			size_t productNameLength = strlen(city->products[i].name);
+			fwrite(&productNameLength, sizeof(size_t), 1, file);
+			fwrite(city->products[i].name, sizeof(char), productNameLength, file);
+			fwrite(&city->products[i].price, sizeof(uint32_t), 1, file);
+		}
+	}
+}
+
+inline static void performDataSerialization()
+{
+    char filePath[256];
+    snprintf(filePath, sizeof(filePath), "results_%d.bin", getpid());
+
+    FILE* file = fopen(filePath, "wb");
+    if (file) {
+        for (int i = 0; i < MAX_CITIES; i++) {
+			if (cities[i].name != NULL) {
+				serialize_city(file, &cities[i]);
 			}
-			else
+        }
+        fclose(file);
+    }
+}
+// #========================= End of Serialization Functions =========================#
+
+inline static void update_city_and_product_totals(struct City *city, const char *cityName, size_t cityNameLength, const char *productName, size_t productNameLength, uint32_t price)
+{
+	const struct ProductEntry *productEntry = get_product(productName, productNameLength);
+	if (!productEntry)
+	{
+		perror("Product not found");
+		exit(EXIT_FAILURE);
+	}
+
+	struct Product *product = &(city->products[productEntry->productIndex]);
+	if (product->name == NULL)
+	{
+		product->name = (char *)productEntry->name;
+		product->price = price;
+		city->numProducts++;
+	}
+	else if (product->price > price)
+	{
+		product->price = price;
+	}
+	city->total += price;
+}
+
+
+
+inline static void process_segment(const char *segment, size_t length)
+{
+    const char *end = segment + length;
+    const char *line_start = segment;
+
+    while (line_start < end) {
+        const char *line_end = (const char *)memchr(line_start, '\n', end - line_start);
+        if (!line_end) {
+            line_end = end;
+        }
+
+        const char *first_comma = (const char *)memchr(line_start, ',', line_end - line_start);
+        const char *second_comma = first_comma ? (const char *)memchr(first_comma + 1, ',', line_end - (first_comma + 1)) : NULL;
+
+        if (first_comma && second_comma) {
+            // Extract cityName
+            char cityName[MAX_CITY_LENGTH] = {0};
+            size_t cityNameLength = first_comma - line_start;
+            memcpy(cityName, line_start, cityNameLength);
+            cityName[cityNameLength] = '\0';
+
+            // Extract productName
+            char productName[MAX_PRODUCT_LENGTH] = {0};
+            size_t productNameLength = second_comma - first_comma - 1;
+            memcpy(productName, first_comma + 1, productNameLength);
+            productName[productNameLength] = '\0';
+
+            // Extract price
+			char* price_d = (char *)second_comma + 1;
+   			size_t price_d_len = 0;
+			while (price_d[price_d_len] != '.' && &price_d[price_d_len] < line_end)
+				price_d_len++;
+			uint32_t price_decimal = parse_price_component(price_d, price_d_len);
+
+			char *price_f = price_d + price_d_len + 1;
+			size_t price_f_len = line_end - price_f;
+			uint32_t price_fractional = parse_price_component(price_f, price_f_len);
+			price_fractional *= (price_f_len < 2) ? 10 : 1;
+
+			uint32_t price = price_decimal * 100 + price_fractional;
+				
+			const struct CityEntry *cityEntry = get_city(cityName, cityNameLength);
+			if (!cityEntry)
 			{
-				printf("Product Not Found\n");
+				printf("City not found: %s\n", cityName);
 				exit(EXIT_FAILURE);
+			}
+
+			struct City *city = &cities[cityEntry->cityIndex];
+			if (city->name == NULL)
+			{
+				city->name = (char *)cityEntry->name;
+			}
+			
+			// Process the line
+			update_city_and_product_totals(city, cityName, cityNameLength, productName, productNameLength, price);
+        }
+        line_start = line_end + 1;
+    }
+	performDataSerialization();
+}
+
+
+inline static int deserialize_city(FILE* file, struct City *city)
+{
+	size_t cityNameLength;
+	if (fread(&cityNameLength, sizeof(size_t), 1, file) < 1) return -1;
+	city->name = (char *)malloc(cityNameLength + 1);
+	fread(city->name, sizeof(char), cityNameLength, file);
+	city->name[cityNameLength] = '\0';
+	fread(&city->total, sizeof(uint64_t), 1, file);
+	fread(&city->numProducts, sizeof(int), 1, file);
+
+	for (int i = 0; i < city->numProducts; i++)
+	{
+		uint32_t price;
+		size_t productNameLength;
+		char productName[MAX_PRODUCT_LENGTH] = {0};
+
+		fread(&productNameLength, sizeof(size_t), 1, file);
+		fread(productName, sizeof(char), productNameLength, file);
+		productName[productNameLength] = '\0';
+		fread(&price, sizeof(uint32_t), 1, file);
+
+		const struct ProductEntry *productEntry = get_product(productName, productNameLength);
+		if (!productEntry)
+		{
+			perror("Product not found");
+			exit(EXIT_FAILURE);
+		}
+		city->products[productEntry->productIndex].name = (char *)productEntry->name;
+		city->products[productEntry->productIndex].price = price;
+	}
+	return (0);
+}
+
+inline static void aggregate_city(struct City aggregatedCities[MAX_CITIES], struct City* newCity)
+{
+	const struct CityEntry *cityEntry = get_city(newCity->name, strlen(newCity->name));
+	if (!cityEntry)
+	{
+		perror("City not found");
+		exit(EXIT_FAILURE);
+	}
+
+	if (aggregatedCities[cityEntry->cityIndex].name == NULL)
+	{
+		aggregatedCities[cityEntry->cityIndex].name = newCity->name;
+		aggregatedCities[cityEntry->cityIndex].total = newCity->total;
+		aggregatedCities[cityEntry->cityIndex].numProducts = newCity->numProducts;
+	}
+	else
+		aggregatedCities[cityEntry->cityIndex].total += newCity->total;
+
+	for (int i = 0; i < MAX_PRODUCTS; i++)
+	{
+		if (newCity->products[i].name)
+		{
+			if (aggregatedCities[cityEntry->cityIndex].products[i].name == NULL)
+			{
+				aggregatedCities[cityEntry->cityIndex].products[i].name = newCity->products[i].name;
+				aggregatedCities[cityEntry->cityIndex].products[i].price = newCity->products[i].price;
+			}
+			else if (aggregatedCities[cityEntry->cityIndex].products[i].price > newCity->products[i].price)
+			{
+				aggregatedCities[cityEntry->cityIndex].products[i].price = newCity->products[i].price;
 			}
 		}
-		else {
-			// city->total += atof(separator2 + 1);
-			city->total += price;
-			const struct ProductEntry *productEntry = product_hash(productName, productNameLength);
-			if (productEntry)
+	}
+}
+
+
+inline static void	compileAggregatedResults(pid_t pids[MAX_TASK_UNITS])
+{
+	char filePaths[MAX_TASK_UNITS][256];
+	struct City aggregatedCities[MAX_CITIES] = {0};
+
+	for (int i = 0; i < MAX_TASK_UNITS; i++)
+	{
+		snprintf(filePaths[i], sizeof(filePaths[i]), "results_%d.bin", pids[i]);
+		FILE *file = fopen(filePaths[i], "rb");
+		if (file)
+		{
+			while (!feof(file))
 			{
-				struct Product *product = city->products[productEntry->productIndex];
-				if (!product)
+				struct City newCity = {0};
+				if (deserialize_city(file, &newCity) == -1) break;
+
+				aggregate_city(aggregatedCities, &newCity);
+			}
+		}
+		fclose(file);
+	}
+
+	uint64_t minTotal = UINT64_MAX;
+	int minCityIndex = -1; // -1 indicates no city found yet
+	for (int i = 0; i < MAX_CITIES; ++i) 
+	{
+		if (aggregatedCities[i].name && aggregatedCities[i].total < minTotal) {
+			minTotal = aggregatedCities[i].total;
+			minCityIndex = i;
+		}
+	}
+
+	if (minCityIndex != -1) {
+		qsort(aggregatedCities[minCityIndex].products, MAX_PRODUCTS, sizeof(struct Product), compareProducts);
+		FILE *outputFile = fopen("output.txt", "w");
+		if (outputFile)
+		{
+			fprintf(outputFile, "%s %lu.%02lu\n", aggregatedCities[minCityIndex].name, minTotal / 100, minTotal % 100);
+			for (int i = 0; i < 5; i++)
+			{
+				if (aggregatedCities[minCityIndex].products[i].name != NULL)
 				{
-					product = (struct Product *)malloc(sizeof(struct Product));
-					product->price = price;
-					product->name = productEntry->name;
-					city->products[productEntry->productIndex] = product;
-					city->productsCount++;
-				}
-				else
-				{
-					if (price < product->price)
-					{
-						product->price = price;
-					}
+					uint32_t price = aggregatedCities[minCityIndex].products[i].price;
+					fprintf(outputFile, "%s %u.%02u\n", aggregatedCities[minCityIndex].products[i].name, price / 100, price % 100);
 				}
 			}
-			else
-			{
-				printf("This product is not listed in gen.py\n");
-				exit(EXIT_FAILURE);
-			}
+			fclose(outputFile);
 		}
 	}
 	else
-	{
-		printf("This City is not listed in gen.py\n");
-		exit(EXIT_FAILURE);
-	}
+		printf("No cities processed.\n");
+
+	for (int i = 0; i < MAX_TASK_UNITS; i++)
+		remove(filePaths[i]);
 }
 
-static inline int compareProducts(const void *a, const void *b) {
-    const struct Product *productA = *(const struct Product **)a;
-    const struct Product *productB = *(const struct Product **)b;
-    
-    // Handle NULL pointers by considering them as greater than any valid pointer
-    if (!productA) return (productB) ? 1 : 0; // If both are NULL, they are considered equal
-    if (!productB) return -1; // Non-NULL is considered less than NULL
 
-    // Now that we've handled potential NULLs, we proceed with our actual comparison
-    if (productA->price < productB->price) return -1;
-    if (productA->price > productB->price) return 1;
-    
-    // If prices are equal, compare by name
-    return strcmp(productA->name, productB->name);
-}
+int main() {
 
-int main(void)
-{
-
-    int fd = open("./input.txt", O_RDONLY);
-    if (fd == -1) {
-        perror("Error opening file");
-        exit(EXIT_FAILURE);
-    }
-
+	pid_t pids[MAX_TASK_UNITS];
+    int fd = open("input.txt", O_RDONLY);
     struct stat sb;
-    if (fstat(fd, &sb) == -1) {
-        perror("Error getting file size");
-        close(fd);
-        exit(EXIT_FAILURE);
+    if (fd == -1 || fstat(fd, &sb) == -1) {
+        perror("Error opening file");
+        return EXIT_FAILURE;
     }
 
-    char *file_in_memory = (char *)mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+    char *file_in_memory = (char *)mmap(NULL, sb.st_size, PROT_READ, MAP_SHARED, fd, 0);
     if (file_in_memory == MAP_FAILED) {
-        perror("Error mapping file");
-        close(fd);
-        exit(EXIT_FAILURE);
+        perror("Error mmapping the file");
+        return EXIT_FAILURE;
     }
 
-    const char *end = file_in_memory + sb.st_size;
-    const char *current = file_in_memory;
-    const char *line_start = current;
+	const off_t initial_segment_size = sb.st_size / MAX_TASK_UNITS;
+	off_t current_offset = 0;
 
-    while (current < end) {
-        if (*current == '\n') {
-            size_t line_length = current - line_start;
-            process_line(line_start, line_length);
-            line_start = current + 1; // Move past the newline
-        }
-        current++;
-    }
+	for (int i = 0; i < MAX_TASK_UNITS; i++) {
+		off_t offset = current_offset;
+		off_t size = (i == MAX_TASK_UNITS - 1) ? (sb.st_size - offset) : initial_segment_size;
 
-    if (line_start < end) {
-        process_line(line_start, end - line_start);
+		if (i != 0) {
+			while (file_in_memory[offset] != '\n' && offset < sb.st_size) {
+				offset++;
+				size--;
+			}
+			offset++;
+			size--;
+		}
+
+		if (i != MAX_TASK_UNITS - 1) {
+			off_t end = offset + size;
+			while (file_in_memory[end] != '\n' && end < sb.st_size) {
+				end++;
+			}
+			size = end - offset + 1;
+		}
+
+		pids[i] = fork();
+		if (pids[i] == 0) {
+			process_segment(file_in_memory + offset, size);
+			munmap(file_in_memory, sb.st_size);
+			close(fd);
+			exit(EXIT_SUCCESS);
+		} else if (pids[i] < 0) {
+			perror("Error");
+			exit(EXIT_FAILURE);
+		}
+
+		current_offset = offset + size;
+	}
+
+    for (int i = 0; i < MAX_TASK_UNITS; i++) {
+        wait(NULL);
     }
 
     munmap(file_in_memory, sb.st_size);
     close(fd);
 
-	double cheapestCityTotal = LLONG_MAX;
-	struct City *cheapestCity = NULL;
-	for (int i = 0; i < 101; i++)
-	{
-		struct City *city = cities[i];
-		if (city)
-		{
-			if (city->total < cheapestCityTotal)
-			{
-				cheapestCityTotal = city->total;
-				cheapestCity = city;
-			}
-		}
-	}
+	compileAggregatedResults(pids);
 
-	int fdo = open ("output.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
-	if (fdo == -1) {
-		perror("Error opening file");
-		exit(EXIT_FAILURE);
-	}
-
-	write(fdo, cheapestCity->name, strlen(cheapestCity->name));
-	write(fdo, " ", 1);
-	// write(fdo, &cheapestCity->total, sizeof(cheapestCity->total));
-	char buffer[100];
-	sprintf(buffer, "%.2f", cheapestCity->total);
-	write(fdo, buffer, strlen(buffer));
-	write(fdo, "\n", 1);
-
-	qsort(cheapestCity->products, 100, sizeof(struct Product *), compareProducts);
-
-	for (size_t i = 0; i < 5; i++)
-	{
-		struct Product *product = cheapestCity->products[i];
-		if (product)
-		{
-			write(fdo, product->name, strlen(product->name));
-			write(fdo, " ", 1);
-			char buffer[100];
-			sprintf(buffer, "%.2f", product->price);
-			write(fdo, buffer, strlen(buffer));
-			write(fdo, "\n", 1);
-		}
-	}
-
-    return 0;
+    return EXIT_SUCCESS;
 }
