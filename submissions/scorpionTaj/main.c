@@ -65,42 +65,47 @@ int main() {
     int64_t total_per_city[NUM_CITIES];
     memset(total_per_city, 0, sizeof(total_per_city));
 
+    // Hash maps for quick lookup
+    int city_index[NUM_CITIES];
+    int product_index[NUM_PRODUCTS];
+
+    for (int i = 0; i < NUM_CITIES; ++i) {
+        city_index[i] = -1;
+        for (int j = 0; j < NUM_PRODUCTS; ++j) {
+            map[i][j] = INT64_MAX;
+        }
+    }
+
+    for (int i = 0; i < NUM_CITIES; ++i) {
+        city_index[i] = i;
+    }
+
+    for (int i = 0; i < NUM_PRODUCTS; ++i) {
+        product_index[i] = i;
+    }
+
     char line[MAX_LINE_LENGTH];
     char city[100], product[100];
     float price;
 
     while (fgets(line, sizeof(line), input_file)) {
         sscanf(line, "%[^,],%[^,],%f", city, product, &price);
-        int city_index = -1, product_index = -1;
 
-        // Find city index
-        for (int i = 0; i < NUM_CITIES; ++i) {
-            if (strcmp(moroccan_cities[i], city) == 0) {
-                city_index = i;
-                break;
-            }
-        }
+        int city_idx = city_index[atoi(city)];
+        int product_idx = product_index[atoi(product)];
 
-        // Find product index
-        for (int i = 0; i < NUM_PRODUCTS; ++i) {
-            if (strcmp(fruits_and_vegetables[i], product) == 0) {
-                product_index = i;
-                break;
-            }
-        }
+        int64_t price_in_cents = price * 100;
 
-        if (city_index != -1 && product_index != -1) {
-            int64_t price_in_cents = price * 100;
-            if (map[city_index][product_index] == 0 || price_in_cents < map[city_index][product_index]) {
-                map[city_index][product_index] = price_in_cents;
-            }
-            total_per_city[city_index] += price_in_cents;
+        if (price_in_cents < map[city_idx][product_idx]) {
+            map[city_idx][product_idx] = price_in_cents;
         }
+        total_per_city[city_idx] += price_in_cents;
     }
 
     // Find the city with the lowest total price
     int cheapest_city_index = -1;
     int64_t cheapest_total = INT64_MAX;
+
     for (int i = 0; i < NUM_CITIES; ++i) {
         if (total_per_city[i] > 0 && total_per_city[i] < cheapest_total) {
             cheapest_total = total_per_city[i];
@@ -117,26 +122,26 @@ int main() {
     };
 
     struct ProductPrice products[NUM_PRODUCTS];
+
     for (int i = 0; i < NUM_PRODUCTS; ++i) {
         products[i].price = map[cheapest_city_index][i];
         products[i].product_index = i;
     }
 
-    // Sort the products by price
+    // Sort the products by price (using bubble sort for simplicity)
     for (int i = 0; i < NUM_PRODUCTS - 1; ++i) {
-        for (int j = i + 1; j < NUM_PRODUCTS; ++j) {
-            if (products[j].price < products[i].price) {
-                struct ProductPrice temp = products[i];
-                products[i] = products[j];
-                products[j] = temp;
+        for (int j = 0; j < NUM_PRODUCTS - i - 1; ++j) {
+            if (products[j].price > products[j + 1].price) {
+                struct ProductPrice temp = products[j];
+                products[j] = products[j + 1];
+                products[j + 1] = temp;
             }
         }
     }
 
     // Print the 5 products with the lowest price to the output file
     for (int i = 0; i < 5; ++i) {
-        fprintf(output_file, "%s %.2f\n", fruits_and_vegetables[products[i].product_index],
-                (double)products[i].price / 100.0);
+        fprintf(output_file, "%s %.2f\n", fruits_and_vegetables[products[i].product_index], (double)products[i].price / 100.0);
     }
 
     fclose(input_file);
