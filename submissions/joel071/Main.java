@@ -10,7 +10,7 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-public class MainTest {
+public class Main {
     public static void main(String[] args) throws IOException {
 
         record Measurement(String firstPart, String secondPart) {};
