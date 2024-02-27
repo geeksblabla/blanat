@@ -40,7 +40,7 @@ public class Main {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        try (PrintWriter w = new PrintWriter("output.txt")) {
+        try (PrintWriter w = new PrintWriter("./output.txt")) {
             i.values().parallelStream()
                     .filter(x -> x.s.doubleValue() > 0.0)
                     .min(Comparator.comparingDouble(c -> c.s.doubleValue()))
