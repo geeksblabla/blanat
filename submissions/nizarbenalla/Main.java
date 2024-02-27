@@ -31,8 +31,7 @@ public class Main {
         try (BufferedReader b = new BufferedReader(new FileReader("input.txt"))) {
             b.lines().parallel().forEach(lines -> {
                 String[] p = lines.split(",");
-                //Laâyoune isn't being read properly from the file
-                i.computeIfAbsent(p[0].trim(), C::new).a(p[1].trim(), Double.parseDouble(p[2].trim()));
+                i.get(p[0].trim()).a(p[1].trim(), Double.parseDouble(p[2].trim()));
             });
         } catch (IOException e) {
             throw new RuntimeException(e);
