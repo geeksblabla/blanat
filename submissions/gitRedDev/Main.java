@@ -1,14 +1,6 @@
-
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.Reader;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.nio.ByteBuffer;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CodingErrorAction;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -17,33 +9,95 @@ import java.util.stream.Stream;
 
 public class Main {
 
-    static class CityProduct {
-        String city;
-        String product;
+    static List<String> fruits_and_vegetables = Stream.of(
+            "Apple", "Banana", "Orange", "Strawberry", "Grapes",
+            "Watermelon", "Pineapple", "Mango", "Kiwi", "Peach",
+            "Plum", "Cherry", "Pear", "Blueberry", "Raspberry",
+            "Blackberry", "Cantaloupe", "Honeydew", "Coconut", "Pomegranate",
+            "Lemon", "Lime", "Grapefruit", "Avocado", "Papaya",
+            "Guava", "Fig", "Passion_Fruit", "Apricot", "Nectarine",
+            "Cucumber", "Carrot", "Broccoli", "Spinach", "Kale",
+            "Lettuce", "Tomato", "Bell_Pepper", "Zucchini", "Eggplant",
+            "Cabbage", "Cauliflower", "Brussels_Sprouts", "Radish", "Beet",
+            "Asparagus", "Artichoke", "Green_Beans", "Peas", "Celery",
+            "Onion", "Garlic", "Potato", "Sweet_Potato", "Yam",
+            "Butternut_Squash", "Acorn_Squash", "Pumpkin", "Cranberry", "Goji_Berry",
+            "Currant", "Date", "Clementine", "Cranberry", "Rhubarb",
+            "Chard", "Collard_Greens", "Parsley", "Cilantro", "Mint",
+            "Basil", "Thyme", "Rosemary", "Sage", "Dill",
+            "Oregano", "Cantaloupe", "Honeydew", "Coconut", "Pomegranate",
+            "Jackfruit", "Starfruit", "Persimmon", "Ginger", "Turnip",
+            "Jicama", "Kohlrabi", "Watercress", "Okra", "Artichoke",
+            "Plantain", "Cactus_Pear", "Kiwano", "Squash_Blossom", "Dragon_Fruit",
+            "Parsnip", "Rutabaga", "Salsify", "Bok_Choy", "Endive"
+    ).sorted().toList();
 
-        String price;
+
+
+
+
+
+    static List<String> moroccan_cities = Stream.of(
+            "Casablanca", "Rabat", "Marrakech", "Fes", "Tangier",
+            "Agadir", "Meknes", "Oujda", "Kenitra", "Tetouan",
+            "Safi", "El_Jadida", "Beni_Mellal", "Errachidia",
+            "Taza", "Essaouira", "Khouribga", "Guelmim",
+            "Jorf_El_Melha", "Laayoune", "Ksar_El_Kebir", "Sale", "Bir_Lehlou",
+            "Arfoud", "Temara", "Mohammedia", "Settat",
+            "Béni_Mellal", "Nador", "Kalaat_MGouna",
+            "Chichaoua", "Chefchaouen", "Al_Hoceima", "Taourirt",
+            "Taroudant", "Guelta_Zemmur", "Dakhla", "Laâyoune",
+            "Tiznit","Tinghir", "Ifrane", "Azrou", "Bab_Taza",
+            "Berrechid", "Sidi_Slimane", "Souk_Larbaa", "Tiflet", "Sidi_Bennour",
+            "Larache", "Tan-Tan", "Sidi_Ifni", "Goulmima",
+            "Midelt", "Figuig", "Azilal", "Jerada", "Youssoufia",
+            "Ksar_es_Seghir", "Tichka", "Ait_Melloul",
+            "Layoune", "Ben_guerir", "Ouarzazate", "Inezgane",
+            "Oujda_Angad", "Sefrou", "Aourir",
+            "Oulad_Teima", "Tichla", "Bni_Hadifa",
+            "Fquih_Ben_Salah", "Guercif", "Bouarfa", "Demnate",
+            "Ahfir", "Berkane", "Akhfenir", "Boulemane",
+            "Khenifra", "Bir_Anzerane", "Assa", "Smara", "Boujdour",
+            "Tarfaya", "Ouazzane", "Zagora", "had_soualem",
+            "Saidia", "Bab_Berred", "Midar", "Moulay_Bousselham",
+            "Khemisset", "Guerguerat", "Asilah", "Sidi_Bouzid", "Tafraout",
+            "Imzouren", "Zemamra", "Sidi_Kacem", "Drarga", "Skhirate"
+    ).sorted().toList();
+
+    static class CityProduct {
+        int city;
+        int product;
+        long price;
 
         public CityProduct(String city, String product, String price) {
+            this.city = city.hashCode();
+            this.product = product.hashCode();
+            this.price =  new java.math.BigDecimal(price).setScale(2, RoundingMode.HALF_UP).longValue();
+        }
+
+        public CityProduct(int city, int product, long price) {
             this.city = city;
             this.product = product;
-            this.price = price;
+            this.price =  price;
         }
+
+
 
         @Override
         public int hashCode() {
             return Objects.hash(city, product);
         }
 
-        public String getCity() {
+        public int getCity() {
             return city;
         }
 
-        public String getProduct() {
+        public int getProduct() {
             return product;
         }
 
-        public BigDecimal getPrice() {
-            return new java.math.BigDecimal(price).setScale(2, RoundingMode.HALF_UP);
+        public long getPrice() {
+            return price;
         }
 
         public String getProductWithPrice() {
@@ -58,26 +112,25 @@ public class Main {
     public static void main(String[] args) throws IOException {
         long start = System.nanoTime();
         try (Stream<String> lines = Files.lines(Paths.get("input.txt"))) {
-            List<CityProduct> cityProducts = lines.map(line->line.split(",")).map(l->new CityProduct(l[0], l[1], l[2])).toList();
-            CityProduct cheapestCity = cityProducts.stream().collect(Collectors.groupingBy(CityProduct::getCity))
+            List<CityProduct> cityProducts = lines.map(line-> {
+                String[] l = line.split(",");
+                return new CityProduct(l[0], l[1], l[2]);
+            }).toList();
+
+            List<Map.Entry<Integer, LongSummaryStatistics>> cities = cityProducts.stream().collect(Collectors.groupingBy(CityProduct::getCity, Collectors.summarizingLong(CityProduct::getPrice)))
                     .entrySet().stream()
-                    .map(e-> new CityProduct(e.getKey(), "", e.getValue().stream()
-                            .map(CityProduct::getPrice)
-                            .reduce(BigDecimal::add).orElse(BigDecimal.ZERO).toString()))
-                    .min(Comparator.comparing(CityProduct::getPrice))
-                    .orElse(new CityProduct("","", ""));
-            Stream<CityProduct> cheapestProducts = cityProducts.stream().collect(Collectors.groupingBy(CityProduct::getProduct))
-                    .entrySet().stream()
-                    .map(e-> new CityProduct("", e.getKey(), e.getValue().stream().min(Comparator.comparing(CityProduct::getPrice)).orElse(new CityProduct("","", "0.0")).getPrice().toString()))
-                    .sorted(Comparator.comparing(CityProduct::getPrice).thenComparing(CityProduct::getProduct))
+                    .toList();
+
+            Map.Entry<Integer, LongSummaryStatistics> cheapestCity = cities.stream()
+                    .min(Comparator.comparing(e->e.getValue().getSum()))
+                    .orElse(null);
+            Stream<CityProduct> cheapestProducts = cityProducts.stream().sorted(Comparator.comparing(CityProduct::getPrice).thenComparing(CityProduct::getProduct))
+                    .distinct()
                     .limit(5);
 
 
-            //printing to file
-            Files.write(Paths.get("output.txt"), List.of(
-                    cheapestCity.getCityWithPrice(),
-                    cheapestProducts.map(CityProduct::getProductWithPrice).collect(Collectors.joining("\n"))
-            ));
+
+
         }
         long end = System.nanoTime();
         System.out.println(end-start);
