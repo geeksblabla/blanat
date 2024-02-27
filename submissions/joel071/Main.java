@@ -5,15 +5,19 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.AbstractMap;
 import java.util.Comparator;
+import java.util.DoubleSummaryStatistics;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-public class MainTest {
+public class Main {
     public static void main(String[] args) throws IOException {
 
-        record Measurement(String firstPart, String secondPart) {};
+        record Measurement(String firstPart, String secondPart) {
+        }
+        ;
 
         var alltats = new BufferedReader(new FileReader("input.txt"))
                 .lines()
@@ -54,23 +58,25 @@ public class MainTest {
                         entry -> entry.getKey().secondPart,
                         TreeMap::new,
                         Collectors.summarizingDouble(e -> e.getValue().getMin())))
-                .entrySet().stream().sorted(Comparator.comparing(e -> e.getValue().getMin())).limit(5).distinct().sorted(Comparator.comparing(Map.Entry::getKey)).collect(
-                        Collectors.toMap(
-                                Map.Entry::getKey,
-                                entry -> entry.getValue().getMin(),
-                                (l, r) -> r,
-                                TreeMap::new));
+                .entrySet().stream().collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> entry.getValue().getMin(),
+                        (l, r) -> r,
+                        TreeMap::new))
+                .entrySet().stream().map(entry -> {
+                    Double value = entry.getValue();
+                    return new AbstractMap.SimpleEntry<>(entry.getKey(), value);
+                })
+                .sorted(Entry.comparingByValue(Comparator.comparingDouble(entry -> entry.floatValue()))).distinct()
+                .limit(5);
 
-        
+        writeToFile(result.get().getKey() + " " + String.format("%.2f",result.get().getValue()).replace(',', '.'), "output.txt");
 
-
-        writeToFile(result.get().getKey() + " " + result.get().getValue(), "output.txt");
-
-        res.entrySet().forEach(entry -> {
+        res.forEach(entry -> {
             String key = entry.getKey();
-            String value = entry.getValue().toString();
+            String value =  String.format("%.2f",entry.getValue()).replace(',', '.');
             try {
-                writeToFile(key +" "+ value, "output.txt");
+                writeToFile(key + " " + value, "output.txt");
             } catch (IOException e1) {
                 e1.printStackTrace();
             }

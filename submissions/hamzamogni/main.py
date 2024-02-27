@@ -57,7 +57,7 @@ def main():
     filename = "input.txt"
     file_size = os.path.getsize(filename)
 
-    cpu_count = mp.cpu_count()
+    cpu_count = mp.cpu_count() - 2
     chunk_size = file_size // cpu_count
 
     processes = []
@@ -104,18 +104,17 @@ def main():
 def post_processing(example: dict):
     min_key = min(example, key=lambda k: example[k]['total'])
     answer = {
-        "city": min_key,
+        "city": min_key.decode(),
         "total": example[min_key]['total']
     }
     del example[min_key]['total']
     sorted_products = sorted(example[min_key].items(),
-                             key=lambda item: item[1])[:6]
-    answer["products"] = {k: v for k, v in sorted_products}
+                             key=lambda item: (item[1], item[0]))[:5]
+    products = [f"{k.decode()} {v:.2f}" for k, v in sorted_products]
 
     with open("output.txt", "w") as f:
-        f.write(f"{answer['city'].decode()} {answer['total']:.2f}\n")
-        for k, v in answer['products'].items():
-            f.write(f"{k.decode()} {v:.2f}\n")
+        f.write(f"{answer['city']} {answer['total']:.2f}\n")
+        f.write("\n".join(products))
 
 
 if __name__ == "__main__":
