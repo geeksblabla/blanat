@@ -2,72 +2,83 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.concurrent.ConcurrentHashMap;
+
+import java.util.List;
+import java.util.ArrayList;
 
 
 public class Main {
     public class Price {
         double total;
-        Double min ;
+        double min ;
 
-        Price(double total, int length) {
+         Price(double total) {
             this.total= total;
-            this.min = Double.MAX_VALUE;
+            this.min =total;
         }
 
-         void increaseTotal(double price) {
+        synchronized double increaseTotal(double price) {
             total+= price;
-            this.min = Math.min(min, price);
+            this.min = Math.min(price, this.min);
+            return this.total;
         }
 
         public double getTotal() {
             return total;
         }
-        public Double getMin() {
+        public double getMin() {
             return min;
+        }
+    }
+
+    class ProductEntry implements Comparable<ProductEntry> {
+        String name;
+        double price;
+
+        public ProductEntry(String name, double price) {
+            this.name = name;
+            this.price = price;
+        }
+
+        @Override
+        public int compareTo(ProductEntry other) {
+            int priceComparison = Double.compare(other.price, price);
+            if (priceComparison != 0) {
+                return priceComparison;
+            }
+            return other.name.compareToIgnoreCase(name);
         }
     }
 
 
     public static void main(String[] args) { 
-        Map<String,Map<String,Price>> mp =new HashMap<>();
+
+        Map<String,Map<String,Price>> mp =new ConcurrentHashMap<>();
+        Map<String,Double> result = new ConcurrentHashMap<>();
+
         try {
+
             BufferedReader bf = new BufferedReader(new FileReader("./input.txt"));
-            bf.lines().forEach(line -> {
+
+            bf.lines().parallel().forEach(line -> {
                 String[] st =line.split(",");
-                if(mp.containsKey(st[0])) {
-                    Map<String,Price> cityProducts =  mp.get(st[0]);
-                    if(cityProducts.containsKey(st[1])) {
-                        cityProducts.get(st[1]).increaseTotal(Double.parseDouble(st[2]));
-                    }else{
-                        Price p = new Main().new Price(Double.parseDouble(st[2]), 1);
-                        cityProducts.put(st[1], p);
-                    }
-                }else {
-                    Map<String,Price> tmp = new HashMap<>();
-                    Price p = new Main().new Price(Double.parseDouble(st[2]), 1);
-
-                    tmp.put(st[1], p);
-                    mp.put(st[0],  tmp );
-                }
-            });
-
-            Map<String,Double> result = new HashMap<>();
-
-
-            for (Map.Entry<String,Map<String,Price>> item:  mp.entrySet()) {
-               for (Map.Entry<String,Price> pr : item.getValue().entrySet()) {
-                    result.put(item.getKey(), 
-                    (pr.getValue().getTotal()) +
-                     result.getOrDefault(item.getKey(), 0.0)
-                    );
-               }
-            }
+                double valueToAdd = Double.parseDouble(st[2]);
+                result.computeIfPresent(st[0], (k, v) -> v + valueToAdd);
+                result.putIfAbsent(st[0], valueToAdd);
+                mp.getOrDefault(st[0], new ConcurrentHashMap<>())
+                    .computeIfPresent(st[1], (k, price) -> {
+                    price.increaseTotal(valueToAdd);
+                    return price;
+                });
+                mp.computeIfAbsent(st[0], k -> new ConcurrentHashMap<>())
+                .putIfAbsent(st[1], new Main().new Price(valueToAdd));
+            });            
 
             Double min = Double.MAX_VALUE;
-            String city= "NONE";
+            String city = "";
             for(Map.Entry<String,Double> item : result.entrySet()) {
                 if(min > item.getValue() ) {
                     min = item.getValue();
@@ -77,34 +88,28 @@ public class Main {
 
             BufferedWriter bw = new BufferedWriter(new FileWriter("./output.txt"));
 
-            bw.write(city+" "+min);
+            bw.write(city+" "+String.format("%.2f",min));
 
-            Map<String,Price> cityProduct = mp.get(city);
+            Map<String,Price> cityProducts = mp.get(city);
             
-            PriorityQueue<String> pq = new PriorityQueue<>((b,a)->{
-                String[] splitedB = b.split(":");
-                String[] splittedA = a.split(":");
-                if(Double.parseDouble(splitedB[1])-Double.parseDouble(splittedA[1])>0.0) {
-                    return 1;
-                }else if(Double.parseDouble(splitedB[1])-Double.parseDouble(splittedA[1])<0.0){
-                    return -1;
-                }else{
-                    return splitedB[0].compareToIgnoreCase(splittedA[0]);
-                }
-            });
-
-            for (Map.Entry<String,Price> item :  cityProduct.entrySet()) {
-                pq.add(item.getKey()+":"+item.getValue().getMin());
+            PriorityQueue<ProductEntry> pq = new PriorityQueue<>(5);
+            for (Map.Entry<String,Price> item :  cityProducts.entrySet()) {
+                ProductEntry pe = new Main().new ProductEntry(item.getKey(), item.getValue().getMin());
+                pq.add(pe);
+                if(pq.size()>5) pq.poll();
             }
-
-            for(int i=0;i<5;i++) {
-                String row = pq.poll();
-                String temp= row.split(":")[0]+" "+row.split(":")[1];
-                bw.append("\n" + temp);
+            List<ProductEntry> entries = new ArrayList<>();
+            while (!pq.isEmpty()) {
+                entries.add(pq.poll()); 
+            }
+            for (int i=4;i>=0;i--) {
+                ProductEntry entry = entries.get(i);
+                bw.append("\n").append(entry.name).append(" ").append(String.format("%.2f", entry.price));
             }
 
             bf.close();
             bw.close();
+
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
