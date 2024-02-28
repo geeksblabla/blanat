@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.DoubleAdder;
 
 public class Main {
 
-  static String input = "../../input.txt", output = "output.txt";
+  static String input = "input.txt", output = "output.txt";
 
   static class Product implements Comparable<Product> {
     String name;
