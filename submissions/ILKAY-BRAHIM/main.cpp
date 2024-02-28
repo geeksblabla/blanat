@@ -339,7 +339,7 @@ int main()
     std::vector<int> vec;
     int start = 2;
     int thre = num_threads;
-    while(start < num_threads)
+    while(start <= num_threads)
     {
         struct mqadem data[num_threads/start];   
         int first = 0;
