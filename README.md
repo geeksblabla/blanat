@@ -150,7 +150,7 @@ The competition focuses solely on correctness and speed of execution to gauge pa
 The challenge will run from the 19th of February 2024 until 29th of February 2024. The winner will be announced during March 1st 2024 in our social media challenges
 
 ## Leaderboard
-> Last updated: Thu 27 Feb 2024, 3pm Moroccan time
+> Last updated: Thu 28 Feb 2024, 10am Moroccan time
 
 | Username       | Avg Time (ms) | Median Time (ms) | Language | Humanized Time                |
 |----------------|---------------|------------------|----------|-------------------------------|
@@ -163,9 +163,10 @@ The challenge will run from the 19th of February 2024 until 29th of February 202
 | ibrataha8      	|65934         	|65507            |CPP       |65.93sec(≈1min5.93sec)        |
 | essmehdi       | 80401         | 76687            | RS       | 80.40 sec (≈ 1 min 20.40 sec) |
 | NotAsheraf     | 99730         | 97091            | RS       | 99.73 sec (≈ 1 min 39.73 sec) |
-| yousfiSaad     | 243793        |235623           	| CPP     	|243.79sec(≈4min3.79sec)       |
+| yousfiSaad     | 181086        | 176295           | cpp      | 181.09 sec (≈ 3 min 0.09 sec) |
 | mohammedfatihX	|249995        	|252203           	|Java     	|249.99sec(≈4min9.99sec)       |
 | nizarbenalla   	|275221        	|269733           	|Java     	|275.22sec(≈4min35.22sec)      |
+| lhousaine | 336290        | 354104           | js       | 336.29 sec (≈ 5 min 36.29 sec)|
 | Moohaa         | 356836        | 359523           | Java     | 356.84 sec (≈ 5 min 56.84 sec)|
 | aboullaite     | 368758        | 368167           | Java     | 368.76 sec (≈ 6 min 8.76 sec) |
 | j-mounim       	|437373        	|439534           	|JS       	|437.37sec(≈7min17.37sec)      |
@@ -173,6 +174,7 @@ The challenge will run from the 19th of February 2024 until 29th of February 202
 | houcine7       |617469         |607997            | Java     |617.47sec(≈10min17.47sec)     |
 | Smartdev110    | 776007        | 792428           | Java     | 776.01 sec (≈ 12 min 56.01 sec)|
 | sm3xy          | 903274        | 900806           | Py       | 903.27 sec (≈ 15 min 3.27 sec)|
+
 
 We only list solutions with correct results that run within ~15 min. We unfortunately can't give feedback on every submission and we invite you to read the full assignment.
 
