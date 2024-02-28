@@ -14,8 +14,6 @@
 
 #include <iostream>
 #include <string>
-#include <vector>
-#include <thread>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -23,6 +21,8 @@
 #include <algorithm>
 #include <fstream>
 #include <cstring>
+#include <thread>
+#include <sys/wait.h>
 
 typedef unsigned long ulong;
 
@@ -311,7 +311,7 @@ void	initialize_units(cities_list_t &data)
 }
 
 
-void	thread_worker(const char* fname, chunk_t chunk, bool skip_first, cities_list_t &threads_data)
+void	worker_main(const char* fname, chunk_t chunk, bool skip_first, cities_list_t &workers_data)
 {
 	buffer_t buffer;
 	map_file(fname, buffer);
@@ -319,34 +319,39 @@ void	thread_worker(const char* fname, chunk_t chunk, bool skip_first, cities_lis
 	char *end = buffer.mmapd + (chunk.end - chunk.start);
 	parse_data data;
 	if (skip_first) skip_line(buffer);
-	initialize_units(threads_data);
+	initialize_units(workers_data);
 	while (buffer.mmapd < end) {
 		parse_line(buffer, data);
-		threads_data.cities[data.ct_id].total += data.price;
-		threads_data.cities[data.ct_id].products[data.pd_id] = IMIN(threads_data.cities[data.ct_id].products[data.pd_id], data.price);
+		workers_data.cities[data.ct_id].total += data.price;
+		workers_data.cities[data.ct_id].products[data.pd_id] = IMIN(workers_data.cities[data.ct_id].products[data.pd_id], data.price);
 	}
 	unmap_file(buffer);
 }
 
 
 inline
-void	launch_threads(const char *fname, std::vector<std::thread> &threads, size_t num_threads, cities_list_t *threads_data)
+void	launch_workers(const char *fname,size_t num_workers, cities_list_t *workers_data)
 {
 	buffer_t buffer;
 	map_file(fname, buffer);
-	size_t chunk_size = buffer.fsize / num_threads;
-	for (size_t i = 0; i < num_threads; i++) {
+	size_t chunk_size = buffer.fsize / num_workers;
+	for (size_t i = 0; i < num_workers; i++) {
 		chunk_t chunk = {i * chunk_size, (i + 1) * chunk_size};
-		if (i == num_threads - 1) {
+		if (i == num_workers - 1) {
 			chunk.end = buffer.fsize;
 		}
-		threads.push_back(std::thread(thread_worker, fname, chunk, i != 0,std::ref(threads_data[i])));
+		bool skip_first = i != 0;
+		int id  = fork();
+		if (id == 0) {
+			worker_main(fname, chunk, skip_first, workers_data[i]);
+			exit(0);
+		}
 	}
 	unmap_file(buffer);
 }
 
 
-void	get_cheapest(const city_data_t &cdata, ssize_t cheapest_cidx, ulong &cheapest_price)
+void	get_cheapest(const city_data_t &cdata, size_t cheapest_cidx, ulong &cheapest_price)
 {
 	size_t idx_arr[NB_PRODUCTS];
 	for (size_t i = 0; i < NB_PRODUCTS; i++) {
@@ -366,7 +371,7 @@ void	get_cheapest(const city_data_t &cdata, ssize_t cheapest_cidx, ulong &cheape
 
 
 inline
-size_t	merge_data(cities_list_t &final_data, cities_list_t *threads_data, size_t thread_num)
+size_t	merge_data(cities_list_t &final_data, cities_list_t *workers_data, size_t thread_num)
 {
 	ssize_t cheapest_idx = -1;
 	for (size_t ict = 0; ict < NB_CITIES; ict++)
@@ -374,7 +379,7 @@ size_t	merge_data(cities_list_t &final_data, cities_list_t *threads_data, size_t
 		for (size_t itr = 0; itr < thread_num; itr++)
 		{
 			city_data_t &fct = final_data.cities[ict];
-			city_data_t &tct = threads_data[itr].cities[ict];
+			city_data_t &tct = workers_data[itr].cities[ict];
 			fct.total += tct.total;
 			for (size_t ipd = 0; ipd < NB_PRODUCTS; ipd++)
 			{
@@ -392,15 +397,13 @@ size_t	merge_data(cities_list_t &final_data, cities_list_t *threads_data, size_t
 
 int	main(){
 	const char *fname = "input.txt";
-	size_t num_threads = std::thread::hardware_concurrency() * 2;
-	std::vector<std::thread> threads;
-	threads.reserve(num_threads);
-	cities_list_t threads_data[num_threads];
-	launch_threads(fname, threads, num_threads, threads_data);
+	size_t num_workers = std::thread::hardware_concurrency() * 2;
+	cities_list_t *workers_data = (cities_list_t *)mmap(NULL, sizeof(cities_list_t) * num_workers, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+	launch_workers(fname, num_workers, workers_data);
 	static cities_list_t final_data;
 	initialize_units(final_data);
-	for (auto &t : threads) t.join();
-	ssize_t cheapest_idx = merge_data(final_data, threads_data, num_threads);
+	for (size_t i = 0; i < num_workers; i++) wait(NULL);
+	ssize_t cheapest_idx = merge_data(final_data, workers_data, num_workers);
 	get_cheapest(final_data.cities[cheapest_idx], cheapest_idx, final_data.cities[cheapest_idx].total);
 	return (0);
 }
