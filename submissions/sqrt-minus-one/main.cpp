@@ -14,13 +14,6 @@
 #include <thread>
 #include <x86intrin.h>
 
-#define TEST_WITH_GPERF 0
-
-#if TEST_WITH_GPERF
-#include "gperf_cities.h"
-#include "gperf_products.h"
-#endif
-
 #define ENABLE_PROFILING 0
 #define ENABLE_ASSERTS 0
 
@@ -143,16 +136,12 @@ compute_product_index(char *product, u32 len)
   Assert(len >= 3);
   
   u64 result = 0;
-#if TEST_WITH_GPERF
-  result = product_in_word_set(product,  len)->index;
-#else
+  
   result += product[0] * fruits_coefs[0];
   result += product[1] * fruits_coefs[1];
   result += product[2] * fruits_coefs[2];
   result += product[len - 1] * fruits_coefs[3];
-  
   result %= PRODUCTS_MAX;
-#endif
 
   return (u32)result;
 }
@@ -162,15 +151,11 @@ compute_city_index(char *city, u32 len)
 {
   u64 result = 0;
   
-#if TEST_WITH_GPERF
-  result = city_in_word_set(city,  len)->index;
-#else
   result += city[1] * cities_coefs[0];
   result += city[2] * cities_coefs[1];
   result += city[len - 3] * cities_coefs[2];
   result += city[len - 2] * cities_coefs[3];
   result %= CITIES_MAX;
-#endif
 
   return (u32)result;
 }
