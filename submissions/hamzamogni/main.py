@@ -57,7 +57,7 @@ def main():
     filename = "input.txt"
     file_size = os.path.getsize(filename)
 
-    cpu_count = mp.cpu_count()
+    cpu_count = mp.cpu_count() - 2
     chunk_size = file_size // cpu_count
 
     processes = []

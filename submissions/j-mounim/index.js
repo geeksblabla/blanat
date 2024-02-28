@@ -1,12 +1,17 @@
 const fs = require("node:fs");
 const os = require("node:os");
-const readline = require("node:readline");
 const {
   Worker,
   isMainThread,
   parentPort,
   workerData,
 } = require("node:worker_threads");
+
+const APROX_NAME_SIZE = 25;
+const PRICE_SIZE = 6;
+const APROX_LINE_SIZE = APROX_NAME_SIZE * 2 + PRICE_SIZE;
+const LINE_SEPARATOR_CHAR = ",".charCodeAt(0);
+const NEWLINE_CHAR = "\n".charCodeAt(0);
 
 const cities = new Map();
 const products = new Map();
@@ -23,41 +28,31 @@ function sortItems([keyA, priceA], [keyB, priceB]) {
 if (isMainThread) {
   const threadsNumber = os.cpus().length;
   let completedWorkersCount = 0;
+  let workerCount = 0;
   const { size } = fs.statSync(fileName);
   const fd = fs.openSync(fileName);
-  const chunkSize = Math.floor(size / threadsNumber);
+  const chunkSize = Math.ceil(size / threadsNumber);
+  let start = 0;
+  let end = 0;
+  let isLastChunk = false;
+  const buffer = Buffer.alloc(APROX_LINE_SIZE);
 
-  const chunkOffsets = [];
-  let offset = 0;
-  const APROX_LINE_LENGTH = 100;
-  const buffer = Buffer.alloc(APROX_LINE_LENGTH);
+  while (end < size) {
+    end += chunkSize;
 
-  while (true) {
-    offset += chunkSize;
-
-    if (offset >= size) {
-      chunkOffsets.push(size);
-      break;
+    if (end >= size) {
+      end = size;
+      isLastChunk = true;
     }
 
-    fs.readSync(fd, buffer, 0, APROX_LINE_LENGTH, offset);
-    const newLineIndex = buffer.indexOf("\n".charCodeAt(0));
-    buffer.fill(0);
-
-    if (newLineIndex === -1) {
-      chunkOffsets.push(size);
-      break;
-    } else {
-      offset += newLineIndex + 1;
-      chunkOffsets.push(offset);
+    if (!isLastChunk) {
+      fs.readSync(fd, buffer, 0, APROX_LINE_SIZE, end);
+      const newLineIndex = buffer.indexOf("\n".charCodeAt());
+      buffer.fill(0);
+      if (newLineIndex !== -1) {
+        end += newLineIndex;
+      }
     }
-  }
-
-  fs.closeSync(fd);
-
-  for (let i = 0; i < chunkOffsets.length; i++) {
-    const start = i === 0 ? 0 : chunkOffsets[i - 1];
-    const end = chunkOffsets[i];
 
     const worker = new Worker(__filename, {
       workerData: {
@@ -67,9 +62,12 @@ if (isMainThread) {
       },
     });
 
+    workerCount++;
+
     worker.on("message", ([citiesTotals, productsPrices]) => {
       for (let [product, price] of productsPrices.entries()) {
-        if (!products.has(product) || price < products.get(product)) {
+        const savedProductPrice = products.get(product);
+        if (!savedProductPrice || price < savedProductPrice) {
           products.set(product, price);
         }
       }
@@ -77,67 +75,118 @@ if (isMainThread) {
       for (let [city, total] of citiesTotals.entries()) {
         cities.set(city, (cities.get(city) || 0) + total);
       }
-
-      worker.on("exit", () => {
-        completedWorkersCount++;
-        if (completedWorkersCount === chunkOffsets.length) {
-          let output = [];
-          const [cheapestCity, cheapestCityPrice] = [...cities.entries()].sort(
-            sortItems
-          )[0];
-          output.push(
-            `${cheapestCity} ${Number(cheapestCityPrice).toFixed(2)}`
-          );
-          [...products.entries()]
-            .filter(([key]) => key.startsWith(cheapestCity))
-            .sort(sortItems)
-            .slice(0, 5)
-            .forEach(([product, price]) => {
-              output.push(
-                `${product.slice(cheapestCity.length + 1)} ${Number(
-                  price
-                ).toFixed(2)}`
-              );
-            });
-          fs.writeFileSync("output.txt", output.join("\n"), "utf-8");
-        }
-      });
     });
+
+    worker.on("exit", () => {
+      completedWorkersCount++;
+      if (completedWorkersCount === workerCount) {
+        let output = [];
+        const [cheapestCity, cheapestCityPrice] = [...cities.entries()].sort(
+          sortItems
+        )[0];
+        output.push(`${cheapestCity} ${(cheapestCityPrice / 100).toFixed(2)}`);
+        [...products.entries()]
+          .filter(([key]) => key.startsWith(cheapestCity))
+          .sort(sortItems)
+          .slice(0, 5)
+          .forEach(([product, price]) => {
+            output.push(
+              `${product.slice(cheapestCity.length + 1)} ${(
+                price / 100
+              ).toFixed(2)}`
+            );
+          });
+        fs.writeFileSync("output.txt", output.join("\n"), "utf-8");
+        console.log(output.join("\n"));
+      }
+    });
+
+    start = end + 1;
   }
 } else {
   const { fileName, start, end } = workerData;
   const stream = fs.createReadStream(fileName, {
     start: start,
-    end: end - 1,
+    end: end,
   });
 
-  const reader = readline.createInterface({
-    input: stream,
-    crlfDelay: Infinity,
-  });
+  parseStream(stream);
+}
+
+function parseStream(readStream) {
+  let col = 1;
+  let cityBuffer = Buffer.allocUnsafe(APROX_NAME_SIZE);
+  let citySize = 0;
+
+  let productBuffer = Buffer.allocUnsafe(APROX_NAME_SIZE);
+  let productSize = 0;
+
+  let priceBuffer = Buffer.allocUnsafe(PRICE_SIZE);
+  let priceSize = 0;
 
   const wcities = new Map();
   const wproducts = new Map();
 
-  reader.on("line", function (line) {
-    const [city, product, price] = line.split(",");
-    const parsedNumber = Number(price);
+  readStream.on("data", (chunk) => {
+    for (let i = 0; i < chunk.length; i++) {
+      if (chunk[i] === LINE_SEPARATOR_CHAR) {
+        col++;
+      } else if (chunk[i] === NEWLINE_CHAR) {
+        const city = cityBuffer.toString("utf8", 0, citySize);
+        const product = productBuffer.toString("utf8", 0, productSize);
+        const price = bufferToInt(priceBuffer, priceSize);
 
-    const lastSavedCityPrice = wcities.get(city);
-    wcities.set(city, lastSavedCityPrice ? lastSavedCityPrice + parsedNumber : parsedNumber);
+        const lastSavedCityTotal = wcities.get(city);
+        wcities.set(
+          city,
+          lastSavedCityTotal ? lastSavedCityTotal + price : price
+        );
 
-    const productKey = `${city}|${product}`;
-    const lastSavedProductPrice = wproducts.get(productKey);
+        const productKey = `${city}|${product}`;
+        const lastSavedProductPrice = wproducts.get(productKey);
+        if (
+          !lastSavedProductPrice ||
+          (lastSavedProductPrice && price < lastSavedProductPrice)
+        ) {
+          wproducts.set(productKey, price);
+        }
 
-    if (
-      !lastSavedProductPrice ||
-      (lastSavedProductPrice && parsedNumber < lastSavedProductPrice)
-    ) {
-      wproducts.set(productKey, parsedNumber);
+        col = 1;
+        citySize = 0;
+        productSize = 0;
+        priceSize = 0;
+      } else if (col === 1) {
+        cityBuffer[citySize++] = chunk[i];
+      } else if (col === 2) {
+        productBuffer[productSize++] = chunk[i];
+      } else if (col === 3) {
+        priceBuffer[priceSize++] = chunk[i];
+      }
     }
   });
 
-  reader.on("close", () => {
+  readStream.on("end", () => {
     parentPort.postMessage([wcities, wproducts]);
   });
+}
+
+function bufferToInt(buffer, length) {
+  let decimalPointIndex = buffer.findIndex(
+    (char) => char === ".".charCodeAt(0)
+  );
+  let result = 0;
+  let multiplier = 1;
+
+  for (let index = 0; index < length; index++) {
+    if (index === decimalPointIndex) {
+      multiplier = 1;
+    } else {
+      result = result * 10 + (buffer[index] - 0x30);
+      if (decimalPointIndex !== -1) {
+        multiplier *= 0.1;
+      }
+    }
+  }
+
+  return Math.round(result * multiplier * 100);
 }
