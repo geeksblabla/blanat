@@ -48,6 +48,10 @@ namespace PerfectHashing
 
     struct Products
     {
+        /* C++ code produced by gperf version 3.1 */
+        /* Command-line: gperf -L C++ -D -C -E -m 10000 -r fruits.txt  */
+        /* Computed positions: -k'1,3,$' */
+        /* maximum key range = 120, duplicates = 0 */
         enum
         {
             TOTAL_KEYWORDS = 94,
@@ -243,6 +247,7 @@ namespace PerfectHashing
 
     struct Cities
     {
+
         enum
         {
             TOTAL_KEYWORDS = 101,

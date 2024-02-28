@@ -109,7 +109,7 @@ inline int find_or_create(ht<string, int> &id_map, const string &k) {
 class ThreadPool {
  public:
   Result *results;
-  void start();
+  void start(const int num_threads);
   void queue_job(const function<void(Result &)> &job);
   void stop();
   bool busy();
@@ -124,11 +124,11 @@ class ThreadPool {
   queue<function<void(Result &)>> jobs;
 };
 
-void ThreadPool::start() {
-  for (int i = 0; i < NUM_THREADS; ++i) {
+void ThreadPool::start(const int num_threads) {
+  for (int i = 0; i < num_threads; ++i) {
     threads.emplace_back(thread(&ThreadPool::loop, this, i));
   }
-  results = new Result[NUM_THREADS];
+  results = new Result[num_threads];
 }
 
 void ThreadPool::loop(int id) {
@@ -206,16 +206,18 @@ inline void process_concurrently(const MappedFile &mp,
                                  vector<Result> &results) {
   char *start = (char *)mp.file_data;
   char *end = start + mp.file_size;
-  const size_t block_size = 1024 * 200;  // 200mb
+  const size_t block_size = 1024 * 1024 * 100;  // 100mb
   const size_t chunks_count = mp.file_size / block_size;
 
   ThreadPool thread_pool;
-  thread_pool.start();
+  thread_pool.start(NUM_THREADS);
   for (size_t i = 0; i < chunks_count; i++) {
     char *chunk_start = start + i * block_size;
-    char *chunk_end =
-        i == chunks_count - 1 ? end : (start + (i + 1) * block_size);
-    thread_pool.queue_job([&chunk_start, &chunk_end](Result &r) {
+    char *chunk_end = start + (i + 1) * block_size;
+    if (i + 1 == chunks_count) chunk_end = end;
+    if (chunk_start >= chunk_end) break;
+
+    thread_pool.queue_job([chunk_start, chunk_end](Result &r) {
       process_chunk(r, chunk_start, chunk_end);
     });
   }
