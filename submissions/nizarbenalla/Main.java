@@ -59,7 +59,7 @@ public class Main implements Runnable {
     }
     public static void main(String[] args) throws Exception {
         long startTime = System.nanoTime();
-        int av = 2;
+        int av = 1;
         FileInputStream fileInputStream = new FileInputStream("input.txt");
         FileChannel channel = fileInputStream.getChannel();
         long remaining_size = channel.size();
