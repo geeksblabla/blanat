@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <windows.h> // YES WINDOWS :) IKR
+// #include <windows.h> // YES WINDOWS :) IKR
 #include <pthread.h>
 
 // SPECIFY THE NUMBER OF ROWS IN HERE (EX FOR THE CHALLENGE TESTING DATA: 1000000000)
@@ -17,7 +17,7 @@
 
 #define MAX_LINE_SIZE 2048
 
-#define NUM_THREADS 6
+#define NUM_THREADS 8
 
 struct KeyValuePair {
     char product[MAX_PRODUCT_NAME_LENGTH];
@@ -264,13 +264,13 @@ void* processBatch(void* arg) {
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 int main() {
-    LARGE_INTEGER frequency;
+    /* LARGE_INTEGER frequency;
     LARGE_INTEGER start;
     LARGE_INTEGER end;
     double interval;
 
     QueryPerformanceFrequency(&frequency);
-    QueryPerformanceCounter(&start); 
+    QueryPerformanceCounter(&start); */
     
     struct CityTotalHashTable* cityTotalHashTable = createCityTotalHashTable(102);
     struct CityTotalHashTable** cityTotalHashTableArray = (struct CityTotalHashTable**)malloc(NUM_THREADS * sizeof(struct CityTotalHashTable*));
@@ -336,9 +336,9 @@ int main() {
 
     fclose(fp);
 
-    QueryPerformanceCounter(&end);
+    /* QueryPerformanceCounter(&end);
     interval = (double) (end.QuadPart - start.QuadPart) / frequency.QuadPart;
 
-    printf("The program took %f seconds to execute\n", interval);
+    printf("The program took %f seconds to execute\n", interval); */
     return 0;
 }
