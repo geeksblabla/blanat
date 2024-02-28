@@ -67,6 +67,7 @@ Assist Adnan by writing a program, using any allowed language, to find the city 
 - When you feel that your code is ready, create a folder under the "/submissions" folder with your GitHub handle as the name. Add the code to this folder and open a pull request (PR).
 - Before creating the PR, your code has to produce the same result as the output below.
 - You are allowed to submit the code several times with different langs.
+- Only standard libraries provided by te language you picked can be used. No external/additional libs can be used
 - Each code will be reviewed manually. Any fraudulent attempt will result in your account being banned, and you will be disqualified from the challenge.
 - Java solutions should use `Main.java` and have a `public class Main` as a top-level class.
 - Contestants are supposed to read input from the file in their current working directory named `input.txt` and write the output to a file in the same directory named `output.txt`.
@@ -149,22 +150,37 @@ The competition focuses solely on correctness and speed of execution to gauge pa
 The challenge will run from the 19th of February 2024 until 29th of February 2024. The winner will be announced during March 1st 2024 in our social media challenges
 
 ## Leaderboard
-> Last updated: Thu 24 Feb 2024, 7pm Moroccan time
+> Last updated: Thu 28 Feb 2024, 8pm Moroccan time
 
 | Username       | Avg Time (ms) | Median Time (ms) | Language | Humanized Time                |
 |----------------|---------------|------------------|----------|-------------------------------|
-| sqrt-minus-one | 40426         | 39308            | C++      | 40.43 sec (≈ 40.43 sec)       |
-| dauom          | 56548         | 57044            | C++      | 56.55 sec (≈ 56.55 sec)       |
-| NotAsheraf     | 99730         | 97091            | Rust     | 99.73 sec (≈ 1.66 min)       |
-| essmehdi       | 108141        | 108182           | Rust     | 108.14 sec (≈ 1.80 min)      |
-| webNeat        | 160221        | 150202           | PHP      | 160.22 sec (≈ 2.67 min)      |
-| mohammedfatihX | 249995        | 252203           | Java     | 250.00 sec (≈ 4.17 min)      |
-| anassajaanan   | 258322        | 259895           | C        | 258.32 sec (≈ 4.30 min)      |
-| aboullaite     | 368758        | 368167           | Java     | 368.76 sec (≈ 6.15 min)      |
-| sm3xy          | 903274        | 900806           | Python   | 903.27 sec (≈ 15.05 min)     |
-| Moohaa         | 1024699       | 1024176          | Java     | 1024.70 sec (≈ 17.08 min)    |
+| anassajaanan   | 14024         | 12351            | c       | 14.02 sec (≈ 14.02 sec)      |
+| ouakki         | 29182         | 28706            | go      | 29.18 sec (≈ 29.18 sec)      |
+| ILKAY-BRAHIM   | 31368         | 23004            | cpp      | 31.37 sec (≈ 31.37 sec)      |
+| sqrt-minus-one | 35369         | 34040            | cpp     | 35.37 sec (≈ 35.37 sec)      |
+| ibrataha8     | 53029         | 51788            | cpp     | 53.03 sec (≈ 53.03 sec)      |
+| dauom         | 56548         | 57044            | cpp     | 56.55 sec (≈ 56.55 sec)      |
+| webNeat        | 61003         | 57203           | cpp      | 61.00 sec (≈ 61.00 sec)      |
+| samir-        | 63933         | 67410            | cpp     | 63.93 sec (≈ 63.93 sec)      |
+| essmehdi      | 68107         | 62067            | rs      | 68.11 sec (≈ 68.11 sec)      |
+| NotAsheraf     | 99730         | 97091            | rs      | 99.73 sec (≈ 99.73 sec)      |
+| yousfiSaad    | 181086        | 176295           | cpp     | 181.09 sec (≈ 181.09 sec)    |
+| imOphen       | 222679        | 213030           | py      | 222.68 sec (≈ 222.68 sec)    |
+| mohammedfatihX| 249995        | 252203           | java    | 249.99 sec (≈ 249.99 sec)    |
+| nizarbenalla  | 275221        | 269733           | java    | 275.22 sec (≈ 275.22 sec)    |
+| houcine7      | 309110        | 309692           | java    | 309.11 sec (≈ 309.11 sec)    |
+| j-mounim     | 343753        | 345267           | js      | 343.75 sec (≈ 343.75 sec)    |
+| lhousaine    | 336290        | 354104           | js      | 336.29 sec (≈ 336.29 sec)    |
+| Moohaa         | 356836        | 359523           | java    | 356.84 sec (≈ 356.84 sec)    |
+| aboullaite    | 368758        | 368167           | java    | 368.76 sec (≈ 368.76 sec)    |
+| YassineOsip    | 561658        | 569382           | python      | 561.66 sec (≈ 561.66 sec)    |
+| guizo792      | 526844        | 550883           | java    | 526.84 sec (≈ 526.84 sec)    |
+| Smartdev110    | 776007        | 792428           | java    | 776.01 sec (≈ 776.01 sec)    |
+| sm3xy         | 903274        | 900806           | python      | 903.27 sec (≈ 903.27 sec)    |
 
-We only list solutions with correct results that run within ~15 min. We unfortunately can't give feedback on every submission and we invite you to read the full assignement.
+
+
+We only list solutions with correct results that run within ~15 min. We unfortunately can't give feedback on every submission and we invite you to read the full assignment.
 
 ## Prize
 
