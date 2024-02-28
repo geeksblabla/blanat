@@ -4,10 +4,8 @@ use std::io::{self, BufRead, BufReader, Write};
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::thread;
-use std::time::Instant;
 
 fn main() -> io::Result<()> {
-    let start = Instant::now();
 
     let input_file_path = "input.txt";
     let output_file_path = "output.txt";
@@ -16,7 +14,7 @@ fn main() -> io::Result<()> {
     let reader = BufReader::new(file);
     let lines: Vec<String> = reader.lines().collect::<Result<_, _>>()?;
 
-    let num_threads = thread::available_parallelism().map_or(4, |n| n.get()); 
+    let num_threads = thread::available_parallelism().map_or(4, |n| n.get());
     let chunk_size = lines.len() / num_threads + 1;
     let mut threads = vec![];
 
@@ -27,7 +25,7 @@ fn main() -> io::Result<()> {
         let city_scores = Arc::clone(&city_scores_global);
         let city_products = Arc::clone(&city_products_global);
 
-        let chunk = chunk.to_owned(); 
+        let chunk = chunk.to_owned();
         threads.push(thread::spawn(move || {
             let mut local_city_scores = HashMap::new();
             let mut local_city_products = HashMap::new();
@@ -69,12 +67,13 @@ fn main() -> io::Result<()> {
 
     let mut output = File::create(output_file_path)?;
     writeln!(output, "{} {:.2}", cheapest_city, total_score)?;
-    for (product, score) in products.iter().take(5) {
-        writeln!(output, "{} {:.2}", product, score)?;
+    for (i, (product, score)) in products.iter().enumerate().take(5) {
+        if i == 4 {
+            write!(output, "{} {:.2}", product, score)?;
+        } else {
+            writeln!(output, "{} {:.2}", product, score)?;
+        }
     }
-
-    let duration = start.elapsed();
-    println!("Execution time: {:?}", duration);
 
     Ok(())
 }
