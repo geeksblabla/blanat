@@ -1,3 +1,4 @@
+
 #include <unistd.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -12,6 +13,13 @@
 #include <time.h>
 #include <thread>
 #include <x86intrin.h>
+
+#define TEST_WITH_GPERF 0
+
+#if TEST_WITH_GPERF
+#include "gperf_cities.h"
+#include "gperf_products.h"
+#endif
 
 #define ENABLE_PROFILING 0
 #define ENABLE_ASSERTS 0
@@ -87,7 +95,7 @@ static void end_profiling(int i)
 # define profile_code(name)
 #endif
 
-static u64 THREAD_CHUNK_SIZE = (1ull << 30);
+static u64 THREAD_CHUNK_SIZE = (1ull << 20);
 
 #define CITIES_MAX 313
 #define PRODUCTS_MAX 251
@@ -109,12 +117,13 @@ convert_to_int(char *number, u32 number_len)
   // NOTE(fakhri): this assumes number_len is always at least 1, and if it is 1 the next 2 bytes are 
   // always valid, in our case this holds, if we are at the last line and the fraction part length is 1
   // the next character will be '\n' and the next one will be the null terminator
-  static u32 sub_zeros[4] = {0, '0', 11 * '0', 111 * '0'};
+  static u32 sub_zeros[4] = {0, 100 * '0', 1100 * '0', 11100 * '0'};
   static u32 coeffs[3][4] = {
-    {0, 1, 10, 100},
-    {0, 0, 1,   10},
-    {0, 0, 0,    1},
+    {0, 100, 1000, 10000},
+    {0,   0,  100,  1000},
+    {0,   0,    0,   100},
   };
+  
   u32 result = (
     coeffs[0][number_len] * number[0] + 
     coeffs[1][number_len] * number[1] + 
@@ -123,6 +132,7 @@ convert_to_int(char *number, u32 number_len)
   );
   return result;
 }
+
 
 static u32 cities_coefs[4] = {259, 237, 261, 287};
 static u32 fruits_coefs[4] = {144, 15, 3, 84};
@@ -133,28 +143,35 @@ compute_product_index(char *product, u32 len)
   Assert(len >= 3);
   
   u64 result = 0;
+#if TEST_WITH_GPERF
+  result = product_in_word_set(product,  len)->index;
+#else
   result += product[0] * fruits_coefs[0];
   result += product[1] * fruits_coefs[1];
   result += product[2] * fruits_coefs[2];
   result += product[len - 1] * fruits_coefs[3];
   
   result %= PRODUCTS_MAX;
+#endif
+
   return (u32)result;
 }
 
 static u32
 compute_city_index(char *city, u32 len)
 {
-  Assert(len >= 3);
-
   u64 result = 0;
+  
+#if TEST_WITH_GPERF
+  result = city_in_word_set(city,  len)->index;
+#else
   result += city[1] * cities_coefs[0];
   result += city[2] * cities_coefs[1];
   result += city[len - 3] * cities_coefs[2];
   result += city[len - 2] * cities_coefs[3];
-
   result %= CITIES_MAX;
-  
+#endif
+
   return (u32)result;
 }
 
@@ -229,29 +246,31 @@ static String city_names[]= {
 static char *cities_name_per_index[CITIES_MAX];
 static char *fruits_name_per_index[PRODUCTS_MAX];
 
+
 // NOTE(fakhri): THIS ASSUMES THE CITIES AND PRODUCTS WE WILL BE TESTED AGAINST
 // ARE THE SAME AS THE ONE IN GEN.PY!!!!!!!
 
 static void 
 fill_cities_name_per_index_table()
 {
-    for (u32 i = 0; i < ArrayLength(city_names); i += 1)
-    {
-      u32 city_idx = compute_city_index(city_names[i].data, city_names[i].len);
-      Assert(!cities_name_per_index[city_idx]);
-      cities_name_per_index[city_idx] = city_names[i].data;
-    }
+  for (u32 i = 0; i < ArrayLength(city_names); i += 1)
+  {
+    //printf("%s, %d\n", city_names[i].data, i);
+    u32 city_idx = compute_city_index(city_names[i].data, city_names[i].len);
+    Assert(!cities_name_per_index[city_idx]);
+    cities_name_per_index[city_idx] = city_names[i].data;
+  }
 }
 
 static void 
 fill_fruits_name_per_index_table()
 {
-    for (u32 i = 0; i < ArrayLength(fuits_and_vegs); i += 1)
-    {
-      u32 fruits_idx = compute_product_index(fuits_and_vegs[i].data, fuits_and_vegs[i].len);
-      Assert(!fruits_name_per_index[fruits_idx]);
-      fruits_name_per_index[fruits_idx] = fuits_and_vegs[i].data;
-    }
+  for (u32 i = 0; i < ArrayLength(fuits_and_vegs); i += 1)
+  {
+    u32 fruits_idx = compute_product_index(fuits_and_vegs[i].data, fuits_and_vegs[i].len);
+    Assert(!fruits_name_per_index[fruits_idx]);
+    fruits_name_per_index[fruits_idx] = fuits_and_vegs[i].data;
+  }
 }
 
 static char *mapped_file;
@@ -273,44 +292,53 @@ process_file_chunk(char *chunk_buf, u64 chunk_size)
 {
   Thread_Ctx *thread_ctx = threads_ctx + thread_id; 
   
-  u32 offset = 0;
-  if (chunk_buf != mapped_file && chunk_buf[- 1] != '\n')
+  char *chunk_ptr = chunk_buf;
+  char *chunk_end = chunk_buf + chunk_size;
+  
+  if (chunk_ptr != mapped_file && chunk_ptr[- 1] != '\n')
   {
     // NOTE(fakhri): we are not at the start of a new line, move to the next line
-    for (offset = 0; (offset < chunk_size) && (chunk_buf[offset++] != '\n'););
+    chunk_ptr = (char *)memchr(chunk_buf, '\n', chunk_size);
+    if (!chunk_ptr) return;
+    chunk_ptr += 1;
   }
   
   //profile_code("Process All Line")
   {
-    for (;offset < chunk_size;)
+    for (;chunk_ptr < chunk_end;)
     {
       //profile_code("Process Line")
       {
-        char *city = chunk_buf + offset;
-        u32 city_len = 0;
-        for (;city[city_len] != ',';city_len++);
+        // read city
+        char *city = chunk_ptr;
+        chunk_ptr = (char *)memchr(city, ',', 18); 
+        u32 city_len = chunk_ptr++ - city;
         
-        char *fruit = city + city_len + 1;
-        u32 fruit_len = 0;
-        for (;fruit[fruit_len] != ',';fruit_len++);
-        
-        char *price_decimal_str = fruit + fruit_len + 1;
-        u32 price_decimal_len = 0;
-        for (;price_decimal_str[price_decimal_len] != '.';price_decimal_len++);
-        u32 price_decimal = convert_to_int(price_decimal_str, price_decimal_len);
-        
-        char *price_fractional_str = price_decimal_str + price_decimal_len + 1;
-        u32 price_fractional_len = 0;
-        for (;price_fractional_str[price_fractional_len] != '\n';price_fractional_len++);
-        u32 price_fractional = convert_to_int(price_fractional_str, price_fractional_len);
-        price_fractional *= (price_fractional_len < 2)? 10:1; 
-        
-        u32 price = price_decimal * 100 + price_fractional;
-        
+        // read product
+        char *fruit = chunk_ptr;
+        chunk_ptr = (char *)memchr(fruit, ',', 18);
+        u32 fruit_len = chunk_ptr++ - fruit;
+
         u32 city_idx = compute_city_index(city, city_len);
         u32 product_idx = compute_product_index(fruit, fruit_len);
         
-        offset += city_len + fruit_len + price_decimal_len + price_fractional_len + 4;
+        char *price_decimal_str = chunk_ptr;
+        chunk_ptr = (char *)memchr(price_decimal_str, '.', 4);
+        u32 price_decimal_len = chunk_ptr++ - price_decimal_str;
+        u32 price_decimal = convert_to_int(price_decimal_str, price_decimal_len);
+        
+        char *price_fractional_str = chunk_ptr;
+        char price_fractional_second = price_fractional_str[1];
+        
+        int valid_second = !(price_fractional_second == '\n');
+        i32 price_fractional_extra = valid_second? price_fractional_second - 11 * '0' : -10 * '0';
+        u32 price_fractional = 10 * price_fractional_str[0] + price_fractional_extra;
+        u32 price_fractional_len = 1 + valid_second;
+
+        chunk_ptr += price_fractional_len + 1;
+
+        u32 price = price_decimal + price_fractional;
+
         thread_ctx->cities_prices[city_idx] += price;
         thread_ctx->product_min_price_per_city[city_idx][product_idx] = MIN(price, thread_ctx->product_min_price_per_city[city_idx][product_idx]);
       }
@@ -323,16 +351,24 @@ static void *thread_main(void *args)
   thread_id = (u64)args;
   Thread_Ctx *thread_ctx = threads_ctx + thread_id;
   memset(thread_ctx->product_min_price_per_city, -1, sizeof(thread_ctx->product_min_price_per_city));
+  
   profile_code("File Chunk Processing")
   {
-    process_file_chunk(thread_ctx->chunk_buf, thread_ctx->chunk_size);
+    for (;;)
+    {
+      u64 offset = __atomic_fetch_add(&offset_into_mapped_file, THREAD_CHUNK_SIZE, __ATOMIC_RELAXED);
+      if (offset >= mapped_file_size) break;
+      u64 chunk_size = MIN(THREAD_CHUNK_SIZE, mapped_file_size - offset);
+      process_file_chunk(mapped_file + offset, chunk_size);
+    }
   }
-  __atomic_fetch_sub(&running_threads_count, 1, __ATOMIC_SEQ_CST);
+  __atomic_fetch_sub(&running_threads_count, 1, __ATOMIC_RELAXED);
   return 0;
 }
 
 int main()
 {
+
   thread_id = 0;
   profile_code("Main Code")
   {
@@ -343,7 +379,7 @@ int main()
     Assert(fd != -1);
     map_file_to_memory(fd);
     
-    THREAD_CHUNK_SIZE = mapped_file_size / thread_cnt;
+    //THREAD_CHUNK_SIZE = mapped_file_size / thread_cnt;
     running_threads_count = thread_cnt;
     char *chunk_buf = mapped_file;
     
@@ -440,7 +476,6 @@ int main()
       fprintf(fout, "%s %lu.%.2lu\n", fruits_name_per_index[fruit_idx], fruit_price / 100, fruit_price % 100);
     }
     fclose(fout);
-
   }
   
   profile_code("Unmapping timing")
