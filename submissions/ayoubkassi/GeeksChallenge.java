@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class GeeksChallenge {
+public class Main {
 
     private static boolean isLessThan(Map<String, Double> map, double target) {
         for (Map.Entry<String, Double> entry : map.entrySet()) {
