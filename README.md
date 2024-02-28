@@ -154,26 +154,30 @@ The challenge will run from the 19th of February 2024 until 29th of February 202
 
 | Username       | Avg Time (ms) | Median Time (ms) | Language | Humanized Time                |
 |----------------|---------------|------------------|----------|-------------------------------|
-| anassajaanan   | 16106         | 14465            | C        | 16.11 sec (≈ 16.11 sec)      |
-| sqrt-minus-one  	|40426         	|39308            |CPP       |40.43sec(≈ 40.43 sec)        |
-| dauom          | 56548         | 57044            | CPP      | 56.55 sec (≈ 56.55 sec)      |
-| webNeat        | 61003         | 57203            | CPP      | 61.00 sec (≈ 1 min 1.00 sec) |
-| samir-         | 63933         | 67410            | CPP      | 63.93 sec (≈ 1 min 3.93 sec)  |
-| ILKAY-BRAHIM   | 64580         | 66537            | CPP      | 64.58 sec (≈ 1 min 4.58 sec) |
-| ibrataha8      	|65934         	|65507            |CPP       |65.93sec(≈1min5.93sec)        |
-| essmehdi       | 80401         | 76687            | RS       | 80.40 sec (≈ 1 min 20.40 sec) |
-| NotAsheraf     | 99730         | 97091            | RS       | 99.73 sec (≈ 1 min 39.73 sec) |
-| yousfiSaad     | 181086        | 176295           | cpp      | 181.09 sec (≈ 3 min 0.09 sec) |
-| mohammedfatihX	|249995        	|252203           	|Java     	|249.99sec(≈4min9.99sec)       |
-| nizarbenalla   	|275221        	|269733           	|Java     	|275.22sec(≈4min35.22sec)      |
-| lhousaine | 336290        | 354104           | js       | 336.29 sec (≈ 5 min 36.29 sec)|
-| Moohaa         | 356836        | 359523           | Java     | 356.84 sec (≈ 5 min 56.84 sec)|
-| aboullaite     | 368758        | 368167           | Java     | 368.76 sec (≈ 6 min 8.76 sec) |
-| j-mounim       	|437373        	|439534           	|JS       	|437.37sec(≈7min17.37sec)      |
-| guizo792       | 526844        | 550883           | Java     |526.84 sec (≈8 min46.84sec)   |
-| houcine7       |617469         |607997            | Java     |617.47sec(≈10min17.47sec)     |
-| Smartdev110    | 776007        | 792428           | Java     | 776.01 sec (≈ 12 min 56.01 sec)|
-| sm3xy          | 903274        | 900806           | Py       | 903.27 sec (≈ 15 min 3.27 sec)|
+| anassajaanan   | 14024         | 12351            | c       | 14.02 sec (≈ 14.02 sec)      |
+| ouakki         | 29182         | 28706            | go      | 29.18 sec (≈ 29.18 sec)      |
+| ILKAY-BRAHIM   | 31368         | 23004            | cpp      | 31.37 sec (≈ 31.37 sec)      |
+| sqrt-minus-one | 35369         | 34040            | cpp     | 35.37 sec (≈ 35.37 sec)      |
+| ibrataha8     | 53029         | 51788            | cpp     | 53.03 sec (≈ 53.03 sec)      |
+| dauom         | 56548         | 57044            | cpp     | 56.55 sec (≈ 56.55 sec)      |
+| webNeat        | 61003         | 57203           | cpp      | 61.00 sec (≈ 61.00 sec)      |
+| samir-        | 63933         | 67410            | cpp     | 63.93 sec (≈ 63.93 sec)      |
+| essmehdi      | 68107         | 62067            | rs      | 68.11 sec (≈ 68.11 sec)      |
+| NotAsheraf     | 99730         | 97091            | rs      | 99.73 sec (≈ 99.73 sec)      |
+| yousfiSaad    | 181086        | 176295           | cpp     | 181.09 sec (≈ 181.09 sec)    |
+| imOphen       | 222679        | 213030           | py      | 222.68 sec (≈ 222.68 sec)    |
+| mohammedfatihX| 249995        | 252203           | java    | 249.99 sec (≈ 249.99 sec)    |
+| nizarbenalla  | 275221        | 269733           | java    | 275.22 sec (≈ 275.22 sec)    |
+| houcine7      | 309110        | 309692           | java    | 309.11 sec (≈ 309.11 sec)    |
+| j-mounim     | 343753        | 345267           | js      | 343.75 sec (≈ 343.75 sec)    |
+| lhousaine    | 336290        | 354104           | js      | 336.29 sec (≈ 336.29 sec)    |
+| Moohaa         | 356836        | 359523           | java    | 356.84 sec (≈ 356.84 sec)    |
+| aboullaite    | 368758        | 368167           | java    | 368.76 sec (≈ 368.76 sec)    |
+| YassineOsip    | 561658        | 569382           | python      | 561.66 sec (≈ 561.66 sec)    |
+| guizo792      | 526844        | 550883           | java    | 526.84 sec (≈ 526.84 sec)    |
+| Smartdev110    | 776007        | 792428           | java    | 776.01 sec (≈ 776.01 sec)    |
+| sm3xy         | 903274        | 900806           | python      | 903.27 sec (≈ 903.27 sec)    |
+
 
 
 We only list solutions with correct results that run within ~15 min. We unfortunately can't give feedback on every submission and we invite you to read the full assignment.
