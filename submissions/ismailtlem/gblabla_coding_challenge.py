@@ -13,6 +13,12 @@ def read_large_file(file_path, chunk_size=1024 * 1024):
             yield line
 
 
+def format_float_number(number):
+    """format float number to 2 decimals"""
+
+    return "{:.2f}".format(number)
+
+
 def main(input_path, output_path):
     """Main function"""
 
@@ -31,11 +37,17 @@ def main(input_path, output_path):
             cheapest_city_products.update({cheapest_city: set()})
         if city == cheapest_city:
             cheapest_city_products[cheapest_city].add((product, price))
-    top_products = sorted(
-        cheapest_city_products[cheapest_city], key=lambda x: (x[1], x[0])
-    )[:5]
-    output_lines = [f"{cheapest_city} {round(cheapest_total, 2)}"]
-    output_lines.extend([f"{product[0]} {product[1]}" for product in top_products])
+
+    top_products = sorted(cheapest_city_products[cheapest_city], key=lambda x: (x[1], x[0]))
+    lowest_prices = {}
+
+    for product, price in top_products:
+        if product not in lowest_prices or price < lowest_prices[product]:
+            lowest_prices[product] = price
+    unique_products = [(product, price) for product, price in top_products if price == lowest_prices[product]][:5]
+
+    output_lines = [f"{cheapest_city} {format_float_number(city_totals[cheapest_city])}"]
+    output_lines.extend([f"{product[0]} {format_float_number(float(product[1]))}" for product in unique_products])
 
     with open(output_path, "w", encoding="utf-8") as f:
         f.write("\n".join(output_lines))
