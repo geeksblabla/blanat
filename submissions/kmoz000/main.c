@@ -32,24 +32,25 @@ void readDataFromFile(const char *filename, ProductEntry **data, int *numEntries
 
     int count = 0;
     ProductEntry *tempData = NULL;
-
     while (1)
     {
-        tempData = realloc(tempData, (count + 1) * sizeof(ProductEntry));
-        if (!tempData)
+        ProductEntry *newTempData = realloc(tempData, (count + 1) * sizeof(ProductEntry));
+        if (!newTempData)
         {
             perror("Memory allocation error");
-            exit(EXIT_FAILURE);
+            free(newTempData);
+            return;
         }
-
+        else
+        {
+            tempData = newTempData;
+        }
         if (fscanf(file, "%49[^,],%49[^,],%lf\n", tempData[count].city, tempData[count].product, &tempData[count].price) != 3)
         {
             break;
         }
-
         count++;
     }
-
     *numEntries = count;
     *data = tempData;
     fclose(file);
@@ -130,8 +131,6 @@ int main(int argc, char *argv[])
     sortCitiesByTotalPrices(cities, numCities);
     calculateTotalCostByCity(data, numEntries, &cities, &numCities);
 
-    free(data);
-
     FILE *outputFile = fopen("output.txt", "w");
     if (outputFile == NULL)
     {
@@ -151,6 +150,8 @@ int main(int argc, char *argv[])
     clock_t total_cost_time = clock();
     double total_cost_elapsed = ((double)(total_cost_time - start_time)) / CLOCKS_PER_SEC;
     fclose(outputFile);
+    free(data);
+    free(cities);
     printf("Time taken to calculate (%d) Entries: %f seconds\n", numEntries, total_cost_elapsed);
     return 0;
 }
