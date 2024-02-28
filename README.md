@@ -150,7 +150,7 @@ The competition focuses solely on correctness and speed of execution to gauge pa
 The challenge will run from the 19th of February 2024 until 29th of February 2024. The winner will be announced during March 1st 2024 in our social media challenges
 
 ## Leaderboard
-> Last updated: Thu 27 Feb 2024, 3pm Moroccan time
+> Last updated: Thu 28 Feb 2024, 10am Moroccan time
 
 | Username       | Avg Time (ms) | Median Time (ms) | Language | Humanized Time                |
 |----------------|---------------|------------------|----------|-------------------------------|
