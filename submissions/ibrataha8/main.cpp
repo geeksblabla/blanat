@@ -1,15 +1,14 @@
-/*
-    Created By : Brahim Taher
- */
 #ifndef NDEBUG
 #define NDEBUG
 #endif
 #pragma GCC optimize("Ofast")
 #include <cassert>
 #include <cstring>
+#include <emmintrin.h> // _mm_pause
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <unistd.h> // for ::close
 
 #include <algorithm>
@@ -518,21 +517,43 @@ struct MappedFile
 using PerfectHashing::Cities;
 using PerfectHashing::Products;
 using Cost = std::intmax_t;
+static constexpr Cost MaxCost = std::numeric_limits<Cost>::max();
 
 struct Result
 {
     std::array<Cost, Cities::NUM> city_total{};
+    std::array<std::array<Cost, Products::NUM>, Cities::NUM> per_city;
 
-    void registerPricing(std::string_view city, std::string_view, Cost price)
+    Result()
+    {
+        for (auto &c : per_city)
+            std::fill(begin(c), end(c), MaxCost);
+    }
+
+    void registerPricing(std::string_view city, std::string_view prod, Cost price)
     {
         assert(Cities::in_word_set(city));
         assert(Products::in_word_set(prod));
         auto ca = Cities::hash(city);
+        auto pa = Products::hash(prod);
 
-#if __cpp_lib_atomic_ref // c++20
+#if 0 && __cpp_lib_atomic_ref // c++20
         std::atomic_ref(city_total[ca]) += price;
+
+        auto ref = std::atomic_ref(per_city[ca][pa]);
+        Cost cur = ref;
+        while (!(ref.compare_exchange_strong(cur, std::min(cur, price))))
+            /*_mm_pause()*/;
 #else
         __atomic_add_fetch(&city_total[ca], price, __ATOMIC_ACQ_REL);
+
+        Cost &ref = per_city[ca][pa];
+        Cost cur = ref, desired;
+        do
+        {
+            /*_mm_pause()*/;
+            desired = std::min(cur, price);
+        } while (!__atomic_compare_exchange(&ref, &cur, &desired, false, __ATOMIC_ACQ_REL, __ATOMIC_RELAXED));
 #endif
     }
 };
@@ -656,23 +677,26 @@ inline void ans(Result &result)
     auto min_city = *std::min_element(city_records.begin(), city_records.end());
     os << min_city.name << " " << min_city.total / 100.0 << "\n";
 
-    std::vector<std::string_view> products;
-    products.reserve(Products::NUM);
+    std::vector<std::pair<Cost, std::string_view>> products;
+
+    auto &record = result.per_city[min_city.id];
 
     for (unsigned id = 0; id < Products::NUM; ++id)
     {
-        if (auto name = Products::reverse(id); !name.empty())
-            products.emplace_back(name);
+        auto name = Products::reverse(id); // valid hash key?
+        if (name.empty())
+            continue;
+        products.emplace_back(record[id], name);
     }
 
     size_t topN = std::min(5ul, products.size());
     partial_sort(products.begin(), products.begin() + topN, products.end());
     // products.resize(5);
 
-    for (auto &prod : products)
+    for (auto &[cost, prod] : products)
     {
         if (topN--)
-            os << prod << " 1.00\n";
+            os << prod << " " << cost / 100.0 << "\n";
         else
             break;
     }
@@ -682,6 +706,14 @@ int main()
 {
     MappedFile mp(INPUT_FILENAME);
 
+    if (pid_t pid = fork(); pid == 0)
+    {
+        std::this_thread::sleep_for(std::chrono::seconds(5));
+        exit(0);
+    }
+
     auto result = process_concurrently(mp);
+    wait(NULL);
+
     ans(result);
 }
