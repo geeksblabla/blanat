@@ -58,7 +58,6 @@ public class Main implements Runnable {
         }
     }
     public static void main(String[] args) throws Exception {
-        long startTime = System.nanoTime();
         int av = 1;
         FileInputStream fileInputStream = new FileInputStream("input.txt");
         FileChannel channel = fileInputStream.getChannel();
@@ -96,10 +95,5 @@ public class Main implements Runnable {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        fileInputStream.close();
-        long endTime = System.nanoTime(); //
-        long elapsedTime = endTime - startTime;
-        double seconds = (double) elapsedTime / 1_000_000_000.0;
-        System.out.println("Elapsed Time: " + seconds + " seconds");
     }
 }
