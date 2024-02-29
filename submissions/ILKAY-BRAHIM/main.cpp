@@ -246,7 +246,7 @@ void * read_file(void * threadarg)
             product++;
             char *price = (char *)rawmemchr(product, '\0');
             price++;
-            char *end = (char *)rawrawmemchr(price, '\0');
+            char *end = (char *)rawmemchr(price, '\0');
             int len_city = product - city - 1;
             int len_product = price - product - 1;
             int len_price = end - price;
