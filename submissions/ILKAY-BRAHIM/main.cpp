@@ -156,7 +156,7 @@ struct thread_data
 {
     int conter_product;
     int thread_id;
-    char * file_content;
+    const char * file_content;
     unsigned long file_size;
     int num_threads;
     int target;
@@ -204,13 +204,12 @@ void save_data(struct thread_data * data, char *city, char *product, int len_cit
     }
 }
 
-
 void * read_file(void * threadarg)
 {
     struct thread_data * my_data;
     my_data = (struct thread_data *) threadarg;
     int thread_id = my_data->thread_id;
-    char * file_content = my_data->file_content;
+    const char * file_content = my_data->file_content;
     unsigned long file_size = my_data->file_size;
     unsigned long num_threads = my_data->num_threads;
     unsigned long chunk_size = file_size / num_threads;
@@ -225,62 +224,49 @@ void * read_file(void * threadarg)
         for(;file_content[start] != '\n'; start++);
         start++;
     }
-    else
-        start = 0;
-    unsigned long value;
-    char city[18];
-    char product[17];
-    for(;start < end; start++)
+    unsigned long long  value;
+    char line[50] = {0};
+    int i = 0;
+    unsigned long long offset[4] = {0, '0', 11 * '0', 111 * '0'};
+    unsigned long long multi[3][4] = {{0, 1, 10, 100},{0, 0, 1,  10},{0, 0, 0,  1},};
+    for(;start <= end;start++)
     {
-        int len_city = 0;
-        int len_product = 0;
         value = 0;
-        int i = 0;
-        for(;file_content[start] != ',';)
+        if(file_content[start] == ',')
         {
-            city[i] = file_content[start];
-            len_city++;
-            start++;
+            line[i] = '\0';
             i++;
         }
-        city[i] = '\0';
-        start++;
-        i = 0;
-        for(;file_content[start] != ',';)
+        else if(file_content[start] == '\n')
         {
-            product[i] = file_content[start];
-            len_product++;
-            start++;
+            line[i] = '\0';
+            i = 0;
+            char *city = line;
+            char *product =(char *)rawmemchr(line, '\0');
+            product++;
+            char *price = (char *)rawmemchr(product, '\0');
+            price++;
+            char *end = (char *)rawmemchr(price, '\0');
+            int len_city = product - city - 1;
+            int len_product = price - product - 1;
+            int len_price = end - price;
+            char *part_decemal = (char *)rawmemchr(price, '.');
+            int len_real = part_decemal - price;
+            char *part_fractinal = (char *)rawmemchr(part_decemal, '\0');
+            int len_fractinal = part_fractinal - part_decemal - 1;
+            part_decemal++;
+            unsigned long long real = (multi[0][len_real] * price[0] + multi[1][len_real] * price[1] + multi[2][len_real] * price[2] - offset[len_real]);
+            unsigned long long fractinal = (multi[0][len_fractinal] * part_decemal[0] + multi[1][len_fractinal] * part_decemal[1] + multi[2][len_fractinal] * part_decemal[2] - offset[len_fractinal]);
+            if(len_fractinal == 1)
+                fractinal *= 10;
+            value = real * 100 + fractinal;
+            save_data(my_data, city, product, len_city, len_product, value);
+        }
+        else
+        {
+            line[i] = file_content[start];
             i++;
         }
-        product[i] = '\0';
-        start++;
-        i = 0;
-        for(;file_content[start] != '\n';i++)
-        {
-            unsigned long __start = 0;
-            unsigned long __end = 0;
-            for(;file_content[start] && file_content[start] != '.';)
-            {
-                __start = __start * 10 + file_content[start] - '0';
-                start++;
-            }
-            int cont = 0;
-            value = __start * 100;
-            if(file_content[start] == '\n')
-                break;
-            start++;
-            for(;file_content[start] != '\n';)
-            {
-                __end = __end * 10 + file_content[start] - '0';
-                cont++;
-                start++;
-            }
-            if (cont == 1)
-                __end *= 10;
-            value += __end;
-        }
-        save_data(my_data, city, product, len_city, len_product, value);
     }
     pthread_exit(NULL);
 }
@@ -404,7 +390,8 @@ int main()
     pthread_t threads[num_threads];
     struct thread_data td[num_threads];
     off_t file_size = lseek(fd, 0, SEEK_END);
-    char * file_content = static_cast<char *>(mmap(NULL, file_size, PROT_READ, MAP_PRIVATE, fd, 0));
+    const char * file_content = (const char *)(mmap(NULL, file_size, PROT_READ, MAP_PRIVATE, fd, 0));
+    // madvise(file_content, file_size, MADV_SEQUENTIAL);
     for(int i = 0; i < num_threads; i++)
     {
         td[i].thread_id = i;
@@ -421,7 +408,7 @@ int main()
     {
         pthread_join(threads[i], NULL);
     }
-    munmap(file_content, file_size);
+    munmap((void *)file_content, file_size);
     std::vector<int> vec;
     int start = 2;
     int thre = num_threads;

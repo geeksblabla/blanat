@@ -1,13 +1,13 @@
 /*  *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *  */
 /* BLA BLA BLA BLA BLA BLA BLA BLA BLA BLA BLA BLA BLA BLA BLA BLA BLA BLA BLA */
 /* L                                     _\                                  L */
-/* A   program.cpp                        /`b <(WAL3ADAAAAAAAAAAAAAAAAAB)    B */
+/* A   program.cpp                        /`b <(WAL3ADAAAAAAAAAAAAAAAAAAB)   B */
 /* B                                 /####J                                  A */
-/* L                                  |\ ||    11111  333333 333333 7777777  L */
+/* L                                  || ||    11111  333333 333333 7777777  L */
 /* A   By: zmoumen <zmoumen@student.1337.ma>      11      33     33     77   B */
 /* B                                              11  333333 333333    77    A */
 /* L   Created: 2024/02/20 13:37:42               11      33     33   77     L */
-/* A   Updated: 2024/02/28 20:24:02              1111 333333 333333  77.ma   B */
+/* A   Updated: 2024/02/29 12:14:15              1111 333333 333333  77.ma   B */
 /* B                                                                         A */
 /* ALB ALB ALB ALB ALB ALB ALB ALB ALB ALB ALB ALB ALB ALB ALB ALB ALB ALB ALB */
 /*  *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *  */
@@ -278,15 +278,12 @@ std::string	l_to_str(ulong n)
 inline
 void	parse_line(buffer_t &buffer, parse_data &data)
 {
-	char bfr[32];
-	char c;
-	size_t len;
-	for (len = 0; (c = *buffer.mmapd++) != ','; len++) bfr[len] = c;
-	data.ct_id = localize_city(bfr, len)->index;
-	
-	for (len = 0; (c = *buffer.mmapd++) != ','; len++) bfr[len] = c;
-	data.pd_id = localize_product(bfr, len)->index;
-
+	char *deli = (char *)rawmemchr(buffer.mmapd, ',');
+	data.ct_id = localize_city(buffer.mmapd, deli - buffer.mmapd)->index;
+	buffer.mmapd = deli + 1;
+	deli = (char *)rawmemchr(buffer.mmapd, ',');
+	data.pd_id = localize_product(buffer.mmapd, deli - buffer.mmapd)->index;
+	buffer.mmapd = deli + 1;
 	data.price = str_to_l(buffer);
 }
 
@@ -311,10 +308,8 @@ void	initialize_units(cities_list_t &data)
 }
 
 
-void	worker_main(const char* fname, chunk_t chunk, bool skip_first, cities_list_t &workers_data)
+void	worker_main(chunk_t chunk, bool skip_first, cities_list_t &workers_data,buffer_t &buffer)
 {
-	buffer_t buffer;
-	map_file(fname, buffer);
 	buffer.mmapd += chunk.start;
 	char *end = buffer.mmapd + (chunk.end - chunk.start);
 	parse_data data;
@@ -325,7 +320,6 @@ void	worker_main(const char* fname, chunk_t chunk, bool skip_first, cities_list_
 		workers_data.cities[data.ct_id].total += data.price;
 		workers_data.cities[data.ct_id].products[data.pd_id] = IMIN(workers_data.cities[data.ct_id].products[data.pd_id], data.price);
 	}
-	unmap_file(buffer);
 }
 
 
@@ -343,7 +337,9 @@ void	launch_workers(const char *fname,size_t num_workers, cities_list_t *workers
 		bool skip_first = i != 0;
 		int id  = fork();
 		if (id == 0) {
-			worker_main(fname, chunk, skip_first, workers_data[i]);
+			worker_main(chunk, skip_first, workers_data[i],buffer);
+			munmap(workers_data, sizeof(cities_list_t) * num_workers);
+			unmap_file(buffer);
 			exit(0);
 		}
 	}
@@ -404,6 +400,7 @@ int	main(){
 	initialize_units(final_data);
 	for (size_t i = 0; i < num_workers; i++) wait(NULL);
 	ssize_t cheapest_idx = merge_data(final_data, workers_data, num_workers);
+	munmap(workers_data, sizeof(cities_list_t) * num_workers);
 	get_cheapest(final_data.cities[cheapest_idx], cheapest_idx, final_data.cities[cheapest_idx].total);
 	return (0);
 }
