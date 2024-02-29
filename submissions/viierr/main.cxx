@@ -95,8 +95,8 @@ constexpr const char* products[] = {"Radish", "Celery", "Sweet_Potato", "Acorn_S
                           "Turnip", "Jicama", "Watermelon", "Yam", "Tomato", "Peach", "Cantaloupe", "Coconut", "Rutabaga", "Pineapple", 
                           "Raspberry", "Rosemary"};
 
-double* sh_cities_data[NUM_PROCESSES + 1];
-double* sh_prod_data[NUM_PROCESSES + 1];
+unsigned long* sh_cities_data[NUM_PROCESSES + 1];
+unsigned long* sh_prod_data[NUM_PROCESSES + 1];
 
 std::pair<char*, size_t> memory_map_file(const std::string& filename) {
     int fd = open(filename.c_str(), O_RDONLY);
@@ -121,7 +121,7 @@ void process_chunk(char* chunk_data, const size_t chunk_sz, int proc_id) {
     char* start = chunk_data;
     char* end = chunk_data + chunk_sz;
     while (start < end) {
-        double price = 0.0f, decimal_place = 0.1f;
+        unsigned long price = 0;
         size_t city_hash = 0, product_hash = 0;
 
         while (*start != ',') {
@@ -135,19 +135,19 @@ void process_chunk(char* chunk_data, const size_t chunk_sz, int proc_id) {
             start++;
         }
         start += 1;
-
         while (*start != '.') {
             price = price * 10 + (*start - '0');
-            *start++;
+            start++;
         }
         start += 1;
+        char* b = start;
         while (*start != '\n') {
-            price += (*start - '0') * decimal_place;
-            decimal_place /= 10.f;
-            *start++;
+            price = price * 10 + (*start - '0');
+            start++;
         }
+        if (start - b < 2)
+            price *= 10;
         start += 1;
-
         if (price < sh_cities_data[proc_id][product_hash]) {
             sh_cities_data[proc_id][product_hash] = price;
         }
@@ -155,12 +155,12 @@ void process_chunk(char* chunk_data, const size_t chunk_sz, int proc_id) {
     }
 }
 
-std::pair<std::string_view, double> get_city_results() {
-    double cheapest_city_price = std::numeric_limits<double>::max();
+std::pair<std::string_view, unsigned long> get_city_results() {
+    unsigned long cheapest_city_price = std::numeric_limits<unsigned long>::max();
     std::string_view cheapest_city;
     size_t err_c = 0;
     for (size_t i = 0; i < CITIES_MAX; i++) {
-        double city_sum = 0.f;
+        unsigned long city_sum = 0;
         for (size_t j = 0; j < NUM_PROCESSES; j++) {
             city_sum += sh_prod_data[j][city_hashes[i]];
         }
@@ -172,24 +172,17 @@ std::pair<std::string_view, double> get_city_results() {
     return {cheapest_city, cheapest_city_price};
 }
 
-std::vector<std::pair<std::string_view, double>> get_prod_results() {
-    size_t err_c = 0;
-    std::vector<std::pair<std::string_view, double>> res;
+std::vector<std::pair<std::string_view, unsigned long>> get_prod_results() {
+    std::vector<std::pair<std::string_view, unsigned long>> res;
     res.reserve(PRODUCTS_MAX);
     for (size_t i = 0; i < PRODUCTS_MAX; i++) {
-        double val = std::numeric_limits<double>::max(); 
+        unsigned long val = std::numeric_limits<unsigned long>::max(); 
         std::string_view prod = products[i];
         for (size_t j = 0; j < NUM_PROCESSES; j++) {
-            if (sh_cities_data[j][prod_hashes[i]] < 1.f || sh_cities_data[j][prod_hashes[i]] > 100.f)
-                err_c++;
-            else if (sh_cities_data[j][prod_hashes[i]] < val)
+            if (sh_cities_data[j][prod_hashes[i]] < val)
                 val = sh_cities_data[j][prod_hashes[i]];
         }
         res.push_back({prod, val});
-    }
-    if (err_c == PRODUCTS_MAX * NUM_PROCESSES) {
-        puts("invalid input");
-        exit(0);
     }
     std::sort(res.begin(), res.end(), [](const auto& a, const auto& b) {
     if (a.second != b.second)
@@ -199,14 +192,25 @@ std::vector<std::pair<std::string_view, double>> get_prod_results() {
     return res;
 }
 
+inline std::string	lu_to_str(unsigned long n)
+{
+	std::string res = std::to_string(n / 100);
+	res += ".";
+	if (n % 100 < 10) 
+    res += "0";
+	res += std::to_string(n % 100);
+	return res;
+}
+
+
 int main() {
     auto [fc, fsz] = memory_map_file("input.txt");
 
     for (size_t i = 0; i < NUM_PROCESSES; i++) {
-        sh_cities_data[i] = (double*)mmap(NULL, (MAX_PROD_IDX + 1) * sizeof(double), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-        sh_prod_data[i] = (double*)mmap(NULL, (MAX_CITY_IDX + 1) * sizeof(double), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-        memset(sh_prod_data[i], 0, (MAX_CITY_IDX + 1) * sizeof(double));
-        std::fill(sh_cities_data[i], sh_cities_data[i] + MAX_PROD_IDX + 1, std::numeric_limits<double>::max());
+        sh_cities_data[i] = (unsigned long*)mmap(NULL, (MAX_PROD_IDX + 1) * sizeof(unsigned long), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+        sh_prod_data[i] = (unsigned long*)mmap(NULL, (MAX_CITY_IDX + 1) * sizeof(unsigned long), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+        memset(sh_prod_data[i], 0, (MAX_CITY_IDX + 1) * sizeof(unsigned long));
+        std::fill(sh_cities_data[i], sh_cities_data[i] + MAX_PROD_IDX + 1, std::numeric_limits<unsigned long>::max());
     }
 
     size_t last_chunk_end = 0;
@@ -225,7 +229,7 @@ int main() {
         }
     }
 
-    for (int i = 0; i < NUM_PROCESSES; ++i) {
+    for (size_t i = 0; i < NUM_PROCESSES; ++i) {
         wait(NULL);
     }
 
@@ -233,11 +237,10 @@ int main() {
     auto prod_res = get_prod_results();
     int out = open("output.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
     dup2(out, 1);
-    printf("%s %.2f\n", city.begin(), city_price);
+    printf("%s %s\n", city.begin(), lu_to_str(city_price).c_str());
     for (size_t i = 0; i < 5; i++) {
         auto& [product, price] = prod_res[i];
-        if (price <= 100.f && price > 0.f)
-            printf("%s %.2f\n", product.begin(), price);
+        printf("%s %s\n", product.begin(), lu_to_str(price).c_str());
     }
     return 0;
 }
