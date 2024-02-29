@@ -38,88 +38,74 @@ public class Main {
 
     static String[] products = fruits_and_vegetables.toArray(String[]::new);
 
-    static Map<String, Integer> productsStrIntMap = IntStream.range(0, products.length)
+    static Map<String, Short> productsStrIntMap = IntStream.range(0, products.length)
             .boxed()
-            .collect(Collectors.toMap(i->products[i], i->i));
+            .collect(Collectors.toMap(i->products[i], Integer::shortValue));
 
 
     static Stream<String> moroccan_cities = Stream.of(
-            "Casablanca", "Rabat", "Marrakech", "Fes", "Tangier",
-            "Agadir", "Meknes", "Oujda", "Kenitra", "Tetouan",
-            "Safi", "El_Jadida", "Beni_Mellal", "Errachidia",
-            "Taza", "Essaouira", "Khouribga", "Guelmim",
-            "Jorf_El_Melha", "Laayoune", "Ksar_El_Kebir", "Sale", "Bir_Lehlou",
-            "Arfoud", "Temara", "Mohammedia", "Settat",
-            "Béni_Mellal", "Nador", "Kalaat_MGouna",
-            "Chichaoua", "Chefchaouen", "Al_Hoceima", "Taourirt",
-            "Taroudant", "Guelta_Zemmur", "Dakhla", "Laâyoune",
-            "Tiznit","Tinghir", "Ifrane", "Azrou", "Bab_Taza",
-            "Berrechid", "Sidi_Slimane", "Souk_Larbaa", "Tiflet", "Sidi_Bennour",
-            "Larache", "Tan-Tan", "Sidi_Ifni", "Goulmima",
-            "Midelt", "Figuig", "Azilal", "Jerada", "Youssoufia",
-            "Ksar_es_Seghir", "Tichka", "Ait_Melloul",
-            "Layoune", "Ben_guerir", "Ouarzazate", "Inezgane",
-            "Oujda_Angad", "Sefrou", "Aourir",
-            "Oulad_Teima", "Tichla", "Bni_Hadifa",
-            "Fquih_Ben_Salah", "Guercif", "Bouarfa", "Demnate",
-            "Ahfir", "Berkane", "Akhfenir", "Boulemane",
-            "Khenifra", "Bir_Anzerane", "Assa", "Smara", "Boujdour",
-            "Tarfaya", "Ouazzane", "Zagora", "had_soualem",
-            "Saidia", "Bab_Berred", "Midar", "Moulay_Bousselham",
-            "Khemisset", "Guerguerat", "Asilah", "Sidi_Bouzid", "Tafraout",
-            "Imzouren", "Zemamra", "Sidi_Kacem", "Drarga", "Skhirate")
+                    "Casablanca", "Rabat", "Marrakech", "Fes", "Tangier",
+                    "Agadir", "Meknes", "Oujda", "Kenitra", "Tetouan",
+                    "Safi", "El_Jadida", "Beni_Mellal", "Errachidia",
+                    "Taza", "Essaouira", "Khouribga", "Guelmim",
+                    "Jorf_El_Melha", "Laayoune", "Ksar_El_Kebir", "Sale", "Bir_Lehlou",
+                    "Arfoud", "Temara", "Mohammedia", "Settat",
+                    "Béni_Mellal", "Nador", "Kalaat_MGouna",
+                    "Chichaoua", "Chefchaouen", "Al_Hoceima", "Taourirt",
+                    "Taroudant", "Guelta_Zemmur", "Dakhla", "Laâyoune",
+                    "Tiznit","Tinghir", "Ifrane", "Azrou", "Bab_Taza",
+                    "Berrechid", "Sidi_Slimane", "Souk_Larbaa", "Tiflet", "Sidi_Bennour",
+                    "Larache", "Tan-Tan", "Sidi_Ifni", "Goulmima",
+                    "Midelt", "Figuig", "Azilal", "Jerada", "Youssoufia",
+                    "Ksar_es_Seghir", "Tichka", "Ait_Melloul",
+                    "Layoune", "Ben_guerir", "Ouarzazate", "Inezgane",
+                    "Oujda_Angad", "Sefrou", "Aourir",
+                    "Oulad_Teima", "Tichla", "Bni_Hadifa",
+                    "Fquih_Ben_Salah", "Guercif", "Bouarfa", "Demnate",
+                    "Ahfir", "Berkane", "Akhfenir", "Boulemane",
+                    "Khenifra", "Bir_Anzerane", "Assa", "Smara", "Boujdour",
+                    "Tarfaya", "Ouazzane", "Zagora", "had_soualem",
+                    "Saidia", "Bab_Berred", "Midar", "Moulay_Bousselham",
+                    "Khemisset", "Guerguerat", "Asilah", "Sidi_Bouzid", "Tafraout",
+                    "Imzouren", "Zemamra", "Sidi_Kacem", "Drarga", "Skhirate")
             .distinct().sorted();
 
     static String[] cities_array = moroccan_cities.toArray(String[]::new);
 
-    static Map<String, Integer> citiesStrIntMap = IntStream.range(0, cities_array.length)
+    static Map<String, Short> citiesStrIntMap = IntStream.range(0, cities_array.length)
             .boxed()
-            .collect(Collectors.toMap(i->cities_array[i], i->i));
+            .collect(Collectors.toMap(i->cities_array[i], Integer::shortValue));
 
     public static void main(String[] args) throws IOException {
-        long start = System.nanoTime();
         try (Stream<String> lines = Files.lines(Paths.get("input.txt"))) {
 
-            long start1 = System.nanoTime();
-            List<int[]> cityProducts = lines.parallel().map(line-> {
+            List<short[]> cityProducts = lines.parallel().map(line-> {
                 String[] l = line.split(",");
-                return new int[]{citiesStrIntMap.get(l[0]), productsStrIntMap.get(l[1]), (int) (Double.parseDouble(l[2])*100)};
+                return new short[]{citiesStrIntMap.get(l[0]), productsStrIntMap.get(l[1]), (short) (Double.parseDouble(l[2])*100)};
             }).toList();
-            long end1 = System.nanoTime();
-            System.out.println(end1-start1);
 
 
 
-            long start2 = System.nanoTime();
-            Map.Entry<Integer, LongSummaryStatistics> cheapestCity = cityProducts.stream().parallel().collect(Collectors.groupingByConcurrent(e->e[0], Collectors.summarizingLong(e->e[2])))
+            Map.Entry<Short, LongSummaryStatistics> cheapestCity = cityProducts.stream().parallel().collect(Collectors.groupingByConcurrent(e->e[0], Collectors.summarizingLong(e->e[2])))
                     .entrySet().stream()
                     .parallel()
                     .min(Comparator.comparing(e->e.getValue().getSum()))
                     .orElse(null);
-            long end2 = System.nanoTime();
-            System.out.println(end2-start2);
 
 
 
-            long start4 = System.nanoTime();
-            String cheapestProducts2 = cityProducts.stream().parallel().collect(Collectors.groupingByConcurrent(e->e[1], Collectors.summarizingLong(e->e[2])))
+            String cheapestProducts = cityProducts.stream().parallel().collect(Collectors.groupingByConcurrent(e->e[1], Collectors.summarizingLong(e->e[2])))
                     .entrySet().stream()
                     .sorted(Comparator.comparing(e->e.getValue().getMin()))
                     .limit(5).map(e->products[e.getKey()]+" "+String.format("%.2f", (long)e.getValue().getMin()/100.0)).collect(Collectors.joining("\n"));
-            long end4 = System.nanoTime();
-            System.out.println(end4-start4);
 
-            //printing to file
             assert cheapestCity != null;
             Files.write(Paths.get("output.txt"), List.of(
                     cities_array[cheapestCity.getKey()] + " " + String.format("%.2f", (long)cheapestCity.getValue().getSum()/100.0),
-                    cheapestProducts2
+                    cheapestProducts
             ));
 
         }
-        long end = System.nanoTime();
-        System.out.println(end-start);
-
     }
 
 }
