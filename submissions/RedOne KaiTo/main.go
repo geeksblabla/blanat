@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	inputFile  = "input2.txt"
+	inputFile  = "input.txt"
 	outputFile = "output.txt"
 	numWorkers = 20
 )
