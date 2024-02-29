@@ -11,15 +11,15 @@
 #include <vector>
 
 
-//========================================citys hash genrated in tool gperf========================================
+//========================================citys hash genrated by tool gperf========================================
 struct stringIndexPair {
     const char* string;
     unsigned int index;
 };
 
-static unsigned int hash_city (const char *str, unsigned int len)
+static unsigned int hash_city (const char *str, int len)
 {
-  static unsigned short asso_values[] =
+  static short asso_values[] =
     {307, 307, 307, 307, 307, 307, 307, 307, 307, 307,307, 307, 307, 307, 307, 307, 307, 307, 307, 307,307,
      307, 307, 307, 307, 307, 307, 307, 307, 307,307, 307, 307, 307, 307, 307, 307, 307, 307, 307,307, 307, 
      307, 307, 307, 307, 307, 307, 307, 307,307, 307, 307, 307, 307, 307, 307, 307, 307, 307,307, 307, 307, 
@@ -33,7 +33,7 @@ static unsigned int hash_city (const char *str, unsigned int len)
      307, 307, 307, 307, 307,307, 307, 307, 307, 307, 307, 307, 307, 307, 307,307, 307, 307, 307, 307, 307, 307, 
      307, 307, 307,307, 307, 307, 307, 307, 307, 307, 307, 307, 307,307, 307, 307, 307, 307, 307, 307
     };
-  unsigned int hval = len;
+  int hval = len;
 
   switch (hval)
     {
@@ -51,7 +51,7 @@ static unsigned int hash_city (const char *str, unsigned int len)
   return hval;
 }
 
-struct stringIndexPair *find_index_city (const char *str, unsigned int len)
+struct stringIndexPair *find_index_city (const char *str, int len)
 {
   static struct stringIndexPair wordlist[] =
     {{""}, {""}, {""}, {""}, {""}, {""},{"Drarga", 18},{""},{"Ouazzane", 55},{""},{"Ouarzazate", 79},{""}, 
@@ -77,25 +77,14 @@ struct stringIndexPair *find_index_city (const char *str, unsigned int len)
     {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},{""}, {""}, {""}, {""}, {""}, {""}, {""},{"Figuig", 19}
     };
 
-  if (len <= 17 && len >= 3)
-    {
-      unsigned int key = hash_city (str, len);
-
-      if (key <= 306)
-        {
-          register const char *s = wordlist[key].string;
-
-          if (*str == *s)
-            return &wordlist[key];
-        }
-    }
-  return 0;
+    int key = hash_city (str, len);
+  return &wordlist[key];
 }
 
 
-//========================================products hash genrated in tool gperf========================================
+//========================================products hash genrated by tool gperf========================================
 
-static unsigned int hash_product (const char *str, unsigned int len)
+static int hash_product (const char *str, int len)
 {
   static unsigned char asso_values[] =
     {140, 140, 140, 140, 140, 140, 140, 140, 140, 140,140, 140, 140, 140, 140, 140, 140, 140, 140, 140,140, 140, 140, 140, 140, 140, 140,
@@ -112,7 +101,7 @@ static unsigned int hash_product (const char *str, unsigned int len)
   return len + asso_values[(unsigned char)str[2]] + asso_values[(unsigned char)str[0]] + asso_values[(unsigned char)str[len - 1]];
 }
 
-struct stringIndexPair *find_index_product (const char *str, unsigned int len)
+struct stringIndexPair *find_index_product (const char *str, int len)
 {
   static struct stringIndexPair wordlist[] =
     {{""}, {""}, {""}, {""}, {""}, {""},{"Potato", 35},{"Cabbage", 41},{""},{"Pear", 10},{"Clementine", 75},{"Carrot", 24},
@@ -130,18 +119,8 @@ struct stringIndexPair *find_index_product (const char *str, unsigned int len)
     {""}, {""}, {""},{"Jicama", 31},{""}, {""},{"Jackfruit", 67},{""}, {""}, {""},{"Fig", 0},{""}, {""}, {""}, {""}, {""},{"Dill", 4}
     };
 
-  if (len <= 16 && len >= 3)
-    {
-      unsigned int key = hash_product (str, len);
-
-      if (key <= 139)
-        {
-          const char *s = wordlist[key].string;
-          if (*str == *s)
-            return &wordlist[key];
-        }
-    }
-  return 0;
+    int key = hash_product (str, len);
+  return &wordlist[key];
 }
 
 unsigned int num_threads = std::thread::hardware_concurrency() * 2;
@@ -190,23 +169,6 @@ struct mqadem
     struct thread_data * data2;
 };
 
-
-
-int binary_search(unsigned long long *arr, int low, int high, unsigned long target) {
-    while (low <= high) {
-        int mid = (low + high) / 2;
-
-        if (arr[mid] == target) {
-            return mid;
-        }if (arr[mid] < target) {
-            low = mid + 1;
-            continue;
-        }
-        high = mid - 1;
-    }
-
-    return -1; // Target not found
-}
 void save_data(struct thread_data * data, char *city, char *product, int len_city, int len_product, unsigned long price)
 {
     struct stringIndexPair * _hash_city = find_index_city(city, len_city);
