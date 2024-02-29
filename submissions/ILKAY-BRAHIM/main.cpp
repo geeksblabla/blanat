@@ -10,30 +10,6 @@
 #include <cstdio>
 #include <vector>
 
-struct data_chunk
-{
-    int id_city;
-    int id_product[94];
-    unsigned long price[102];
-    unsigned long total;
-};
-
-
-struct thread_data
-{
-    int procs_id;
-    const char * file_content;
-    unsigned long file_size;
-    int num_procs;
-    struct data_chunk **data;
-};
-
-struct mqadem
-{
-    struct thread_data * data1;
-    struct thread_data * data2;
-};
-
 
 //========================================citys hash genrated by tool gperf========================================
 struct stringIndexPair {
@@ -168,30 +144,56 @@ char *product_names[94] = {"Fig","Yam","Beet","Date","Dill","Kale","Kiwi","Lime"
 "Watercress","Watermelon","Bell_Pepper","Cactus_Pear","Cauliflower","Green_Beans","Pomegranate","Acorn_Squash","Dragon_Fruit","Sweet_Potato","Butternut_Squash",
 "Brussels_Sprouts","Passion_Fruit","Collard_Greens","Squash_Blossom",};
 
-void save_data(struct thread_data *data, char *city, char *product, int len_city, int len_product, unsigned long long price)
+struct data_chunk
 {
-    struct stringIndexPair *city_index = find_index_city(city, len_city);
-    struct stringIndexPair *product_index = find_index_product(product, len_product);
-    int index_city = city_index->index;
-    int index_product = product_index->index;
-    if(data->data[index_city]->total == 0)
+    char *city;
+    char *product[102];
+    unsigned long price[102];
+    unsigned long total;
+};
+
+struct thread_data
+{
+    int conter_product;
+    int thread_id;
+    const char * file_content;
+    unsigned long file_size;
+    int num_threads;
+    int target;
+    struct data_chunk *data[102];
+};
+
+struct mqadem
+{
+    struct thread_data * data1;
+    struct thread_data * data2;
+};
+
+void save_data(struct thread_data * data, char *city, char *product, int len_city, int len_product, unsigned long price)
+{
+    struct stringIndexPair * _hash_city = find_index_city(city, len_city);
+    struct stringIndexPair * _hash_product = find_index_product(product, len_product);
+    int index_city = _hash_city->index;
+    int index_product = _hash_product->index;
+    if(data->data[index_city] == NULL)
     {
+        data->data[index_city] = (struct data_chunk *)malloc(sizeof(struct data_chunk));
         for(int i = 0; i < 102; i++)
         {
-            data->data[index_city]->id_product[i] = 0;
+            data->data[index_city]->product[i] = NULL;
             data->data[index_city]->price[i] = 0;
         }
-        data->data[index_city]->id_city = index_city;
-        data->data[index_city]->id_product[index_product] = index_product;
-        data->data[index_city]->price[index_product] = price;
+        data->data[index_city]->city = city_names[index_city];
         data->data[index_city]->total = price;
+        data->data[index_city]->product[index_product] = product_names[index_product];
+        data->data[index_city]->price[index_product] = price;
     }
     else
     {
         data->data[index_city]->total += price;
-        if(data->data[index_city]->id_product[index_product] == 0)
+        if(data->data[index_city]->price[index_product] == 0)
         {
-            data->data[index_city]->id_product[index_product] = index_product;
+            data->data[index_city]->product[index_product] = product_names[index_product];
             data->data[index_city]->price[index_product] = price;
         }
         else
@@ -200,34 +202,34 @@ void save_data(struct thread_data *data, char *city, char *product, int len_city
                 data->data[index_city]->price[index_product] = price;
         }
     }
-    // printf ("%d %d %d %lu\n", data->data[index_city]->id_city,index_city, data->data[index_city]->id_product[index_product], data->data[index_city]->price[index_product]);
-
 }
 
-void read_file(struct thread_data *data)
+void * read_file(void * threadarg)
 {
-    int procs_id = data->procs_id;
-    const char *file_content = data->file_content;
-    unsigned long file_size = data->file_size;
-    int num_procs = data->num_procs;
-    unsigned long chank_size = file_size / num_procs;
-    unsigned long start = procs_id * chank_size;
-    unsigned long end = (procs_id + 1) * chank_size;
-    if(procs_id == num_procs - 1)
+    struct thread_data * my_data;
+    my_data = (struct thread_data *) threadarg;
+    int thread_id = my_data->thread_id;
+    const char * file_content = my_data->file_content;
+    unsigned long file_size = my_data->file_size;
+    unsigned long num_threads = my_data->num_threads;
+    unsigned long chunk_size = file_size / num_threads;
+    unsigned long start = thread_id * chunk_size;
+    unsigned long end = (thread_id + 1) * chunk_size;
+    if (thread_id == num_threads - 1)
         end = file_size;
     else
         for(;file_content[end] != '\n'; end++);
-    if(procs_id != 0)
+    if(thread_id != 0)
     {
         for(;file_content[start] != '\n'; start++);
         start++;
     }
-    unsigned long long value = 0;
+    unsigned long long  value;
     char line[50] = {0};
+    int i = 0;
     unsigned long long offset[4] = {0, '0', 11 * '0', 111 * '0'};
     unsigned long long multi[3][4] = {{0, 1, 10, 100},{0, 0, 1,  10},{0, 0, 0,  1},};
-    int i = 0;
-    for(;start <= end; start++)
+    for(;start <= end;start++)
     {
         value = 0;
         if(file_content[start] == ',')
@@ -240,17 +242,17 @@ void read_file(struct thread_data *data)
             line[i] = '\0';
             i = 0;
             char *city = line;
-            char *product =(char *)memchr(line, '\0', 50);
+            char *product =(char *)rawmemchr(line, '\0');
             product++;
-            char *price = (char *)memchr(product, '\0', 50);
+            char *price = (char *)rawmemchr(product, '\0');
             price++;
-            char *end = (char *)memchr(price, '\0', 50);
+            char *end = (char *)rawmemchr(price, '\0');
             int len_city = product - city - 1;
             int len_product = price - product - 1;
             int len_price = end - price;
-            char *part_decemal = (char *)memchr(price, '.', len_price);
+            char *part_decemal = (char *)rawmemchr(price, '.');
             int len_real = part_decemal - price;
-            char *part_fractinal = (char *)memchr(part_decemal, '\0', len_price);
+            char *part_fractinal = (char *)rawmemchr(part_decemal, '\0');
             int len_fractinal = part_fractinal - part_decemal - 1;
             part_decemal++;
             unsigned long long real = (multi[0][len_real] * price[0] + multi[1][len_real] * price[1] + multi[2][len_real] * price[2] - offset[len_real]);
@@ -258,7 +260,7 @@ void read_file(struct thread_data *data)
             if(len_fractinal == 1)
                 fractinal *= 10;
             value = real * 100 + fractinal;
-            save_data(data, city, product, len_city, len_product, value);
+            save_data(my_data, city, product, len_city, len_product, value);
         }
         else
         {
@@ -266,8 +268,8 @@ void read_file(struct thread_data *data)
             i++;
         }
     }
+    pthread_exit(NULL);
 }
-
 
 void *merge(void *arg)
 {
@@ -277,21 +279,21 @@ void *merge(void *arg)
     struct thread_data * data2 = my_data->data2;
     for(int i = 0; i < 101; i++)
     {
-        if(data1->data[i]->total == 0)
+        if(data1->data[i] == NULL)
         {
             data1->data[i] = data2->data[i];
             continue;
         }
-        if(data2->data[i]->total == 0)
+        if(data2->data[i] == NULL)
             continue;
         data1->data[i]->total += data2->data[i]->total;
         for(int j = 0; j < 94; j++)
         {
-            if(data2->data[i]->id_product[j] == 0)
+            if(data2->data[i]->product[j] == NULL)
                 continue;
-            if(data1->data[i]->id_product[j] == 0)
+            if(data1->data[i]->product[j] == NULL)
             {
-                data1->data[i]->id_product[j] = data2->data[i]->id_product[j];
+                data1->data[i]->product[j] = data2->data[i]->product[j];
                 data1->data[i]->price[j] = data2->data[i]->price[j];
             }
             else
@@ -326,7 +328,7 @@ void the_cheapest_product(struct data_chunk * data, int fd, FILE *out)
             }
             if(min == data->price[i])
             {
-                if(strcmp(product_names[index], product_names[i]) > 0)
+                if(strcmp(data->product[index], data->product[i]) > 0)
                 {
                     min = data->price[i];
                     index = i;
@@ -338,9 +340,10 @@ void the_cheapest_product(struct data_chunk * data, int fd, FILE *out)
     data->price[index] = 200;
     unsigned long fractinal = min % 100;
     if(fractinal < 10)
-        fprintf(out, "%s %lu.0%lu", product_names[index], min / 100, fractinal);
+        fprintf(out, "%s %lu.0%lu", data->product[index], min / 100, fractinal);
     else
-        fprintf(out, "%s %lu.%lu", product_names[index], min / 100, fractinal);
+        fprintf(out, "%s %lu.%lu", data->product[index], min / 100, fractinal);
+    
 }
 
 void the_cheapest_city(struct data_chunk * data[102])
@@ -367,7 +370,7 @@ void the_cheapest_city(struct data_chunk * data[102])
             }
         }
     }
-    fprintf(out, "%s ", city_names[index]);
+    fprintf(out, "%s ", data[index]->city);
     if(min %100 < 10)
         fprintf(out, "%lu.0%lu\n", min / 100, min % 100);
     else
@@ -385,50 +388,42 @@ int main()
 {
     int fd = open("input.txt", O_RDONLY);
     pthread_t threads[num_threads];
+    struct thread_data td[num_threads];
     off_t file_size = lseek(fd, 0, SEEK_END);
     const char * file_content = (const char *)(mmap(NULL, file_size, PROT_READ, MAP_PRIVATE, fd, 0));
-    unsigned long num_procs = std::thread::hardware_concurrency() * 2;
-    struct thread_data *procs_data = (struct thread_data *)mmap(NULL, sizeof(struct thread_data) * num_procs, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-    pid_t pids[num_procs];
-    for(int i = 0; i < num_procs; i++)
+    // madvise(file_content, file_size, MADV_SEQUENTIAL);
+    for(int i = 0; i < num_threads; i++)
     {
-        procs_data[i].procs_id = i;
-        procs_data[i].file_content = file_content;
-        procs_data[i].file_size = file_size;
-        procs_data[i].num_procs = num_procs;
-        procs_data[i].data = (struct data_chunk **)mmap(NULL, sizeof(struct data_chunk *) * 102, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+        td[i].thread_id = i;
+        td[i].file_content = file_content;
+        td[i].file_size = file_size;
+        td[i].num_threads = num_threads;
         for(int j = 0; j < 102; j++)
         {
-            procs_data[i].data[j] = (struct data_chunk *)mmap(NULL, sizeof(struct data_chunk), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-            memset(procs_data[i].data[j], 0, sizeof(struct data_chunk));
+            td[i].data[j] = NULL;
         }
-        pids[i] = fork();
-        if(pids[i] == 0)
-        {
-            read_file(&procs_data[i]);
-            exit(0);
-        }
+        pthread_create(&threads[i], NULL, read_file, (void *)&td[i]);
     }
-    for(int i = 0; i < num_procs; i++)
+    for(int i = 0; i < num_threads; i++)
     {
-        waitpid(pids[i], NULL, 0);
+        pthread_join(threads[i], NULL);
     }
     munmap((void *)file_content, file_size);
     std::vector<int> vec;
     int start = 2;
-    int thre = num_procs;
-    while(start <= num_procs)
+    int thre = num_threads;
+    while(start <= num_threads)
     {
-        struct mqadem data[num_procs/start];   
+        struct mqadem data[num_threads/start];   
         int first = 0;
         int second = first + 1 * (start / 2);
         int i = 0;
-        while(second < num_procs)
+        while(second < num_threads)
         {
-            if (second + start / 2 > num_procs)
+            if (second + start / 2 > num_threads)
                 break;
-            data[i].data1 = &procs_data[first];
-            data[i].data2 = &procs_data[second];
+            data[i].data1 = &td[first];
+            data[i].data2 = &td[second];
             pthread_create(&threads[i], NULL, merge, (void *)&data[i]);
             first += start;
             second = first + 1 * (start / 2);
@@ -448,12 +443,12 @@ int main()
     for(int i = 0; i < vec.size(); i++)
     {
         struct mqadem data;
-        data.data1 = &procs_data[0];
-        data.data2 = &procs_data[vec[i]];
+        data.data1 = &td[0];
+        data.data2 = &td[vec[i]];
         pthread_create(&threads[i], NULL, merge, (void *)&data);
         pthread_join(threads[i], NULL);
     }
-    the_cheapest_city(procs_data[0].data);
+    the_cheapest_city(td[0].data);
     close(fd);
     return 0;
 }
