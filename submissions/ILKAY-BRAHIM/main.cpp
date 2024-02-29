@@ -10,27 +10,120 @@
 #include <cstdio>
 #include <vector>
 
+
+//========================================citys hash genrated by tool gperf========================================
+struct stringIndexPair {
+    const char* string;
+    unsigned int index;
+};
+
+static unsigned int hash_city (const char *str, int len)
+{
+  static short asso_values[] =
+    {307, 307, 307, 307, 307, 307, 307, 307, 307, 307,307, 307, 307, 307, 307, 307, 307, 307, 307, 307,307,
+     307, 307, 307, 307, 307, 307, 307, 307, 307,307, 307, 307, 307, 307, 307, 307, 307, 307, 307,307, 307, 
+     307, 307, 307, 307, 307, 307, 307, 307,307, 307, 307, 307, 307, 307, 307, 307, 307, 307,307, 307, 307, 
+     307, 307, 307, 105,  50, 307,  25,307, 307, 307,  65, 307,  35,   5,   0,   5, 307,307, 307, 307,  25, 
+     307,  25, 307, 307, 307, 307,307, 307, 307, 307, 307,  65,   0,   0,  40,  95, 30,   5,  25, 120,   0,   
+     5,  55,  70,  60,  30, 10,  15,   5,  10,   0,  20,  30,   0,  60, 307,307,  10,  20,   0, 307, 307, 307, 
+     307, 307, 307,307, 307, 307, 307, 307, 307, 307, 307, 307, 307,307, 307, 307, 307, 307, 307, 307, 307, 307, 
+     307,307, 307, 307, 307, 307, 307, 307, 307, 307, 307,307, 307, 307, 307, 307, 307, 307, 307, 307,   0,307, 
+     307, 307, 307, 307, 307, 307, 307, 307, 307,307, 307, 307, 307, 307, 307, 307, 307, 307, 307,307, 307, 307, 
+     307, 307,  15, 307, 307, 307, 307,307, 307, 307, 307, 307, 307, 307, 307, 307, 307,307, 307, 307, 307, 307, 
+     307, 307, 307, 307, 307,307, 307, 307, 307, 307, 307, 307, 307, 307, 307,307, 307, 307, 307, 307, 307, 307, 
+     307, 307, 307,307, 307, 307, 307, 307, 307, 307, 307, 307, 307,307, 307, 307, 307, 307, 307, 307
+    };
+  int hval = len;
+
+  switch (hval)
+    {
+      default:
+        hval += asso_values[(unsigned char)str[5]];
+      case 5:
+        hval += asso_values[(unsigned char)str[4]+1];
+      case 4:
+      case 3:
+        hval += asso_values[(unsigned char)str[2]];
+      case 2:
+        hval += asso_values[(unsigned char)str[1]];
+        break;
+    }
+  return hval;
+}
+
+struct stringIndexPair *find_index_city (const char *str, int len)
+{
+  static struct stringIndexPair wordlist[] =
+    {{""}, {""}, {""}, {""}, {""}, {""},{"Drarga", 18},{""},{"Ouazzane", 55},{""},{"Ouarzazate", 79},{""}, 
+    {""},{"Laayoune", 54},{""},{"Guerguerat", 77},{"Jerada", 21},{""},{"Guelta_Zemmur", 96},{"Chichaoua", 61},
+    {"Bir_Lehlou", 73},{""},{"Kenitra", 38},{"Inezgane", 52},{"Taza", 4},{"Ben_guerir", 72},{"Beni_Mellal", 83},
+    {"Guelmim", 36},{"Fes", 0},{"Safi", 2},{""},{"Souk_Larbaa", 88},{"Tinghir", 45},{""}, {""}, {""}, {""},{"Larache", 39},
+    {"Goulmima", 50},{"Ksar_es_Seghir", 98},{"Errachidia", 76},{"Sefrou", 25},{"Tan-Tan", 41},{"Boujdour", 49},{"Assa", 1},
+    {"Rabat", 10},{"Chefchaouen", 84},{"Guercif", 37},{"Taourirt", 58},{"Khouribga", 65},{"Ahfir", 5},{"Ifrane", 20},{"Zemamra", 46},
+    {"Jorf_El_Melha", 97},{"Essaouira", 63},{"Nador", 8},{"Ait_Melloul", 82},{"Tarfaya", 43},{"Ksar_El_Kebir", 100},{"La\303\242youne", 66},
+    {"Midar", 7},{"Temara", 27},{"Berkane", 33},{""},{"Sale", 3},{"Mohammedia", 78},{"Saidia", 24},{"Bouarfa", 34},{""}, {""},{"Youssoufia", 81},
+    {"Asilah", 15},{"Sidi_Slimane", 94},{"Bab_Taza", 48},{""},{"Smara", 11},{"Aourir", 13},{"Tangier", 42},{""},{"Boulemane", 60},{"Sidi_Kacem", 80},
+    {""},{"Moulay_Bousselham", 95},{""}, {""},{"Azrou", 6},{"had_soualem", 89},{"Layoune", 40},{"Tafraout", 57},{"Khemisset", 64},{"Bni_Hadifa", 74},
+    {"Tiflet", 30},{""},{"Khenifra", 53},{""},{"Fquih_Ben_Salah", 92},{""}, {""},{"Skhirate", 56},{"Taroudant", 69},{"Oujda", 9},{"Midelt", 23},
+    {"Tetouan", 44},{""}, {""},{"Bab_Berred", 71},{"Dakhla", 17},{""}, {""},{"Sidi_Ifni", 68},{""},{"Settat", 26},{"Demnate", 35},{"Akhfenir", 47},{""}, 
+    {""},{"Tiznit", 31},{""},{"Imzouren", 51},{"Marrakech", 67},{""},{"Arfoud", 14},{""}, {""}, {""}, {""},{"Meknes", 22},{""}, {""}, {""}, {""},{"Azilal", 16},
+    {"Bir_Anzerane", 91},{""},{"Berrechid", 59},{""},{"Tichla", 29},{""}, {""}, {""}, {""},{"Oulad_Teima", 86},{""},{"Kalaat_MGouna", 99},{""}, {""},{"Zagora", 32},
+    {"B\303\251ni_Mellal", 90},{""}, {""}, {""},{"Sidi_Bouzid", 87},{"Sidi_Bennour", 93},{""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},{""}, {""}, {""}, {""},
+    {"Tichka", 28},{""}, {""}, {""}, {""},{"Oujda_Angad", 85},{""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},{"Agadir", 12},{""}, {""}, {""},{"Casablanca", 75},{""}, 
+    {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},{""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},{"El_Jadida", 62},{""}, {""}, {""}, {""}, {""}, {""}, 
+    {""}, {""}, {""},{""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},{""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},{""}, {""}, {""},{"Al_Hoceima", 70},
+    {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},{""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},{""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
+    {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},{""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},{""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
+    {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},{""}, {""}, {""}, {""}, {""}, {""}, {""},{"Figuig", 19}
+    };
+
+    int key = hash_city (str, len);
+  return &wordlist[key];
+}
+
+
+//========================================products hash genrated by tool gperf========================================
+
+static int hash_product (const char *str, int len)
+{
+  static unsigned char asso_values[] =
+    {140, 140, 140, 140, 140, 140, 140, 140, 140, 140,140, 140, 140, 140, 140, 140, 140, 140, 140, 140,140, 140, 140, 140, 140, 140, 140,
+     140, 140, 140,140, 140, 140, 140, 140, 140, 140, 140, 140, 140,140, 140, 140, 140, 140, 140, 140, 140, 140, 140,140, 140, 140, 140,
+      140, 140, 140, 140, 140, 140,140, 140, 140, 140, 140,  40,  40,   0,  75,   0,  0,  15,  20, 140,  55,  50,  20,  30,  35,  95,  0,
+       140,  10,  25,  65, 140, 140,  20, 140,   5,  5, 140, 140, 140, 140, 140, 140,   0,   0,  65, 60,   0, 140,  65,  40,   5,  10,   0,
+         30,  50,  5,   0,  30, 140,   5,  20,   0,   0, 140,  55,140,  20, 140, 140, 140, 140, 140, 140, 140, 140,140, 140, 140, 140, 140,
+          140, 140, 140, 140, 140,140, 140, 140, 140, 140, 140, 140, 140, 140, 140,140, 140, 140, 140, 140, 140, 140, 140, 140, 140,140, 140,
+           140, 140, 140, 140, 140, 140, 140, 140,140, 140, 140, 140, 140, 140, 140, 140, 140, 140,140, 140, 140, 140, 140, 140, 140, 140, 140,
+            140,140, 140, 140, 140, 140, 140, 140, 140, 140, 140,140, 140, 140, 140, 140, 140, 140, 140, 140, 140,140, 140, 140, 140, 140, 140,
+             140, 140, 140, 140,140, 140, 140, 140, 140, 140, 140, 140, 140, 140,140, 140, 140, 140, 140, 140, 140, 140, 140, 140,140, 140, 140,
+              140, 140, 140, 140, 140, 140, 140,140, 140, 140, 140, 140, 140
+    };
+  return len + asso_values[(unsigned char)str[2]] + asso_values[(unsigned char)str[0]] + asso_values[(unsigned char)str[len - 1]];
+}
+
+struct stringIndexPair *find_index_product (const char *str, int len)
+{
+  static struct stringIndexPair wordlist[] =
+    {{""}, {""}, {""}, {""}, {""}, {""},{"Potato", 35},{"Cabbage", 41},{""},{"Pear", 10},{"Clementine", 75},{"Carrot", 24},
+    {"Currant", 43},{"Plantain", 59},{"Pineapple", 70},{"Cantaloupe", 74},{"Cauliflower", 83},{"Rhubarb", 49},{"Rutabaga", 61},
+    {"Persimmon", 69},{"Guava", 17},{""}, {""}, {""},{"Peas", 11},{"Grapefruit", 77},{"Cherry", 26},{"Lettuce", 44},{""},{"Cranberry", 66},
+    {""},{"Ginger", 29},{"Parsley", 46},{"Passion_Fruit", 91},{"Starfruit", 72},{"Watermelon", 80},{"Papaya", 34},{"Sweet_Potato", 88},
+    {"Cilantro", 54},{"Mint", 8},{"Mango", 19},{"Grapes", 30},{"Parsnip", 47},{""},{"Beet", 2},{"Peach", 21},{"Green_Beans", 84},{"Avocado", 40},
+    {""},{"Artichoke", 63},{"Watercress", 79},{"Banana", 23},{"Apricot", 39},{"Broccoli", 53},{"Plum", 12},{"Goji_Berry", 76},{"Celery", 25},{""},
+    {"Rosemary", 60},{"Raspberry", 71},{"Strawberry", 78},{"Pomegranate", 85},{"Pumpkin", 48},{""},{"Collard_Greens", 92},{"Chard", 16},{"Endive", 27},
+    {""},{"Bok_Choy", 52},{"Blueberry", 65},{"Blackberry", 73},{""},{"Coconut", 42},{"Eggplant", 56},{"Lime", 7},{"Apple", 14},{"Brussels_Sprouts", 90},
+    {"Spinach", 51},{"Cucumber", 55},{"Date", 3},{"Lemon", 18},{"Cactus_Pear", 82},{"Salsify", 50},{"Zucchini", 62},{"Kale", 5},{""},{"Bell_Pepper", 81},
+    {"Dragon_Fruit", 87},{"Honeydew", 57},{"Squash_Blossom", 93},{"Thyme", 22},{"Garlic", 28},{"Acorn_Squash", 86},{""},{"Sage", 13},{"Basil", 15},
+    {"Butternut_Squash", 89},{""}, {""},{"Asparagus", 64},{""},{"Orange", 33},{"Oregano", 45},{"Kohlrabi", 58},{"Okra", 9},{""},{"Turnip", 38},{""},
+    {"Yam", 1},{"Nectarine", 68},{"Onion", 20},{"Kiwano", 32},{""}, {""},{"Kiwi", 6},{""},{"Radish", 36},{""}, {""}, {""}, {""},{"Tomato", 37},{""}, 
+    {""}, {""}, {""},{"Jicama", 31},{""}, {""},{"Jackfruit", 67},{""}, {""}, {""},{"Fig", 0},{""}, {""}, {""}, {""}, {""},{"Dill", 4}
+    };
+
+    int key = hash_product (str, len);
+  return &wordlist[key];
+}
+
 unsigned int num_threads = std::thread::hardware_concurrency() * 2;
-
-unsigned long long index_cityy[101] = {70516,2050592,2569137,2569319,2599540,63228520,63776479,74338393,75024020,76548769,78715750,79996310,1959006674,
-1967004116,1969325289,1970334684,1976799335,2039654831,2055066233,2104194543,2187620067,2215325383,2301016841,2304493957,2469028577,2472646948,2473065509,
-2501468372,2504871056,2504871087,2504964106,2505561972,2669383902,61575352956,61864133204,63345832272,66458973180,66459142309,69559150798,70335576988,70342476193,
-77430348597,77432096784,77435753992,77552404246,77661129155,82870537437,1886357559898,1904816379216,1917796033322,2055361213007,2108757596927,2109053614027,
-2158742802418,2179938725930,2280227873885,2381587759577,2400175897318,2400436830828,59174117967394,59451735135980,60101132594851,61907367979025,62118378258070,
-66920998634291,66930110701794,67431728718338,68445865463980,73770627028988,74416035097006,1813368543470432,1830528028577182,1834270817764056,1837791644690647,
-1841808368017819,1857438062272225,1924788966779924,1979884434209161,2133472435601810,2191291887131382,2286889439586129,2451121714680089,56153619371702011,
-56862662231455076,57753855147144453,67937317046695999,67938942970720662,70893572382993329,71066764562071602,87893993349480824,1624758695981406047,
-1766117476405423410,1876134001560909403,2197700743579685957,2197700758862991511,2664128815900080819,3642356851986173317,5863372202564488027,5996469818771313383,
-6290269328787513140,6739052488524054943,};
-
-unsigned long long  index_productt[94] = {70628,88645,2066514,2122702,2130149,2330991,2339024,2368501,2398338,2459947,2483462,2483463,2490804,2569164,63476538,
-63955991,65071022,69152510,73304787,74109858,76339625,76986961,80793789,1982479237,2011243939,2014746882,2017321401,2080082493,2125754574,2133018664,
-2140951720,2218572881,2247797897,2369983054,2383347274,2396395591,2440255593,2510703658,2516405892,61002712322,61171535651,62333295361,62735427221,
-62921131605,70452523806,73472954845,73886136526,73886138563,74454011720,75863801870,76543103591,76969613540,1917498593072,1920280274733,1939717953918,
-1950128758662,1992838803878,2082667310875,2165039631422,2299741693723,2357936237770,2363285866857,2582902117879,58680406567102,58704153770195,59368993897180,
-60369468208026,65873684234101,69395551873671,71114625117714,71220717455306,72711151654314,74070868635874,1839887038027415,1857317333566666,1866445425426758,
-1974896387389694,1977213864912329,2296650026040687,2386262018367519,2386262027222044,56861039073233118,57567473473743288,57582594402227919,61296746479992391,
-68600899684962659,1735729339500077813,1823869699111280360,2209199170557807766,3949527336957630577,7595390516999049506,10234803258330294252,10694272144807399784,15788840526560230435,};
 
 
 char *city_names[101] = {"Fes","Assa","Safi","Sale","Taza","Ahfir","Azrou","Midar","Nador","Oujda","Rabat","Smara","Agadir","Aourir","Arfoud","Asilah",
@@ -63,7 +156,7 @@ struct thread_data
 {
     int conter_product;
     int thread_id;
-    char * file_content;
+    const char * file_content;
     unsigned long file_size;
     int num_threads;
     int target;
@@ -76,27 +169,12 @@ struct mqadem
     struct thread_data * data2;
 };
 
-
-
-int binary_search(unsigned long long *arr, int low, int high, unsigned long target) {
-    while (low <= high) {
-        int mid = (low + high) / 2;
-
-        if (arr[mid] == target) {
-            return mid;
-        }if (arr[mid] < target) {
-            low = mid + 1;
-            continue;
-        }
-        high = mid - 1;
-    }
-
-    return -1; // Target not found
-}
-void save_data(struct thread_data * data, unsigned long price, unsigned long _hash_city, unsigned long _hash_product)
+void save_data(struct thread_data * data, char *city, char *product, int len_city, int len_product, unsigned long price)
 {
-    int index_city = binary_search(index_cityy, 0, 101, _hash_city);
-    int index_product = binary_search(index_productt, 0, 94, _hash_product);
+    struct stringIndexPair * _hash_city = find_index_city(city, len_city);
+    struct stringIndexPair * _hash_product = find_index_product(product, len_product);
+    int index_city = _hash_city->index;
+    int index_product = _hash_product->index;
     if(data->data[index_city] == NULL)
     {
         data->data[index_city] = (struct data_chunk *)malloc(sizeof(struct data_chunk));
@@ -126,13 +204,12 @@ void save_data(struct thread_data * data, unsigned long price, unsigned long _ha
     }
 }
 
-
 void * read_file(void * threadarg)
 {
     struct thread_data * my_data;
     my_data = (struct thread_data *) threadarg;
     int thread_id = my_data->thread_id;
-    char * file_content = my_data->file_content;
+    const char * file_content = my_data->file_content;
     unsigned long file_size = my_data->file_size;
     unsigned long num_threads = my_data->num_threads;
     unsigned long chunk_size = file_size / num_threads;
@@ -147,54 +224,49 @@ void * read_file(void * threadarg)
         for(;file_content[start] != '\n'; start++);
         start++;
     }
-    else
-        start = 0;
-    unsigned long value;
-    for(;start < end; start++)
+    unsigned long long  value;
+    char line[50] = {0};
+    int i = 0;
+    unsigned long long offset[4] = {0, '0', 11 * '0', 111 * '0'};
+    unsigned long long multi[3][4] = {{0, 1, 10, 100},{0, 0, 1,  10},{0, 0, 0,  1},};
+    for(;start <= end;start++)
     {
-        unsigned long hash_city = 0;
-        unsigned long hash_product = 0;
         value = 0;
-        int i = 0;
-        for(;file_content[start] != ',';i++)
+        if(file_content[start] == ',')
         {
-            hash_city = (hash_city * 31 + file_content[start]);
-            start++;
+            line[i] = '\0';
+            i++;
         }
-        start++;
-        i = 0;
-        for(;file_content[start] != ',';i++)
+        else if(file_content[start] == '\n')
         {
-            hash_product = (hash_product * 31 + file_content[start]);
-            start++;
+            line[i] = '\0';
+            i = 0;
+            char *city = line;
+            char *product =(char *)rawmemchr(line, '\0');
+            product++;
+            char *price = (char *)rawmemchr(product, '\0');
+            price++;
+            char *end = (char *)rawmemchr(price, '\0');
+            int len_city = product - city - 1;
+            int len_product = price - product - 1;
+            int len_price = end - price;
+            char *part_decemal = (char *)rawmemchr(price, '.');
+            int len_real = part_decemal - price;
+            char *part_fractinal = (char *)rawmemchr(part_decemal, '\0');
+            int len_fractinal = part_fractinal - part_decemal - 1;
+            part_decemal++;
+            unsigned long long real = (multi[0][len_real] * price[0] + multi[1][len_real] * price[1] + multi[2][len_real] * price[2] - offset[len_real]);
+            unsigned long long fractinal = (multi[0][len_fractinal] * part_decemal[0] + multi[1][len_fractinal] * part_decemal[1] + multi[2][len_fractinal] * part_decemal[2] - offset[len_fractinal]);
+            if(len_fractinal == 1)
+                fractinal *= 10;
+            value = real * 100 + fractinal;
+            save_data(my_data, city, product, len_city, len_product, value);
         }
-        start++;
-        i = 0;
-        for(;file_content[start] != '\n';i++)
+        else
         {
-            unsigned long __start = 0;
-            unsigned long __end = 0;
-            for(;file_content[start] && file_content[start] != '.';)
-            {
-                __start = __start * 10 + file_content[start] - '0';
-                start++;
-            }
-            int cont = 0;
-            value = __start * 100;
-            if(file_content[start] == '\n')
-                break;
-            start++;
-            for(;file_content[start] != '\n';)
-            {
-                __end = __end * 10 + file_content[start] - '0';
-                cont++;
-                start++;
-            }
-            if (cont == 1)
-                __end *= 10;
-            value += __end;
+            line[i] = file_content[start];
+            i++;
         }
-        save_data(my_data, value, hash_city, hash_product);
     }
     pthread_exit(NULL);
 }
@@ -318,7 +390,8 @@ int main()
     pthread_t threads[num_threads];
     struct thread_data td[num_threads];
     off_t file_size = lseek(fd, 0, SEEK_END);
-    char * file_content = static_cast<char *>(mmap(NULL, file_size, PROT_READ, MAP_PRIVATE, fd, 0));
+    const char * file_content = (const char *)(mmap(NULL, file_size, PROT_READ, MAP_PRIVATE, fd, 0));
+    // madvise(file_content, file_size, MADV_SEQUENTIAL);
     for(int i = 0; i < num_threads; i++)
     {
         td[i].thread_id = i;
@@ -335,7 +408,7 @@ int main()
     {
         pthread_join(threads[i], NULL);
     }
-    munmap(file_content, file_size);
+    munmap((void *)file_content, file_size);
     std::vector<int> vec;
     int start = 2;
     int thre = num_threads;
@@ -361,7 +434,9 @@ int main()
             pthread_join(threads[j], NULL);
         }
         if (thre % 2 != 0)
+        {
            vec.push_back(first);
+        }
         thre /= 2;
         start*=2;
     }
