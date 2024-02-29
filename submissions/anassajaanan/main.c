@@ -1,4 +1,5 @@
 #include <fcntl.h>
+#include <sys/types.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdint.h>
@@ -43,7 +44,7 @@ struct City {
 
 struct City cities[MAX_CITIES] = {0};
 
-#define MAX_TASK_UNITS 17
+#define MAX_TASK_UNITS 24
 
 // #========================= Product Hash Table =========================#
 #if !((' ' == 32) && ('!' == 33) && ('"' == 34) && ('#' == 35) \
@@ -364,8 +365,6 @@ inline static struct ProductEntry *get_product( const char *str,  size_t len)
             {
 				 const char *s = wordlist_product[index].name;
 
-				// if (*str == *s && !strcmp (str + 1, s + 1))
-				// 	return &wordlist[index];
 				if (*str == *s && !strncmp (str + 1, s + 1, len - 1))
 					return &wordlist_product[index];
             }
@@ -379,8 +378,6 @@ inline static struct ProductEntry *get_product( const char *str,  size_t len)
                 {
 					 const char *s = wordptr->name;
 
-					// if (*str == *s && !strcmp (str + 1, s + 1))
-					// 	return wordptr;
 					if (*str == *s  && !strncmp (str + 1, s + 1, len - 1))
 						return wordptr;
 					wordptr++;
@@ -736,12 +733,8 @@ inline static struct CityEntry *get_city( const char *str,  size_t len)
 		{
 			 const char *s = wordlist_cities[key].name;
 
-			// if (*str == *s && !strcmp (str + 1, s + 1))
-			// 	return &wordlist[key];
 			if (*str == *s && !strncmp (str + 1, s + 1, len - 1))
 				return &wordlist_cities[key];
-			// if (*str == *s && !compare_strings_with_ptest(str + 1, s + 1, len - 1))
-			// 	return &wordlist_cities[key];
 		}
 	}
   return 0;
@@ -827,11 +820,6 @@ inline static void performDataSerialization()
 inline static void update_city_and_product_totals(struct City *city, const char *cityName, size_t cityNameLength, const char *productName, size_t productNameLength, uint32_t price)
 {
 	const struct ProductEntry *productEntry = get_product(productName, productNameLength);
-	if (!productEntry)
-	{
-		perror("Product not found");
-		exit(EXIT_FAILURE);
-	}
 
 	struct Product *product = &(city->products[productEntry->productIndex]);
 	if (product->name == NULL)
@@ -849,6 +837,7 @@ inline static void update_city_and_product_totals(struct City *city, const char 
 
 uint64_t num_of_ones = 0;
 
+
 inline static void process_segment(const char *segment, size_t length)
 {
     const char *end = segment + length;
@@ -860,72 +849,55 @@ inline static void process_segment(const char *segment, size_t length)
             line_end = end;
         }
 
-        const char *first_comma = (const char *)memchr(line_start, ',', line_end - line_start);
-        const char *second_comma = first_comma ? (const char *)memchr(first_comma + 1, ',', line_end - (first_comma + 1)) : NULL;
+		char *first_comma = (char *)memchr(line_start, ',', line_end - line_start);
+		char *second_comma = (char *)memchr(first_comma + 1, ',', line_end - (first_comma + 1));
+		
+		size_t cityNameLength = first_comma - line_start;
+		size_t productNameLength = second_comma - first_comma - 1;
 
-        if (first_comma && second_comma) {
-            // Extract cityName
-            char cityName[MAX_CITY_LENGTH] = {0};
-            size_t cityNameLength = first_comma - line_start;
-            memcpy(cityName, line_start, cityNameLength);
-            cityName[cityNameLength] = '\0';
+		// Extract price
+		char* price_d = (char *)second_comma + 1;
+		size_t price_d_len = 0;
+		while (price_d[price_d_len] != '.' && &price_d[price_d_len] < line_end)
+			price_d_len++;
+		uint32_t price_decimal = parse_price_component(price_d, price_d_len);
 
-            // Extract productName
-            char productName[MAX_PRODUCT_LENGTH] = {0};
-            size_t productNameLength = second_comma - first_comma - 1;
-            memcpy(productName, first_comma + 1, productNameLength);
-            productName[productNameLength] = '\0';
+		char *price_f = price_d + price_d_len + 1;
+		size_t price_f_len = line_end - price_f;
+		uint32_t price_fractional = parse_price_component(price_f, price_f_len);
+		price_fractional *= (price_f_len < 2) ? 10 : 1;
 
-            // Extract price
-			char* price_d = (char *)second_comma + 1;
-   			size_t price_d_len = 0;
-			while (price_d[price_d_len] != '.' && &price_d[price_d_len] < line_end)
-				price_d_len++;
-			uint32_t price_decimal = parse_price_component(price_d, price_d_len);
-
-			char *price_f = price_d + price_d_len + 1;
-			size_t price_f_len = line_end - price_f;
-			uint32_t price_fractional = parse_price_component(price_f, price_f_len);
-			price_fractional *= (price_f_len < 2) ? 10 : 1;
-
-			uint32_t price = price_decimal * 100 + price_fractional;
-				
-			const struct CityEntry *cityEntry = get_city(cityName, cityNameLength);
-
-			struct City *city = &cities[cityEntry->cityIndex];
-			if (city->name == NULL)
-			{
-				city->name = (char *)cityEntry->name;
-			}
-			city->total += price;
-
-			if (price_decimal > 1 && num_of_ones >= 5)
-			{
-				line_start = line_end + 1;
-				continue;
-			}
-
-			if (price_decimal == 1)
-				num_of_ones++;
-
-			const struct ProductEntry *productEntry = get_product(productName, productNameLength);
-
-			struct Product *product = &(city->products[productEntry->productIndex]);
-			if (product->name == NULL)
-			{
-				product->name = (char *)productEntry->name;
-				product->price = price;
-				city->numProducts++;
-			}
-			else if (product->price > price)
-			{
-				product->price = price;
-			}
+		uint32_t price = price_decimal * 100 + price_fractional;
 			
-			
-			// Process the line
-			// update_city_and_product_totals(city, cityName, cityNameLength, productName, productNameLength, price);
-        }
+		const struct CityEntry *cityEntry = get_city(line_start, cityNameLength);
+		struct City *city = &cities[cityEntry->cityIndex];
+		if (city->name == NULL)
+		{
+			city->name = (char *)cityEntry->name;
+		}
+		city->total += price;
+		if (price_decimal > 1 && num_of_ones >= 5)
+		{
+			line_start = line_end + 1;
+			continue;
+		}
+		
+		if (price_decimal == 1)
+			num_of_ones++;
+
+		const struct ProductEntry *productEntry = get_product(first_comma + 1, productNameLength);
+		struct Product *product = &(city->products[productEntry->productIndex]);
+		if (product->name == NULL)
+		{
+			product->name = (char *)productEntry->name;
+			product->price = price;
+			city->numProducts++;
+		}
+		else if (product->price > price)
+		{
+			product->price = price;
+		}
+
         line_start = line_end + 1;
     }
 	performDataSerialization();
@@ -954,11 +926,6 @@ inline static int deserialize_city(FILE* file, struct City *city)
 		fread(&price, sizeof(uint32_t), 1, file);
 
 		const struct ProductEntry *productEntry = get_product(productName, productNameLength);
-		if (!productEntry)
-		{
-			perror("Product not found");
-			exit(EXIT_FAILURE);
-		}
 		city->products[productEntry->productIndex].name = (char *)productEntry->name;
 		city->products[productEntry->productIndex].price = price;
 	}
@@ -968,11 +935,6 @@ inline static int deserialize_city(FILE* file, struct City *city)
 inline static void aggregate_city(struct City aggregatedCities[MAX_CITIES], struct City* newCity)
 {
 	const struct CityEntry *cityEntry = get_city(newCity->name, strlen(newCity->name));
-	if (!cityEntry)
-	{
-		perror("City not found");
-		exit(EXIT_FAILURE);
-	}
 
 	if (aggregatedCities[cityEntry->cityIndex].name == NULL)
 	{
