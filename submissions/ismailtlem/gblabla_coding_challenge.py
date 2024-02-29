@@ -10,8 +10,8 @@ def read_large_file(file_path, chunk_size=1024 * 1024):
             if not chunk:
                 break
             line = chunk.strip()
-            yield line
-
+            if line:
+                yield line
 
 def format_float_number(number):
     """format float number to 2 decimals"""
