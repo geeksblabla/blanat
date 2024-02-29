@@ -323,7 +323,6 @@ void	worker_main(chunk_t chunk, bool skip_first, cities_list_t &workers_data,buf
 		workers_data.cities[data.ct_id].total += data.price;
 		workers_data.cities[data.ct_id].products[data.pd_id] = IMIN(workers_data.cities[data.ct_id].products[data.pd_id], data.price);
 	}
-	unmap_file(buffer);
 }
 
 
@@ -342,6 +341,8 @@ void	launch_workers(const char *fname,size_t num_workers, cities_list_t *workers
 		int id  = fork();
 		if (id == 0) {
 			worker_main(chunk, skip_first, workers_data[i],buffer);
+			munmap(workers_data, sizeof(cities_list_t) * num_workers);
+			unmap_file(buffer);
 			exit(0);
 		}
 	}
@@ -402,6 +403,7 @@ int	main(){
 	initialize_units(final_data);
 	for (size_t i = 0; i < num_workers; i++) wait(NULL);
 	ssize_t cheapest_idx = merge_data(final_data, workers_data, num_workers);
+	munmap(workers_data, sizeof(cities_list_t) * num_workers);
 	get_cheapest(final_data.cities[cheapest_idx], cheapest_idx, final_data.cities[cheapest_idx].total);
 	return (0);
 }
