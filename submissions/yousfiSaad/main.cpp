@@ -252,26 +252,24 @@ void split(char *buffer, char *ps[2]) {
 }
 
 #define CHUNK_SIZE 1000
-#define MAX_THREADS 128
+#define MAX_THREADS 32
 char buffers[MAX_THREADS][CHUNK_SIZE][100];
 
 void merge2(Data &data, Data &data_j) {
+  char cache_p[MAX_PRODUCTS + 1];
+  memset(cache_p, -1, (MAX_PRODUCTS + 1) * sizeof(char));
   for (size_t i = 0; data_j.cities_index.size() > i; ++i) {
-    // auto [j, isNew] =
-    //     data.cities_index.get(data_j.cities_index.name_from_idx(i));
     size_t j =
         data.cities_index.get(data_j.cities_index.name_from_idx(i)).first;
-    // if (isNew) {
-    //   data.cities[j].sum = data_j.cities[i].sum;
-    // } else {
     data.cities[j].sum += data_j.cities[i].sum;
-    // }
 
     City &city_j = data_j.cities[i];
     City &city = data.cities[j];
     for (size_t ii = 0; data_j.products_index.size() > ii; ++ii) {
-      auto jj = data.products_index.get(data_j.products_index.name_from_idx(ii))
-                    .first;
+      size_t jj = cache_p[ii];
+      if (jj == -1)
+        jj = data.products_index.get(data_j.products_index.name_from_idx(ii))
+                 .first;
       Product &product_j = city_j.products[ii];
       Product &product = city.products[jj];
       if (product_j.min < product.min)
@@ -289,7 +287,7 @@ int main() {
   FileReader_mem fr_m;
   std::mutex mu_fr;
 
-  unsigned int n = std::thread::hardware_concurrency();
+  unsigned int n = 2 * std::thread::hardware_concurrency();
   // assert(n < MAX_THREADS);
   for (int j = 0; j < n; j++) {
     threads.emplace_back(

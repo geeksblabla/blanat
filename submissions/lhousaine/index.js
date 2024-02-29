@@ -1,5 +1,4 @@
 const fs = require('fs');
-const readline = require('readline');
 const os = require('os');
 const {
   Worker,
@@ -147,22 +146,13 @@ if (isMainThread) {
     });
   };
 } else {
-  const { inputFile, start, end } = workerData;
-  const stream = fs.createReadStream(inputFile, { start, end });
-  const rl = readline.createInterface({
-    input: stream,
-    crlfDelay: Infinity,
-  });
-
-  const workerCitiesData = new Map();
-
-  rl.on('line', (line) => {
+  const parseLineData = (line, wCitiesData) => {
     const [city, product, price] = line.split(',');
     const priceValue = parseFloat(price);
-    if (!workerCitiesData.has(city)) {
-      workerCitiesData.set(city, { sum: 0, products: new Map() });
+    if (!wCitiesData.has(city)) {
+      wCitiesData.set(city, { sum: 0, products: new Map() });
     }
-    const citySum = workerCitiesData.get(city);
+    const citySum = wCitiesData.get(city);
     citySum.sum += priceValue;
     if (
       !citySum.products.has(product) ||
@@ -170,9 +160,26 @@ if (isMainThread) {
     ) {
       citySum.products.set(product, priceValue);
     }
+  };
+
+  const { inputFile, start, end } = workerData;
+  const rs = fs.createReadStream(inputFile, {
+    encoding: 'utf-8',
+    start,
+    end,
+  });
+  const workerCitiesData = new Map();
+  let buffer = '';
+
+  rs.on('data', function (chunk) {
+    const lines = (buffer + chunk).split(/\r?\n/g);
+    buffer = lines.pop();
+    for (let i = 0; i < lines.length; ++i) {
+      parseLineData(lines[i], workerCitiesData);
+    }
   });
 
-  rl.on('close', () => {
+  rs.on('end', function () {
     parentPort.postMessage({ workerCitiesData });
   });
 }
