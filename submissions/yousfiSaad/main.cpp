@@ -370,8 +370,8 @@ int main() {
   FileReader_mem fr_m(true);
   std::mutex mu_fr;
 
-  const unsigned int number_of_threads =
-      2 * std::thread::hardware_concurrency();
+  const unsigned int number_of_threads = 32;
+      //2 * std::thread::hardware_concurrency();
   const off_t chunk_size = fr_m.file_size() / number_of_threads;
   for (unsigned int j = 0; j < number_of_threads; j++) {
     threads.emplace_back(
