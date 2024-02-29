@@ -240,7 +240,8 @@ int main() {
     printf("%s %s\n", city.begin(), lu_to_str(city_price).c_str());
     for (size_t i = 0; i < 5; i++) {
         auto& [product, price] = prod_res[i];
-        printf("%s %s\n", product.begin(), lu_to_str(price).c_str());
+        if (price <= 10000 && price > 10)
+            printf("%s %s\n", product.begin(), lu_to_str(price).c_str());
     }
     return 0;
 }
