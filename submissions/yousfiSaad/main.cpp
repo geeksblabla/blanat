@@ -252,7 +252,7 @@ void split(char *buffer, char *ps[2]) {
 }
 
 #define CHUNK_SIZE 1000
-#define MAX_THREADS 128
+#define MAX_THREADS 18
 char buffers[MAX_THREADS][CHUNK_SIZE][100];
 
 void merge2(Data &data, Data &data_j) {
@@ -289,7 +289,7 @@ int main() {
   FileReader_mem fr_m;
   std::mutex mu_fr;
 
-  unsigned int n = std::thread::hardware_concurrency();
+  unsigned int n = 16;// std::thread::hardware_concurrency();
   // assert(n < MAX_THREADS);
   for (int j = 0; j < n; j++) {
     threads.emplace_back(

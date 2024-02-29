@@ -14,7 +14,6 @@ const LINE_SEPARATOR_CHAR = ",".charCodeAt(0);
 const NEWLINE_CHAR = "\n".charCodeAt(0);
 
 const cities = new Map();
-const products = new Map();
 const fileName = "input.txt";
 
 function sortItems([keyA, priceA], [keyB, priceB]) {
@@ -64,16 +63,20 @@ if (isMainThread) {
 
     workerCount++;
 
-    worker.on("message", ([citiesTotals, productsPrices]) => {
-      for (let [product, price] of productsPrices.entries()) {
-        const savedProductPrice = products.get(product);
-        if (!savedProductPrice || price < savedProductPrice) {
-          products.set(product, price);
+    worker.on("message", (citiesTotals) => {
+      for (const [city, { total, products }] of citiesTotals) {
+        const currentCity = cities.get(city);
+        if (!currentCity) {
+          cities.set(city, { total, products });
+        } else {
+          currentCity.total += total;
+          for (let [product, price] of products) {
+            const savedProductPrice = currentCity.products.get(product);
+            if (!savedProductPrice || price < savedProductPrice) {
+              currentCity.products.set(product, price);
+            }
+          }
         }
-      }
-
-      for (let [city, total] of citiesTotals.entries()) {
-        cities.set(city, (cities.get(city) || 0) + total);
       }
     });
 
@@ -81,23 +84,21 @@ if (isMainThread) {
       completedWorkersCount++;
       if (completedWorkersCount === workerCount) {
         let output = [];
-        const [cheapestCity, cheapestCityPrice] = [...cities.entries()].sort(
-          sortItems
+        const [cheapestCity, cheapestCityData] = [...cities].sort(
+          function ([_, { total: totalA }], [__, { total: totalB }]) {
+            return totalA - totalB;
+          }
         )[0];
-        output.push(`${cheapestCity} ${(cheapestCityPrice / 100).toFixed(2)}`);
-        [...products.entries()]
-          .filter(([key]) => key.startsWith(cheapestCity))
+        output.push(
+          `${cheapestCity} ${(cheapestCityData.total / 100).toFixed(2)}`
+        );
+        [...cheapestCityData.products]
           .sort(sortItems)
           .slice(0, 5)
           .forEach(([product, price]) => {
-            output.push(
-              `${product.slice(cheapestCity.length + 1)} ${(
-                price / 100
-              ).toFixed(2)}`
-            );
+            output.push(`${product} ${(price / 100).toFixed(2)}`);
           });
         fs.writeFileSync("output.txt", output.join("\n"), "utf-8");
-        console.log(output.join("\n"));
       }
     });
 
@@ -113,19 +114,17 @@ if (isMainThread) {
   parseStream(stream);
 }
 
+let cityBuffer = Buffer.allocUnsafe(APROX_NAME_SIZE);
+let productBuffer = Buffer.allocUnsafe(APROX_NAME_SIZE);
+let priceBuffer = Buffer.allocUnsafe(PRICE_SIZE);
+
 function parseStream(readStream) {
   let col = 1;
-  let cityBuffer = Buffer.allocUnsafe(APROX_NAME_SIZE);
   let citySize = 0;
-
-  let productBuffer = Buffer.allocUnsafe(APROX_NAME_SIZE);
   let productSize = 0;
-
-  let priceBuffer = Buffer.allocUnsafe(PRICE_SIZE);
   let priceSize = 0;
 
   const wcities = new Map();
-  const wproducts = new Map();
 
   readStream.on("data", (chunk) => {
     for (let i = 0; i < chunk.length; i++) {
@@ -136,19 +135,17 @@ function parseStream(readStream) {
         const product = productBuffer.toString("utf8", 0, productSize);
         const price = bufferToInt(priceBuffer, priceSize);
 
-        const lastSavedCityTotal = wcities.get(city);
-        wcities.set(
-          city,
-          lastSavedCityTotal ? lastSavedCityTotal + price : price
-        );
-
-        const productKey = `${city}|${product}`;
-        const lastSavedProductPrice = wproducts.get(productKey);
-        if (
-          !lastSavedProductPrice ||
-          (lastSavedProductPrice && price < lastSavedProductPrice)
-        ) {
-          wproducts.set(productKey, price);
+        const lastSavedCity = wcities.get(city);
+        if (!lastSavedCity) {
+          wcities.set(city, { total: price, products: new Map([[product, price]]) });
+        } else {
+          lastSavedCity.total += price;
+          const lastSavedProduct = lastSavedCity.products.get(product);
+          if (
+            !lastSavedProduct || price < lastSavedProduct
+          ) {
+            lastSavedCity.products.set(product, price);
+          }
         }
 
         col = 1;
@@ -166,7 +163,7 @@ function parseStream(readStream) {
   });
 
   readStream.on("end", () => {
-    parentPort.postMessage([wcities, wproducts]);
+    parentPort.postMessage(wcities);
   });
 }
 
