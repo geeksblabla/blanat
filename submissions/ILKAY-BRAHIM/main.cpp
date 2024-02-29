@@ -301,9 +301,6 @@ void *merge(void *arg)
             }
         }
     }
-    for(int i = 0; i < 102; i++)
-        munmap((void *)data2->data[i], sizeof(struct data_chunk));
-    munmap((void *)data2, sizeof(struct thread_data));
     pthread_exit(NULL);
 }
 
