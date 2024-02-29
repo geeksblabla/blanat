@@ -42,7 +42,7 @@ inline void results_init() {
     for (int i = 0; i < CITIES_COUNT; ++i) {
       cities_results[id][i] = 0;
       products_results[id][i] = (double *) malloc(PRODUCTS_COUNT * sizeof(double));
-      for (int j = 0; j < PRODUCTS_COUNT; ++ j) products_results[id][i][j] = 0;
+      for (int j = 0; j < PRODUCTS_COUNT; ++ j) products_results[id][i][j] = 101;
     }
   }
 }
@@ -107,7 +107,7 @@ void handle (char* start, char* end, long double* totals, double** prices) {
     price = parse_float(start, pos);
     totals[city_index] += price;
     min_price = prices[city_index][product_index];
-    if (min_price == 0 || min_price > price) prices[city_index][product_index] = price;
+    if (min_price > price) prices[city_index][product_index] = price;
     start += pos;
   }
 }
