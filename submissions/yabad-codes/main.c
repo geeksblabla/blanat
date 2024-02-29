@@ -261,10 +261,8 @@ void printHashMap(hashMap *map) {
 	}
 }
 
-int	main(int ac, char **av) {
-	if (ac != 2)
-		return 1;
-	int fd = open(av[1], O_RDONLY);
+int	main() {
+	int fd = open("input.txt", O_RDONLY);
 	if (fd == -1) {
 		return 1;
 	}

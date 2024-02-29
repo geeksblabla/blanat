@@ -5,6 +5,7 @@ use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::thread;
 
+
 fn main() -> io::Result<()> {
 
     let input_file_path = "input.txt";
