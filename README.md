@@ -154,11 +154,11 @@ The challenge will run from the 19th of February 2024 until 29th of February 202
 
 | Username      | Avg Time (ms) | Median Time (ms) | Language | Humanized Time                |
 |---------------|---------------|------------------|----------|-------------------------------|
-| k34n4y138     | 11260         | 8114             | C++      | 11.26 sec (≈ 0 min 0.19 sec) |
-| anassajaanan  | 14024         | 12351            | C        | 14.02 sec (≈ 0 min 0.23 sec) |
-| ouakki        | 29182         | 28706            | go       | 29.18 sec (≈ 0 min 0.49 sec) |
-| ILKAY-BRAHIM  | 31368         | 23004            | C++      | 31.37 sec (≈ 0 min 0.52 sec) |
-| sqrt-minus-one| 35369         | 34040            | C++      | 35.37 sec (≈ 0 min 0.59 sec) |
+| k34n4y138     | 11260         | 8114             | C++      | 11.26 sec (≈ 0 min 11.26 sec) |
+| anassajaanan  | 14024         | 12351            | C        | 14.02 sec (≈ 0 min 14.02 sec) |
+| ouakki        | 29182         | 28706            | go       | 29.18 sec (≈ 0 min 29.18 sec) |
+| ILKAY-BRAHIM  | 31368         | 23004            | C++      | 31.37 sec (≈ 0 min 31.37 sec) |
+| sqrt-minus-one| 35369         | 34040            | C++      | 35.37 sec (≈ 0 min 35.37 sec) |
 | ibrataha8     | 53029         | 51788            | C++      | 53.03 sec (≈ 0 min 53.03 sec) |
 | dauom         | 56548         | 57044            | C++      | 56.55 sec (≈ 0 min 56.55 sec) |
 | webNeat       | 61003         | 57203            | C++      | 61.00 sec (≈ 1 min 1.00 sec) |
