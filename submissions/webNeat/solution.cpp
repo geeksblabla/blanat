@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <math.h>
 #include <vector>
 #include <thread>
@@ -13,10 +14,10 @@
 #define ALPHABET_SIZE 26
 #define THREADS_COUNT 8
 
-typedef struct TrieNode {
+struct TrieNode {
   struct TrieNode *children[ALPHABET_SIZE];
   int index;
-} TrieNode;
+};
 
 int ascii_diff = 'a' - 'A';
 char cities[][20] = {
@@ -78,7 +79,7 @@ char** index_to_product;
 int index_to_product_length;
 double*** product_results;
 
-TrieNode* create_trie_node() {
+static inline TrieNode* create_trie_node() {
   TrieNode *node = (TrieNode *) malloc(sizeof(TrieNode));
   for (int i = 0; i < ALPHABET_SIZE; i++) {
     node->children[i] = NULL;
@@ -87,13 +88,13 @@ TrieNode* create_trie_node() {
   return node;
 }
 
-int char_index(char c) {
+static inline int char_index(char c) {
   if (c >= 'A' && c <= 'Z') c += ascii_diff;
   if (c < 'a' || c > 'z') return -1;
   return c - 'a';
 }
 
-int get_index(TrieNode *root, char** index_to_item, int* index_to_item_length, char *line, size_t *pos) {
+inline static int get_index(TrieNode *root, char** index_to_item, int* index_to_item_length, char *line, size_t *pos) {
   TrieNode *pointer = root;
   int start = *pos;
   while (line[*pos] != ',' && line[*pos] != '\0') {
@@ -116,6 +117,23 @@ int get_index(TrieNode *root, char** index_to_item, int* index_to_item_length, c
   return pointer->index;
 }
 
+inline static double parse_float(char* s) {
+  int x = s[0] - '0';
+  int divisor = 1;
+  ++ s;
+  while (*s != '.') {
+    x = 10 * x + (*s - '0');
+    ++ s;
+  }
+  ++ s;
+  while (*s != '\n') {
+    x = 10 * x + (*s - '0');
+    divisor *= 10;
+    ++ s;
+  }
+  return x / (double) divisor;
+}
+
 void handle (size_t start, size_t end, long double* totals, double** prices) {
   FILE *file = fopen("input.txt", "r");
   char buffer[BUFFER_LENGTH + 1];
@@ -129,7 +147,7 @@ void handle (size_t start, size_t end, long double* totals, double** prices) {
     while (buffer_pos < bytesRead) {
       city_index = get_index(city_to_index, index_to_city, &index_to_city_length, buffer, &buffer_pos);
       product_index = get_index(product_to_index, index_to_product, &index_to_product_length, buffer, &buffer_pos);
-      price = atof(buffer + buffer_pos);
+      price = parse_float(buffer + buffer_pos);
       totals[city_index] += price;
       min_price = prices[city_index][product_index];
       if (min_price == 0 || min_price > price) prices[city_index][product_index] = price;
@@ -145,7 +163,7 @@ void handle (size_t start, size_t end, long double* totals, double** prices) {
   fclose(file);
 }
 
-bool compare_product_pairs(const std::pair<int, double>& a, const std::pair<int, double>& b) {
+inline bool compare_product_pairs(const std::pair<int, double>& a, const std::pair<int, double>& b) {
   if (a.second != b.second) return a.second < b.second;
   return strcmp(index_to_product[a.first], index_to_product[b.first]) < 0;
 }
@@ -184,9 +202,9 @@ int main() {
   }
 
   FILE* file = fopen("input.txt", "r");
-  fseek(file, 0, SEEK_END);
-  size_t file_size = ftell(file);
-  rewind(file);
+  struct stat sb;
+  fstat(fileno(file), &sb);
+  size_t file_size = sb.st_size;
 
   size_t part_size = file_size / THREADS_COUNT;
   char line[LINE_MAX_LENGTH];
