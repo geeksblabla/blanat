@@ -43,7 +43,7 @@ struct City {
 
 struct City cities[MAX_CITIES] = {0};
 
-#define MAX_TASK_UNITS 16
+#define MAX_TASK_UNITS 17
 
 // #========================= Product Hash Table =========================#
 #if !((' ' == 32) && ('!' == 33) && ('"' == 34) && ('#' == 35) \
@@ -847,7 +847,7 @@ inline static void update_city_and_product_totals(struct City *city, const char 
 	city->total += price;
 }
 
-
+uint64_t num_of_ones = 0;
 
 inline static void process_segment(const char *segment, size_t length)
 {
@@ -891,20 +891,40 @@ inline static void process_segment(const char *segment, size_t length)
 			uint32_t price = price_decimal * 100 + price_fractional;
 				
 			const struct CityEntry *cityEntry = get_city(cityName, cityNameLength);
-			if (!cityEntry)
-			{
-				printf("City not found: %s\n", cityName);
-				exit(EXIT_FAILURE);
-			}
 
 			struct City *city = &cities[cityEntry->cityIndex];
 			if (city->name == NULL)
 			{
 				city->name = (char *)cityEntry->name;
 			}
+			city->total += price;
+
+			if (price_decimal > 1 && num_of_ones >= 5)
+			{
+				line_start = line_end + 1;
+				continue;
+			}
+
+			if (price_decimal == 1)
+				num_of_ones++;
+
+			const struct ProductEntry *productEntry = get_product(productName, productNameLength);
+
+			struct Product *product = &(city->products[productEntry->productIndex]);
+			if (product->name == NULL)
+			{
+				product->name = (char *)productEntry->name;
+				product->price = price;
+				city->numProducts++;
+			}
+			else if (product->price > price)
+			{
+				product->price = price;
+			}
+			
 			
 			// Process the line
-			update_city_and_product_totals(city, cityName, cityNameLength, productName, productNameLength, price);
+			// update_city_and_product_totals(city, cityName, cityNameLength, productName, productNameLength, price);
         }
         line_start = line_end + 1;
     }
@@ -1058,39 +1078,36 @@ int main() {
 	off_t current_offset = 0;
 
 	for (int i = 0; i < MAX_TASK_UNITS; i++) {
-		off_t offset = current_offset;
-		off_t size = (i == MAX_TASK_UNITS - 1) ? (sb.st_size - offset) : initial_segment_size;
+        off_t offset = current_offset;
+        off_t size = (i == MAX_TASK_UNITS - 1) ? (sb.st_size - offset) : initial_segment_size;
 
-		if (i != 0) {
-			while (file_in_memory[offset] != '\n' && offset < sb.st_size) {
-				offset++;
-				size--;
-			}
-			offset++;
-			size--;
-		}
+        if (i != 0) {
+            while (offset < sb.st_size && file_in_memory[offset - 1] != '\n') {
+                offset++;
+            }
+        }
 
-		if (i != MAX_TASK_UNITS - 1) {
-			off_t end = offset + size;
-			while (file_in_memory[end] != '\n' && end < sb.st_size) {
-				end++;
-			}
-			size = end - offset + 1;
-		}
+        if (i != MAX_TASK_UNITS - 1) {
+            off_t end = offset + size - 1;
+            while (end + 1 < sb.st_size && file_in_memory[end] != '\n') {
+                end++;
+            }
+            size = end - offset + 1;
+        }
 
-		pids[i] = fork();
-		if (pids[i] == 0) {
-			process_segment(file_in_memory + offset, size);
-			munmap(file_in_memory, sb.st_size);
-			close(fd);
-			exit(EXIT_SUCCESS);
-		} else if (pids[i] < 0) {
-			perror("Error");
-			exit(EXIT_FAILURE);
-		}
+        pids[i] = fork();
+        if (pids[i] == 0) {
+            process_segment(file_in_memory + offset, size);
+            munmap(file_in_memory, sb.st_size);
+            close(fd);
+            exit(EXIT_SUCCESS);
+        } else if (pids[i] < 0) {
+            perror("Error");
+            exit(EXIT_FAILURE);
+        }
 
-		current_offset = offset + size;
-	}
+        current_offset = offset + size;
+    }
 
     for (int i = 0; i < MAX_TASK_UNITS; i++) {
         wait(NULL);
