@@ -311,10 +311,8 @@ void	initialize_units(cities_list_t &data)
 }
 
 
-void	worker_main(const char* fname, chunk_t chunk, bool skip_first, cities_list_t &workers_data)
+void	worker_main(chunk_t chunk, bool skip_first, cities_list_t &workers_data,buffer_t &buffer)
 {
-	buffer_t buffer;
-	map_file(fname, buffer);
 	buffer.mmapd += chunk.start;
 	char *end = buffer.mmapd + (chunk.end - chunk.start);
 	parse_data data;
@@ -343,7 +341,7 @@ void	launch_workers(const char *fname,size_t num_workers, cities_list_t *workers
 		bool skip_first = i != 0;
 		int id  = fork();
 		if (id == 0) {
-			worker_main(fname, chunk, skip_first, workers_data[i]);
+			worker_main(chunk, skip_first, workers_data[i],buffer);
 			exit(0);
 		}
 	}
