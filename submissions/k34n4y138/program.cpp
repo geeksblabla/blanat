@@ -278,15 +278,12 @@ std::string	l_to_str(ulong n)
 inline
 void	parse_line(buffer_t &buffer, parse_data &data)
 {
-	char bfr[32];
-	char c;
-	size_t len;
-	for (len = 0; (c = *buffer.mmapd++) != ','; len++) bfr[len] = c;
-	data.ct_id = localize_city(bfr, len)->index;
-	
-	for (len = 0; (c = *buffer.mmapd++) != ','; len++) bfr[len] = c;
-	data.pd_id = localize_product(bfr, len)->index;
-
+	char *deli = (char *)rawmemchr(buffer.mmapd, ',');
+	data.ct_id = localize_city(buffer.mmapd, deli - buffer.mmapd)->index;
+	buffer.mmapd = deli + 1;
+	deli = (char *)rawmemchr(buffer.mmapd, ',');
+	data.pd_id = localize_product(buffer.mmapd, deli - buffer.mmapd)->index;
+	buffer.mmapd = deli + 1;
 	data.price = str_to_l(buffer);
 }
 
