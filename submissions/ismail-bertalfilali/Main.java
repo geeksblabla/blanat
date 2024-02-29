@@ -211,7 +211,8 @@ public class Main {
             byte c;
             while (isOffsetNotReached(currentPosition) && buffer.clear()!= null && fileChannel.read(buffer) > ZERO && buffer.flip()!= null) {
 
-                while (true) {
+                while (isOffsetNotReached(currentPosition)) {
+
                     try{
                         c = buffer.get();
                     }catch (BufferUnderflowException e){
