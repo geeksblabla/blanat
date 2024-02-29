@@ -141,19 +141,14 @@ public class Main {
     private static long separatorBytes(long piece) {
         // flip bits where there is a comma character
         long flipped = piece ^ 0x2C2C2C2C_2C2C2C2CL; // 2C == ','
-//        String flippedTest = Long.toBinaryString(flipped);
 
         long clearedHighestBits = flipped - 0x01010101_01010101L;
-//        String clearedHighestBitsTest = Long.toBinaryString(clearedHighestBits);
 
         long bitwiseComplement = ~flipped;
-//        String bitwiseComplementTest = Long.toBinaryString(bitwiseComplement);
 
         long test = bitwiseComplement & 0x80808080_80808080L;
-//        String testTest = Long.toBinaryString(test);
 
         flipped = clearedHighestBits & test;
-//        String newFlippedTest = Long.toBinaryString(flipped);
 
         return flipped;
     }
@@ -253,10 +248,6 @@ public class Main {
             int lastNewLineIndex = 0;
 
             while (cursor < readLength && readLength - cursor > Long.BYTES) {
-//                ByteBuffer lastLinesChunk = ByteBuffer.allocate(Long.BYTES).order(ByteOrder.nativeOrder());
-//                chunk.get(cursor, lastLinesChunk.array(), 0, Long.BYTES);
-//                String chunkTest = new String(lastLinesChunk.array());
-
                 while (foundDelimiters < 2) {
                     // read in 8 byte pieces
                     long piece = chunk.getLong(cursor);
@@ -277,14 +268,6 @@ public class Main {
                     cursor += Long.BYTES;
                 }
 
-//                chunk.get(cursor, lastLinesChunk.array(), 0, Long.BYTES);
-//                chunkTest = new String(lastLinesChunk.array());
-
-//                ByteBuffer numbersChunk = ByteBuffer.allocate(Long.BYTES).order(ByteOrder.LITTLE_ENDIAN);
-//                chunk.get(delimiterIndexes[1] + 1, numbersChunk.array(), 0, Long.BYTES);
-//
-//                String pricePieceTest = new String(numbersChunk.array());
-
                 long pricePiece = chunk.getLong(delimiterIndexes[1] + 1);
 
                 int decimalPointIndex = Long.numberOfTrailingZeros(~pricePiece & 0x10101000L) >> 3;
@@ -293,17 +276,7 @@ public class Main {
 
                 int newLineIndex = (Long.numberOfTrailingZeros(~nlTmp & 0x101000L) >> 3) + decimalPointIndex + 1;
 
-//                ByteBuffer tmpChunk = ByteBuffer.allocate(Long.BYTES).order(ByteOrder.LITTLE_ENDIAN);
-//                chunk.get(delimiterIndexes[1] + 1 + decimalPointIndex + 1, tmpChunk.array(), 0, Long.BYTES);
-//                String tmpTest = new String(tmpChunk.array());
-
-//                long intPartPiece = chunk.slice(delimiterIndexes[1] + 1, 10).getLong();
-//                long decimalPartPiece = chunk.slice(delimiterIndexes[1] + 1, 10).getLong();
-
                 double price = decimalValue(decimalPointIndex, newLineIndex, pricePiece);
-//                int decimalPart = decimalValue(decimalPointIndex, newLineIndex, pricePiece);
-
-//                String numbersChunkTest = new String(numbersChunk.array());
 
 
                 int cityLength = delimiterIndexes[0] - lastNewLineIndex;
@@ -313,10 +286,6 @@ public class Main {
                 ByteBuffer productTmp = ByteBuffer.allocate(productLength).order(ByteOrder.LITTLE_ENDIAN);
                 chunk.get(lastNewLineIndex, cityTmp.array(), 0, cityLength);
                 chunk.get(delimiterIndexes[0] + 1, productTmp.array(), 0, productLength);
-//
-//                String cityTmpTest = new String(cityTmp.array());
-//                String productTmpTest = new String(productTmp.array());
-//
 
                 Slot citySlot = cityDictionary.lookup(hash(cityTmp.array(), cityLength), cityTmp.array(), cityLength, chunks.size());
                 citySlot.updateCity(chunkIndex, price);
@@ -328,8 +297,6 @@ public class Main {
                 productsMap.putIfAbsent(productSlot, true);
 
                 CITY_PRODUCTS.putIfAbsent(citySlot, productsMap);
-
-//                System.out.println(price);
 
                 lastNewLineIndex = cursor + newLineIndex + 1;
                 cursor = delimiterIndexes[1] + Long.BYTES;
