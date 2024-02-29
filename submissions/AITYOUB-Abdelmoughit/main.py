@@ -1,12 +1,9 @@
 from time import time
-
+from collections import defaultdict
 cities_with_products = {}
 start = time()
 with open("../../input.txt",'r') as data:
-    while line := data.readline():
-        if not line:
-            break
-        line = line.strip()
+    for line in data:
         city, product, price = line.split(",")
         price = float(price)
         if city not in cities_with_products:
@@ -30,9 +27,9 @@ sorted_products = sorted(cheapest_city_with_products[1]["products"].items(), key
 cheapest_5_products = sorted_products[:5]
 with open("../../output.txt", 'w') as result:
     result.write(f"{city} {total}\n")
-    #print(f"{city} {total}")
+    print(f"{city} {total}")
     for product, price in cheapest_5_products:
         result.write(f"{product} {price}\n")
-        #print(f"{product} {price}")
+        print(f"{product} {price}")
 deltatime = time() - start
 print(f"taken time: {deltatime}s")
