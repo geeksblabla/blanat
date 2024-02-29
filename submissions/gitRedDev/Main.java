@@ -1,15 +1,19 @@
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.LongSummaryStatistics;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class Main {
 
-    static List<String> fruits_and_vegetables = Stream.of(
+    static Stream<String> fruits_and_vegetables = Stream.of(
             "Apple", "Banana", "Orange", "Strawberry", "Grapes",
             "Watermelon", "Pineapple", "Mango", "Kiwi", "Peach",
             "Plum", "Cherry", "Pear", "Blueberry", "Raspberry",
@@ -30,14 +34,16 @@ public class Main {
             "Jicama", "Kohlrabi", "Watercress", "Okra", "Artichoke",
             "Plantain", "Cactus_Pear", "Kiwano", "Squash_Blossom", "Dragon_Fruit",
             "Parsnip", "Rutabaga", "Salsify", "Bok_Choy", "Endive"
-    ).sorted().toList();
+    ).distinct().sorted();
+
+    static String[] products = fruits_and_vegetables.toArray(String[]::new);
+
+    static Map<String, Integer> productsStrIntMap = IntStream.range(0, products.length)
+            .boxed()
+            .collect(Collectors.toMap(i->products[i], i->i));
 
 
-
-
-
-
-    static List<String> moroccan_cities = Stream.of(
+    static Stream<String> moroccan_cities = Stream.of(
             "Casablanca", "Rabat", "Marrakech", "Fes", "Tangier",
             "Agadir", "Meknes", "Oujda", "Kenitra", "Tetouan",
             "Safi", "El_Jadida", "Beni_Mellal", "Errachidia",
@@ -61,79 +67,59 @@ public class Main {
             "Tarfaya", "Ouazzane", "Zagora", "had_soualem",
             "Saidia", "Bab_Berred", "Midar", "Moulay_Bousselham",
             "Khemisset", "Guerguerat", "Asilah", "Sidi_Bouzid", "Tafraout",
-            "Imzouren", "Zemamra", "Sidi_Kacem", "Drarga", "Skhirate"
-    ).sorted().toList();
+            "Imzouren", "Zemamra", "Sidi_Kacem", "Drarga", "Skhirate")
+            .distinct().sorted();
 
-    static class CityProduct {
-        int city;
-        int product;
-        long price;
+    static String[] cities_array = moroccan_cities.toArray(String[]::new);
 
-        public CityProduct(String city, String product, String price) {
-            this.city = city.hashCode();
-            this.product = product.hashCode();
-            this.price =  new java.math.BigDecimal(price).setScale(2, RoundingMode.HALF_UP).longValue();
-        }
-
-        public CityProduct(int city, int product, long price) {
-            this.city = city;
-            this.product = product;
-            this.price =  price;
-        }
-
-
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(city, product);
-        }
-
-        public int getCity() {
-            return city;
-        }
-
-        public int getProduct() {
-            return product;
-        }
-
-        public long getPrice() {
-            return price;
-        }
-
-        public String getProductWithPrice() {
-            return product + " " + price;
-        }
-
-        public String getCityWithPrice() {
-            return city + " " + price;
-        }
-    }
+    static Map<String, Integer> citiesStrIntMap = IntStream.range(0, cities_array.length)
+            .boxed()
+            .collect(Collectors.toMap(i->cities_array[i], i->i));
 
     public static void main(String[] args) throws IOException {
         long start = System.nanoTime();
         try (Stream<String> lines = Files.lines(Paths.get("input.txt"))) {
-            List<CityProduct> cityProducts = lines.map(line-> {
+
+            long start1 = System.nanoTime();
+            List<int[]> cityProducts = lines.parallel().map(line-> {
                 String[] l = line.split(",");
-                return new CityProduct(l[0], l[1], l[2]);
+                return new int[]{citiesStrIntMap.get(l[0]), productsStrIntMap.get(l[1]), (int) (Double.parseDouble(l[2])*100)};
             }).toList();
+            long end1 = System.nanoTime();
+            System.out.println(end1-start1);
 
-            List<Map.Entry<Integer, LongSummaryStatistics>> cities = cityProducts.stream().collect(Collectors.groupingBy(CityProduct::getCity, Collectors.summarizingLong(CityProduct::getPrice)))
+
+
+            long start2 = System.nanoTime();
+            Map.Entry<Integer, LongSummaryStatistics> cheapestCity = cityProducts.stream().parallel().collect(Collectors.groupingByConcurrent(e->e[0], Collectors.summarizingLong(e->e[2])))
                     .entrySet().stream()
-                    .toList();
-
-            Map.Entry<Integer, LongSummaryStatistics> cheapestCity = cities.stream()
+                    .parallel()
                     .min(Comparator.comparing(e->e.getValue().getSum()))
                     .orElse(null);
-            Stream<CityProduct> cheapestProducts = cityProducts.stream().sorted(Comparator.comparing(CityProduct::getPrice).thenComparing(CityProduct::getProduct))
-                    .distinct()
-                    .limit(5);
+            long end2 = System.nanoTime();
+            System.out.println(end2-start2);
 
 
 
+            long start4 = System.nanoTime();
+            String cheapestProducts2 = cityProducts.stream().parallel().collect(Collectors.groupingByConcurrent(e->e[1], Collectors.summarizingLong(e->e[2])))
+                    .entrySet().stream()
+                    .sorted(Comparator.comparing(e->e.getValue().getMin()))
+                    .limit(5).map(e->products[e.getKey()]+" "+String.format("%.2f", (long)e.getValue().getMin()/100.0)).collect(Collectors.joining("\n"));
+            long end4 = System.nanoTime();
+            System.out.println(end4-start4);
+
+            //printing to file
+            assert cheapestCity != null;
+            Files.write(Paths.get("output.txt"), List.of(
+                    cities_array[cheapestCity.getKey()] + " " + String.format("%.2f", (long)cheapestCity.getValue().getSum()/100.0),
+                    cheapestProducts2
+            ));
 
         }
         long end = System.nanoTime();
         System.out.println(end-start);
+
     }
 
 }
