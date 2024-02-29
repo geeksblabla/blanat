@@ -13,9 +13,7 @@ use std::os::unix::io::AsRawFd;
 /* ------------------BEGIN OF UTILITIES-------------------- */
 
 /* -------------------------------------------- */
-/*         BEGIN OF FXHASHMAP SOURCE            */
-/* from https://github.com/BurntSushi/byteorder */
-/*    from https://github.com/cbreeden/fxhash   */
+/*             BEGIN OF FXHASHMAP               */
 /* -------------------------------------------- */
 #[allow(warnings)]
 mod fxhash {
@@ -24,6 +22,31 @@ mod fxhash {
     use std::ops::BitXor;
     use std::convert::TryInto;
 
+
+/*
+SOURCE : https://github.com/BurntSushi/byteorder
+
+The MIT License (MIT)
+    Copyright (c) 2015 Andrew Gallant
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
     #[cfg(target_endian = "little")]
     pub type NativeEndian = LittleEndian;
 
@@ -69,6 +92,7 @@ mod fxhash {
             u64::from_be_bytes(buf[..8].try_into().unwrap())
         }
     }    
+// Source end her
 
 
     pub type FxBuildHasher = BuildHasherDefault<FxHasher>;
@@ -215,14 +239,12 @@ mod fxhash {
 }
 type FxHashMap<K, V> = crate::fxhash::FxHashMap<K, V>;
 /* -------------------------------------- */
-/*      END OF FXHASHMAP SOURCE           */
+/*            END OF FXHASHMAP            */
 /* -------------------------------------- */
 
 
 /* -------------------------------------------- */
 /*     BEGIN OF MMAP CODE SOURCE FOR WINDOWS    */
-/* from https://github.com/retep998/winapi-rs   */
-/* from https://github.com/danburkert/memmap-rs */
 /* -------------------------------------------- */
 #[allow(warnings)]
 const PAGE_READONLY: u32 = 0x02;
@@ -232,7 +254,29 @@ const FILE_MAP_READ: u32 = 0x0004;
 
 #[cfg(windows)]#[allow(warnings)]
 mod windows_mmap {
+/*
+SOURCE : https://github.com/retep998/winapi-rs/
 
+Copyright (c) 2015-2018 The winapi-rs Developers
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
     use super::*;
     use std::os::windows::io::{AsRawHandle,RawHandle};
     use std::{mem, ptr};
@@ -319,6 +363,35 @@ mod windows_mmap {
 
     }
 
+/*
+SOURCE : https://github.com/danburkert/memmap-rs
+
+Copyright (c) 2015 Dan Burkert
+
+Permission is hereby granted, free of charge, to any
+person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the
+Software without restriction, including without
+limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software
+is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice
+shall be included in all copies or substantial portions
+of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
+ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT
+SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+*/
     #[allow(dead_code)]
     pub struct MmapInner {
     file: Option<File>,
@@ -475,8 +548,6 @@ mod windows_mmap {
 
 /* -------------------------------------------- */
 /*      BEGIN OF MMAP CODE SOURCE FOR UNIX      */
-/*   from https://github.com/rust-lang/libc     */
-/* from https://github.com/danburkert/memmap-rs */
 /* -------------------------------------------- */
 #[cfg(unix)]
 mod unix_mmap {
@@ -485,6 +556,35 @@ mod unix_mmap {
     use std::os::unix::io::{RawFd};
     use std::{ptr};
 
+/*
+SOURCE : https://github.com/rust-lang/libc
+
+Copyright (c) 2014-2020 The Rust Project Developers
+
+Permission is hereby granted, free of charge, to any
+person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the
+Software without restriction, including without
+limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software
+is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice
+shall be included in all copies or substantial portions
+of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
+ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT
+SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+*/
 
     pub const MAP_FAILED: *mut ::std::ffi::c_void = !0 as *mut ::std::ffi::c_void;
 
@@ -503,6 +603,35 @@ mod unix_mmap {
         pub fn sysconf(name: i32) -> i64;
     }
 
+/*
+SOURCE : https://github.com/danburkert/memmap-rs
+
+Copyright (c) 2015 Dan Burkert
+
+Permission is hereby granted, free of charge, to any
+person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the
+Software without restriction, including without
+limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software
+is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice
+shall be included in all copies or substantial portions
+of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
+ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT
+SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+*/
     pub struct MmapInner {
         pub ptr: *mut std::ffi::c_void,
         pub len: usize,
@@ -612,6 +741,35 @@ mod unix_mmap {
 /*         BEGIN OF MMAP WRAPPER          */
 /* -------------------------------------- */
 
+/*
+SOURCE : https://github.com/danburkert/memmap-rs
+
+Copyright (c) 2015 Dan Burkert
+
+Permission is hereby granted, free of charge, to any
+person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the
+Software without restriction, including without
+limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software
+is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice
+shall be included in all copies or substantial portions
+of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
+ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT
+SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+*/
 use std::io::{Error, ErrorKind};
 #[derive(Clone, Debug, Default)]
 pub struct MmapOptions {
@@ -696,6 +854,9 @@ impl Mmap {
         }
     }
 }
+//---
+
+
 mod mmap_utils {
     use super::*;
     use std::slice;
@@ -944,7 +1105,7 @@ const PRODUCTS_BYTES: [&[u8]; 94] = [
 // Define data structure
 struct ProcessResult {
     cities: [f64; CITIES_BYTES.len()], // Total price per city
-    products: [[f64; PRODUCTS_BYTES.len()]; CITIES_BYTES.len()], // Minimum price per product per city
+    products: [[f32; PRODUCTS_BYTES.len()]; CITIES_BYTES.len()], // Minimum price per product per city
 }
 
 impl Default for ProcessResult {
@@ -993,7 +1154,7 @@ fn process_file_chunk(
 // Function to process result and outputs the collected results
 fn process_and_output_results(results: Vec<ProcessResult>) -> Result<()> {
     let mut city_totals = vec![0.0; CITIES_BYTES.len()];
-    let mut products_min_prices = vec![vec![f64::MAX; PRODUCTS_BYTES.len()]; CITIES_BYTES.len()];
+    let mut products_min_prices = vec![vec![f32::MAX; PRODUCTS_BYTES.len()]; CITIES_BYTES.len()];
     let mut ofile = File::create("output.txt")?;
 
     // Update to use lengths of CITIES_BYTES and PRODUCTS_BYTES
@@ -1024,9 +1185,9 @@ fn process_and_output_results(results: Vec<ProcessResult>) -> Result<()> {
     let products_prices = products_min_prices[min_city_index]
         .iter()
         .enumerate()
-        .filter(|&(_, &price)| price < f64::MAX)
+        .filter(|&(_, &price)| price < f32::MAX)
         .map(|(index, &price)| (str::from_utf8(PRODUCTS_BYTES[index]).unwrap_or("Unknown Product"), price))
-        .collect::<Vec<(&str, f64)>>();
+        .collect::<Vec<(&str, f32)>>();
 
     let mut sorted_products = products_prices;
     sorted_products.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal).then_with(|| a.0.cmp(&b.0)));
