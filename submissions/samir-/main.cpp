@@ -19,7 +19,7 @@ using namespace std;
 // V0 (multithread , mmap, special hash, skip some)
 #define SPARSE 196726
 #define min(a, b) (a ^ ((b ^ a) & -(b < a)));
-const int THREADS = thread::hardware_concurrency();
+const int THREADS = thread::hardware_concurrency()*2;
 int glob_citi_hash_to_idx[SPARSE];
 int glob_vigi_hash_to_idx[SPARSE];
 struct Chunk {
@@ -31,12 +31,12 @@ struct OutputChunk {
   long sum[160];
   int *minprodprice[160];
 };
-// to optimize
+
 static inline const char *parse_number(const char *s, int * sink) {
     *sink = *s - ('0');
     s++;
     int left=100;
-    while (*s != '\n' and *s != '.') {
+    while (*s > 47) {
         *sink = (*sink * 10) + (*s) - ('0');
         s++;
     }
@@ -229,8 +229,20 @@ int process(int argc, char* argv[])
     fclose(file_out);
   return 0;
 }
-
+void handleSignal(int signum) {
+    if (signum == SIGUSR1) {
+        exit(0);
+    }
+}
 int main(int argc, char* argv[]) {
-    process(argc, argv);
+
+    signal(SIGUSR1, handleSignal);
+   int pid = fork();
+    int status;
+    if (pid == 0) {
+        process(argc, argv);
+    } else {
+      waitpid(pid, &status, 0);
+    }
     return 0;
 }
