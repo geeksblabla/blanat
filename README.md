@@ -150,33 +150,35 @@ The competition focuses solely on correctness and speed of execution to gauge pa
 The challenge will run from the 19th of February 2024 until 29th of February 2024. The winner will be announced during March 1st 2024 in our social media challenges
 
 ## Leaderboard
-> Last updated: Thu 28 Feb 2024, 8pm Moroccan time
+> Last updated: Thu 29 Feb 2024, 12pm Moroccan time
 
-| Username       | Avg Time (ms) | Median Time (ms) | Language | Humanized Time                |
-|----------------|---------------|------------------|----------|-------------------------------|
-| anassajaanan   | 14024         | 12351            | c       | 14.02 sec (≈ 14.02 sec)      |
-| ouakki         | 29182         | 28706            | go      | 29.18 sec (≈ 29.18 sec)      |
-| ILKAY-BRAHIM   | 31368         | 23004            | cpp      | 31.37 sec (≈ 31.37 sec)      |
-| sqrt-minus-one | 35369         | 34040            | cpp     | 35.37 sec (≈ 35.37 sec)      |
-| ibrataha8     | 53029         | 51788            | cpp     | 53.03 sec (≈ 53.03 sec)      |
-| dauom         | 56548         | 57044            | cpp     | 56.55 sec (≈ 56.55 sec)      |
-| webNeat        | 61003         | 57203           | cpp      | 61.00 sec (≈ 61.00 sec)      |
-| samir-        | 63933         | 67410            | cpp     | 63.93 sec (≈ 63.93 sec)      |
-| essmehdi      | 68107         | 62067            | rs      | 68.11 sec (≈ 68.11 sec)      |
-| NotAsheraf     | 99730         | 97091            | rs      | 99.73 sec (≈ 99.73 sec)      |
-| yousfiSaad    | 181086        | 176295           | cpp     | 181.09 sec (≈ 181.09 sec)    |
-| imOphen       | 222679        | 213030           | py      | 222.68 sec (≈ 222.68 sec)    |
-| mohammedfatihX| 249995        | 252203           | java    | 249.99 sec (≈ 249.99 sec)    |
-| nizarbenalla  | 275221        | 269733           | java    | 275.22 sec (≈ 275.22 sec)    |
-| houcine7      | 309110        | 309692           | java    | 309.11 sec (≈ 309.11 sec)    |
-| j-mounim     | 343753        | 345267           | js      | 343.75 sec (≈ 343.75 sec)    |
-| lhousaine    | 336290        | 354104           | js      | 336.29 sec (≈ 336.29 sec)    |
-| Moohaa         | 356836        | 359523           | java    | 356.84 sec (≈ 356.84 sec)    |
-| aboullaite    | 368758        | 368167           | java    | 368.76 sec (≈ 368.76 sec)    |
-| YassineOsip    | 561658        | 569382           | python      | 561.66 sec (≈ 561.66 sec)    |
-| guizo792      | 526844        | 550883           | java    | 526.84 sec (≈ 526.84 sec)    |
-| Smartdev110    | 776007        | 792428           | java    | 776.01 sec (≈ 776.01 sec)    |
-| sm3xy         | 903274        | 900806           | python      | 903.27 sec (≈ 903.27 sec)    |
+| Username      | Avg Time (ms) | Median Time (ms) | Language | Humanized Time                |
+|---------------|---------------|------------------|----------|-------------------------------|
+| k34n4y138     | 11260         | 8114             | C++      | 11.26 sec (≈ 0 min 0.19 sec) |
+| anassajaanan  | 14024         | 12351            | C        | 14.02 sec (≈ 0 min 0.23 sec) |
+| ouakki        | 29182         | 28706            | go       | 29.18 sec (≈ 0 min 0.49 sec) |
+| ILKAY-BRAHIM  | 31368         | 23004            | C++      | 31.37 sec (≈ 0 min 0.52 sec) |
+| sqrt-minus-one| 35369         | 34040            | C++      | 35.37 sec (≈ 0 min 0.59 sec) |
+| ibrataha8     | 53029         | 51788            | C++      | 53.03 sec (≈ 0 min 53.03 sec) |
+| dauom         | 56548         | 57044            | C++      | 56.55 sec (≈ 0 min 56.55 sec) |
+| webNeat       | 61003         | 57203            | C++      | 61.00 sec (≈ 1 min 1.00 sec) |
+| samir-        | 63933         | 67410            | C++      | 63.93 sec (≈ 1 min 3.93 sec)  |
+| essmehdi      | 68107         | 62067            | rs       | 68.11 sec (≈ 1 min 8.11 sec)  |
+| NotAsheraf    | 99730         | 97091            | rs       | 99.73 sec (≈ 1 min 39.73 sec) |
+| yousfiSaad    | 181086        | 176295           | C++      | 181.09 sec (≈ 3 min 1.09 sec) |
+| imOphen       | 222679        | 213030           | python   | 222.68 sec (≈ 3 min 42.68 sec)|
+| j-mounim      | 243495        | 238397           | js       | 243.50 sec (≈ 4 min 3.50 sec) |
+| mohammedfatihX| 249995        | 252203           | java     | 250.00 sec (≈ 4 min 10.00 sec)|
+| nizarbenalla  | 275221        | 269733           | java     | 275.22 sec (≈ 4 min 35.22 sec)|
+| hamzanaciri99 | 275966        | 267462           | java     | 275.97 sec (≈ 4 min 35.97 sec)|
+| lhousaine     | 299057        | 292420           | js       | 299.06 sec (≈ 4 min 59.06 sec)|
+| houcine7      | 309110        | 309692           | java     | 309.11 sec (≈ 5 min 9.11 sec) |
+| Moohaa        | 356836        | 359523           | java     | 356.84 sec (≈ 5 min 56.84 sec)|
+| aboullaite    | 368758        | 368167           | java     | 368.76 sec (≈ 6 min 8.76 sec)|
+| guizo792      | 526844        | 550883           | java     | 526.84 sec (≈ 8 min 46.84 sec)|
+| YassineOsip   | 561658        | 569382           | python   | 561.66 sec (≈ 9 min 21.66 sec)|
+| Smartdev110   | 776007        | 792428           | java     | 776.01 sec (≈ 12 min 56.01 sec)|
+| sm3xy         | 903274        | 900806           | python   | 903.27 sec (≈ 15 min 3.27 sec) |
 
 
 
