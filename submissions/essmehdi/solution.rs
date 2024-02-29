@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::io::Write;
 use std::{
     collections::HashMap,
@@ -7,7 +8,7 @@ use std::{
     sync::{Arc, Mutex},
     thread,
 };
-use std::hash::{BuildHasher, Hasher};
+use std::hash::{BuildHasher, Hash, Hasher};
 
 // A fast, non-secure, hashing algorithm.
 // https://github.com/cbreeden/fxhash
@@ -56,16 +57,82 @@ impl BuildHasher for FxHasher {
 const INPUT_FILE: &str = "./input.txt";
 const OUTPUT_FILE: &str = "./output.txt";
 
-type ProductsIndex = HashMap<String, (HashMap<String, f64, FxHasher>, f64), FxHasher>;
+const PRODUCTS: [&str; 100] = [
+    "Apple", "Banana", "Orange", "Strawberry", "Grapes",
+    "Watermelon", "Pineapple", "Mango", "Kiwi", "Peach",
+    "Plum", "Cherry", "Pear", "Blueberry", "Raspberry",
+    "Blackberry", "Cantaloupe", "Honeydew", "Coconut", "Pomegranate",
+    "Lemon", "Lime", "Grapefruit", "Avocado", "Papaya",
+    "Guava", "Fig", "Passion_Fruit", "Apricot", "Nectarine",
+    "Cucumber", "Carrot", "Broccoli", "Spinach", "Kale",
+    "Lettuce", "Tomato", "Bell_Pepper", "Zucchini", "Eggplant",
+    "Cabbage", "Cauliflower", "Brussels_Sprouts", "Radish", "Beet",
+    "Asparagus", "Artichoke", "Green_Beans", "Peas", "Celery",
+    "Onion", "Garlic", "Potato", "Sweet_Potato", "Yam",
+    "Butternut_Squash", "Acorn_Squash", "Pumpkin", "Cranberry", "Goji_Berry",
+    "Currant", "Date", "Clementine", "Cranberry", "Rhubarb",
+    "Chard", "Collard_Greens", "Parsley", "Cilantro", "Mint",
+    "Basil", "Thyme", "Rosemary", "Sage", "Dill",
+    "Oregano", "Cantaloupe", "Honeydew", "Coconut", "Pomegranate",
+    "Jackfruit", "Starfruit", "Persimmon", "Ginger", "Turnip",
+    "Jicama", "Kohlrabi", "Watercress", "Okra", "Artichoke",
+    "Plantain", "Cactus_Pear", "Kiwano", "Squash_Blossom", "Dragon_Fruit",
+    "Parsnip", "Rutabaga", "Salsify", "Bok_Choy", "Endive"
+];
+
+const CITIES: [&str; 101] = [
+    "Casablanca", "Rabat", "Marrakech", "Fes", "Tangier",
+    "Agadir", "Meknes", "Oujda", "Kenitra", "Tetouan",
+    "Safi", "El_Jadida", "Beni_Mellal", "Errachidia",
+    "Taza", "Essaouira", "Khouribga", "Guelmim",
+    "Jorf_El_Melha", "Laayoune", "Ksar_El_Kebir", "Sale", "Bir_Lehlou",
+    "Arfoud", "Temara", "Mohammedia", "Settat",
+    "Béni_Mellal", "Nador", "Kalaat_MGouna",
+    "Chichaoua", "Chefchaouen", "Al_Hoceima", "Taourirt",
+    "Taroudant", "Guelta_Zemmur", "Dakhla", "Laâyoune",
+    "Tiznit", "Tinghir", "Ifrane", "Azrou", "Bab_Taza",
+    "Berrechid", "Sidi_Slimane", "Souk_Larbaa", "Tiflet", "Sidi_Bennour",
+    "Larache", "Tan-Tan", "Sidi_Ifni", "Goulmima",
+    "Midelt", "Figuig", "Azilal", "Jerada", "Youssoufia",
+    "Ksar_es_Seghir", "Tichka", "Ait_Melloul",
+    "Layoune", "Ben_guerir", "Ouarzazate", "Inezgane",
+    "Oujda_Angad", "Sefrou", "Aourir",
+    "Oulad_Teima", "Tichla", "Bni_Hadifa",
+    "Fquih_Ben_Salah", "Guercif", "Bouarfa", "Demnate",
+    "Ahfir", "Berkane", "Akhfenir", "Boulemane",
+    "Khenifra", "Bir_Anzerane", "Assa", "Smara", "Boujdour",
+    "Tarfaya", "Ouazzane", "Zagora", "had_soualem",
+    "Saidia", "Bab_Berred", "Midar", "Moulay_Bousselham",
+    "Khemisset", "Guerguerat", "Asilah", "Sidi_Bouzid", "Tafraout",
+    "Imzouren", "Zemamra", "Sidi_Kacem", "Drarga", "Skhirate"
+];
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let available_threads = std::thread::available_parallelism()?.get();
+    let available_threads = std::thread::available_parallelism()?.get() * 2;
+
+    let mut cities_map: HashMap<u64, usize, FxHasher> = HashMap::with_capacity_and_hasher(101, FxHasher::default());
+    let mut products_map: HashMap<u64, usize, FxHasher> = HashMap::with_capacity_and_hasher(100, FxHasher::default());
+    
+    for i in 0..CITIES.len() {
+        cities_map.insert(get_hash(&CITIES[i].as_bytes()[0..CITIES[i].len().min(8)]), i);
+    }
+
+    for i in 0..PRODUCTS.len() {
+        products_map.insert(get_hash(&PRODUCTS[i].as_bytes()[0..PRODUCTS[i].len().min(8)]), i);
+    }
 
     let input = File::open(INPUT_FILE)?;
     let file_length = input.metadata()?.len();
     let initial_chunk_size = file_length / available_threads as u64;
 
-    let result: Arc<Mutex<ProductsIndex>> = Arc::new(Mutex::new(HashMap::with_capacity_and_hasher(101, FxHasher::default())));
+    let result = [[0.0; 100]; 101];
+    let result = Arc::new(Mutex::new(result));
+
+    let totals_result = [0.0; 101];
+    let totals_result_arc = Arc::new(Mutex::new(totals_result));
+
+    let cities_map_arc = Arc::new(cities_map);
+    let products_map_arc = Arc::new(products_map);
 
     thread::scope(|scope| {
         for i in 0..available_threads {
@@ -76,41 +143,70 @@ fn main() -> Result<(), Box<dyn Error>> {
                 0
             };
             let result_clone = result.clone();
+            let totals_result_clone = totals_result_arc.clone();
+            let cities_map_clone = cities_map_arc.clone();
+            let products_map_clone = products_map_arc.clone();
             scope.spawn(move || {
-                process_chunk(result_clone.clone(), start, end);
+                process_chunk(result_clone, totals_result_clone, start, end, cities_map_clone, products_map_clone);
             });
         }
     });
 
     let result = result.lock().expect("");
+    let totals = totals_result_arc.lock().expect("");
 
-    let cheapest_city = result
+    let cheapest_city_result = totals
         .iter()
-        .min_by(|a, b| a.1 .1.partial_cmp(&b.1 .1).unwrap())
-        .unwrap()
-        .0;
-    let cheapest_products = &result[cheapest_city].0;
+        .enumerate()
+        .map(|(index, total)| {
+            (index, total)
+        })
+        .min_by(|a, b| {
+            if *a.1 == 0.0 {
+                return Ordering::Greater;
+            }
+            if *b.1 == 0.0 {
+                return Ordering::Less
+            }
+            a.1.partial_cmp(&b.1).unwrap()
+        })
+        .unwrap();
+    let (cheapest_city, total) = cheapest_city_result;
 
+    let cheapest_products = &result[cheapest_city];    
+    
+    let mut cheapest_products_sorted = cheapest_products.iter().enumerate().collect::<Vec<_>>();
+    cheapest_products_sorted.sort_by(|a, b| {
+        if *a.1 == 0.0 {
+            return Ordering::Greater;
+        }
+        if *b.1 == 0.0 {
+            return Ordering::Less;
+        }
+        a.1.partial_cmp(b.1).unwrap().then(CITIES[a.0].cmp(CITIES[b.0]))
+    });
+    
     let mut output = File::create(OUTPUT_FILE)?;
-    writeln!(output, "{} {:.2}", cheapest_city, result[cheapest_city].1)?;
+    writeln!(output, "{} {:.2}", CITIES[cheapest_city], total)?;
 
-    let mut cheapest_products_sorted = cheapest_products.iter().collect::<Vec<_>>();
-    cheapest_products_sorted.sort_by(|a, b| a.1.partial_cmp(b.1).unwrap().then(a.0.cmp(b.0)));
-
-    for (product, price) in cheapest_products_sorted.iter().take(5) {
-        writeln!(output, "{} {:.2}", product, price)?;
+    for (index, price) in cheapest_products_sorted.iter().take(5) {
+        writeln!(output, "{} {:.2}", PRODUCTS[*index], price)?;
     }
 
     Ok(())
 }
 
 fn process_chunk(
-    result: Arc<Mutex<ProductsIndex>>,
+    result: Arc<Mutex<[[f64; 100]; 101]>>,
+    totals: Arc<Mutex<[f64; 101]>>,
     start: u64,
     end: u64,
+    cities_map: Arc<HashMap<u64, usize, FxHasher>>,
+    products_map: Arc<HashMap<u64, usize, FxHasher>>
 ) -> Result<(), Box<dyn Error>> {
 
-    let mut products_map_by_city: ProductsIndex = HashMap::with_capacity_and_hasher(101, FxHasher::default());
+    let mut products_map_by_city = [[0.0; 100]; 101];
+    let mut totals_chunk = [0.0; 101];
 
     let mut input = File::open(INPUT_FILE)?;
     input.seek(std::io::SeekFrom::Start(start))?;
@@ -122,17 +218,20 @@ fn process_chunk(
     let mut cursor = start + buf.len() as u64;
     let mut last = false;
 
-    let mut line_unprocessed: Vec<u8> = Vec::new();
+    let mut city_vec = Vec::new();
+    let mut product_vec = Vec::new();
+    let mut price_vec = Vec::new();
 
     loop {
-        let read_bytes = reader.read_until(b'\n', &mut line_unprocessed)?;
-        if read_bytes == 0 {
+        let city_length = reader.read_until(b',', &mut city_vec)?;
+        if city_length == 0 {
             break;
         }
 
-        let line = &line_unprocessed.as_slice()[..line_unprocessed.len() - 1];
+        let product_length = reader.read_until(b',', &mut product_vec)?;
+        let price_length = reader.read_until(b'\n', &mut price_vec)?;
 
-        cursor += line.len() as u64 + 1;
+        cursor += (city_length + price_length + product_length) as u64;
         if end != 0 && cursor > end {
             if last {
                 break;
@@ -140,55 +239,75 @@ fn process_chunk(
             last = true;
         }
 
-        let split = line.split(|char| *char == b',').collect::<Vec<&[u8]>>();
-        let price = unsafe { std::str::from_utf8_unchecked(split[2]) }.parse::<f64>()?;
+        let price = parse(&price_vec[0..&price_vec.len() - 1]);
 
-        let city_str = unsafe { std::str::from_utf8_unchecked(split[0]) };
-        let product_str = unsafe { std::str::from_utf8_unchecked(split[1]) };
+        let city_length = (city_length - 1).min(8);
+        let city_hash = get_hash(&city_vec[0..city_length]);
+    
+        let product_length = (product_length - 1).min(8);
+        let product_hash = get_hash(&product_vec[0..product_length]);
 
-        let city_entry = products_map_by_city.get_mut(&city_str[..]);
-        if let Some(tup) = city_entry {
-            let products_map = tup.0.get_mut(&product_str[..]);
-            if let Some(old_price) = products_map {
-                if *old_price > price {
-                    *old_price = price;
-                }
-            } else {
-                tup.0.insert(product_str.to_string(), price);
+        let product_price = &mut products_map_by_city[cities_map[&city_hash]][products_map[&product_hash]];
+        if *product_price != 0.0 {
+            if *product_price > price {
+                *product_price = price;
             }
-            tup.1 += price;
         } else {
-            products_map_by_city.insert(
-                city_str.to_string(),
-                (HashMap::<String, f64, FxHasher>::with_capacity_and_hasher(100, FxHasher::default()), price)
-            );
+            *product_price = price;
+
         }
 
-        line_unprocessed.clear();
+        let total = &mut totals_chunk[cities_map[&city_hash]];
+        *total += price;
+
+        city_vec.clear();
+        product_vec.clear();
+        price_vec.clear();
     }
 
     let mut result_lock = result.lock();
     let result = result_lock.as_mut().expect("");
+    let mut totals_lock = totals.lock();
+    let totals = totals_lock.as_mut().expect("");
 
-    for (city, (products, total)) in products_map_by_city {
-        let city_entry = result
-            .entry(city)
-            .or_insert_with(|| (HashMap::with_capacity_and_hasher(100, FxHasher::default()), 0.0));
-
-        city_entry.1 += total;
-
-        for (product, price) in products {
-            city_entry
-                .0
-                .entry(product)
-                .and_modify(|old| {
-                    if *old > price {
-                        *old = price
-                    }
-                })
-                .or_insert_with(|| price);
+    for i in 0..101 {
+        for j in 0..100 {
+            let chunk_price = products_map_by_city[i][j];
+            let result_price = &mut result[i][j];
+            if *result_price != 0.0 {
+                if *result_price > chunk_price {
+                    *result_price = chunk_price;
+                }
+            } else {
+                *result_price = chunk_price;
+            }    
         }
+
+        let total_price = &mut totals[i];
+        *total_price += totals_chunk[i];
     }
 
     Ok(())
+}
+
+fn get_hash(to_hash: &[u8]) -> u64 {
+    let mut hasher = FxHasher::default();
+    to_hash.hash(&mut hasher);
+    hasher.finish()
+}
+
+fn parse(to_parse: &[u8]) -> f64 {
+    let (a, b, c, d, e) = match to_parse {
+        [c, b'.', d] => (0, 0, c - b'0', d - b'0', 0),
+        [b, c, b'.', d] => (0, b - b'0', c - b'0', d - b'0', 0),
+        [a, b, c, b'.', d] => (a - b'0', b - b'0', c - b'0', d - b'0', 0),
+        [c, b'.', d, e] => (0, 0, c - b'0', d - b'0', e - b'0'),
+        [b, c, b'.', d, e] => (0, b - b'0', c - b'0', d - b'0', e - b'0'),
+        [a, b, c, b'.', d, e] => (a - b'0', b - b'0', c - b'0', d - b'0', e - b'0'),
+        [c] => (0, 0, c - b'0', 0, 0),
+        [b, c] => (0, b - b'0', c - b'0', 0, 0),
+        [a, b, c] => (a - b'0', b - b'0', c - b'0', 0, 0),
+        _ => unreachable!(),
+    };
+    a as f64 * 100 as f64 + b as f64 * 10 as f64 + c as f64 + d as f64 * 0.1 + e as f64 * 0.01
 }
