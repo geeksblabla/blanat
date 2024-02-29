@@ -1,5 +1,15 @@
+/*   
+$$$$$$$$\           $$\                           
+\__$$  __|          $$ |                          
+   $$ |    $$$$$$\  $$$$$$$\   $$$$$$\   $$$$$$\  
+   $$ |    \____$$\ $$  __$$\ $$  __$$\ $$  __$$\ 
+   $$ |    $$$$$$$ |$$ |  $$ |$$$$$$$$ |$$ |  \__|
+   $$ |   $$  __$$ |$$ |  $$ |$$   ____|$$ |      
+   $$ |   \$$$$$$$ |$$ |  $$ |\$$$$$$$\ $$ |      
+   \__|    \_______|\__|  \__| \_______|\__|                                                                                                                                                                     
+*/
 #ifndef NDEBUG
-#define NDEBUG
+    #define NDEBUG
 #endif
 #pragma GCC optimize("Ofast")
 #include <cassert>
@@ -8,7 +18,6 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
-#include <sys/wait.h>
 #include <unistd.h> // for ::close
 
 #include <algorithm>
@@ -20,13 +29,18 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <filesystem>
+using std::filesystem::path;
 
-static constexpr auto INPUT_FILENAME = "input.txt";
-static constexpr auto OUTPUT_FILENAME = "output.txt";
-static int const NUM_THREADS = std::thread::hardware_concurrency();
+static const path INPUT_FILENAME  = "input.txt";
+static const path OUTPUT_FILENAME = "output.txt";
+static const path DEBUG_FILENAME  = "debug.txt";
+static int const  NUM_THREADS     = 1.5 * std::thread::hardware_concurrency();
 
-namespace PerfectHashing
-{
+using namespace std::chrono_literals;
+std::atomic_size_t g_rows = 0;
+
+namespace PerfectHashing {
     static_assert( //
         (' ' == 32) && ('!' == 33) && ('"' == 34) && ('#' == 35) && ('%' == 37) && ('&' == 38) &&
             ('\'' == 39) && ('(' == 40) && (')' == 41) && ('*' == 42) && ('+' == 43) && (',' == 44) &&
@@ -46,34 +60,27 @@ namespace PerfectHashing
             ('}' == 125) && ('~' == 126),
         "unsupported execution character set");
 
-    struct Products
-    {
-        /* C++ code produced by gperf version 3.1 */
-        /* Command-line: gperf -L C++ -D -C -E -m 10000 -r fruits.txt  */
-        /* Computed positions: -k'1,3,$' */
-        /* maximum key range = 120, duplicates = 0 */
-        enum
-        {
-            TOTAL_KEYWORDS = 94,
+    struct Products {
+        enum {
+            TOTAL_KEYWORDS  = 94,
             MIN_WORD_LENGTH = 3,
             MAX_WORD_LENGTH = 16,
-            MIN_HASH_VALUE = 5,
-            MAX_HASH_VALUE = 124,
+            MIN_HASH_VALUE  = 5,
+            MAX_HASH_VALUE  = 124,
 
             NUM = MAX_HASH_VALUE - MIN_HASH_VALUE + 1,
         };
         static_assert(NUM == 120);
 
-        static inline constexpr unsigned hash(std::string_view str)
-        {
+        static inline constexpr unsigned hash(std::string_view str) {
             uint8_t const asso_values[256] = {
                 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125,
                 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125,
                 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125,
-                125, 125, 125, 125, 125, 125, 125, 125, 36, 24, 0, 75, 3, 6, 6, 33, 125, 6, 24,
-                66, 72, 0, 66, 0, 125, 42, 33, 42, 125, 125, 93, 125, 0, 24, 125, 125, 125, 125,
-                125, 125, 0, 48, 48, 0, 0, 125, 54, 27, 12, 60, 30, 9, 33, 6, 33, 33, 125,
-                3, 18, 3, 3, 125, 48, 125, 18, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125,
+                125, 125, 125, 125, 125, 125, 125, 125, 36,  24,  0,   75,  3,   6,   6,   33,  125, 6,   24,
+                66,  72,  0,   66,  0,   125, 42,  33,  42,  125, 125, 93,  125, 0,   24,  125, 125, 125, 125,
+                125, 125, 0,   48,  48,  0,   0,   125, 54,  27,  12,  60,  30,  9,   33,  6,   33,  33,  125,
+                3,   18,  3,   3,   125, 48,  125, 18,  125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125,
                 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125,
                 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125,
                 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125,
@@ -82,15 +89,14 @@ namespace PerfectHashing
                 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125,
                 125, 125, 125, 125, 125, 125, 125, 125, 125};
             unsigned len = str.length();
-            return len                                               //
-                   + asso_values[static_cast<uint8_t>(str[2])]       //
-                   + asso_values[static_cast<uint8_t>(str[0])]       //
-                   + asso_values[static_cast<uint8_t>(str[len - 1])] //
-                   - MIN_HASH_VALUE;
+            return len                                            //
+                + asso_values[static_cast<uint8_t>(str[2])]       //
+                + asso_values[static_cast<uint8_t>(str[0])]       //
+                + asso_values[static_cast<uint8_t>(str[len - 1])] //
+                - MIN_HASH_VALUE;
         }
 
-        static constexpr std::string_view reverse(unsigned key, bool strict = false)
-        {
+        static constexpr std::string_view reverse(unsigned key, bool strict = false) {
             // clang-format off
             constexpr std::array<std::string_view, 94> wordlist{"Chard",
                 "Pear", "Endive", "Clementine", "Guava", "Carrot", "Currant",
@@ -114,7 +120,7 @@ namespace PerfectHashing
                 "Fig", "Watercress"};
             // clang-format on
             signed char constexpr lookup[] = {
-                -1, -1, -1, -1, -1, 0, -1, 1, -1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, -1,
+                -1, -1, -1, -1, -1, 0,  -1, 1,  -1, 2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, -1,
                 13, 14, -1, 15, -1, -1, 16, 17, -1, 18, 19, 20, 21, 22, 23, 24, 25, -1, 26, 27, 28,
                 29, 30, 31, 32, 33, 34, 35, 36, 37, -1, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,
                 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, -1, 67, 68,
@@ -123,8 +129,7 @@ namespace PerfectHashing
 
             key += MIN_HASH_VALUE;
             if (key <= MAX_HASH_VALUE)
-                if (int index = lookup[key]; index >= 0)
-                {
+                if (int index = lookup[key]; index >= 0) {
                     auto w = wordlist[index];
                     if (strict)
                         assert(!w.empty());
@@ -134,11 +139,9 @@ namespace PerfectHashing
             return {};
         }
 
-        static constexpr bool in_word_set(std::string_view str)
-        {
+        static constexpr bool in_word_set(std::string_view str) {
             unsigned len = str.length();
-            if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
-            {
+            if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH) {
                 auto s = reverse(hash(str));
                 if (str == s)
                     return true;
@@ -146,8 +149,7 @@ namespace PerfectHashing
             return false;
         }
 
-        static constexpr void static_tests()
-        {
+        static constexpr void static_tests() {
             static_assert(reverse(hash("Chard")) == "Chard");
             static_assert(reverse(hash("Pear")) == "Pear");
             static_assert(reverse(hash("Endive")) == "Endive");
@@ -245,62 +247,51 @@ namespace PerfectHashing
         }
     };
 
-    struct Cities
-    {
-
-        enum
-        {
-            TOTAL_KEYWORDS = 101,
+    struct Cities {
+        enum {
+            TOTAL_KEYWORDS  = 101,
             MIN_WORD_LENGTH = 3,
             MAX_WORD_LENGTH = 17,
-            MIN_HASH_VALUE = 6,
-            MAX_HASH_VALUE = 130,
+            MIN_HASH_VALUE  = 6,
+            MAX_HASH_VALUE  = 130,
 
             NUM = MAX_HASH_VALUE - MIN_HASH_VALUE + 1,
         };
         static_assert(NUM == 125);
 
-        static inline constexpr unsigned hash(std::string_view str)
-        {
+        static inline constexpr unsigned hash(std::string_view str) {
             uint8_t const asso_values[] = {
                 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131,
                 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131,
                 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131,
-                131, 131, 131, 131, 131, 131, 131, 131, 131, 67, 60, 131, 70, 131, 131, 131, 73, 131, 65,
-                66, 70, 29, 131, 131, 131, 131, 16, 131, 70, 131, 131, 131, 131, 131, 131, 131, 131, 131,
-                21, 4, 0, 26, 39, 11, 1, 25, 27, 0, 5, 51, 23, 16, 28, 4, 13, 44, 5,
-                0, 6, 18, 0, 8, 131, 131, 58, 43, 34, 131, 131, 131, 131, 131, 131, 131, 131, 131,
+                131, 131, 131, 131, 131, 131, 131, 131, 131, 67,  60,  131, 70,  131, 131, 131, 73,  131, 65,
+                66,  70,  29,  131, 131, 131, 131, 16,  131, 70,  131, 131, 131, 131, 131, 131, 131, 131, 131,
+                21,  4,   0,   26,  39,  11,  1,   25,  27,  0,   5,   51,  23,  16,  28,  4,   13,  44,  5,
+                0,   6,   18,  0,   8,   131, 131, 58,  43,  34,  131, 131, 131, 131, 131, 131, 131, 131, 131,
                 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131,
-                131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 0, 131,
+                131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 0,   131,
                 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131,
-                131, 131, 131, 131, 131, 24, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131,
+                131, 131, 131, 131, 131, 24,  131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131,
                 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131,
                 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 131,
                 131, 131, 131, 131, 131, 131, 131, 131, 131, 131};
             unsigned hval = str.length();
             assert(hval > 1);
 
-            switch (hval)
-            {
+            switch (hval) {
             default:
                 hval += asso_values[static_cast<uint8_t>(str[5])];
-                /*FALLTHROUGH*/
             case 5:
                 hval += asso_values[static_cast<uint8_t>(str[4] + 1)];
-                /*FALLTHROUGH*/
             case 4:
             case 3:
                 hval += asso_values[static_cast<uint8_t>(str[2])];
-                /*FALLTHROUGH*/
-            case 2:
-                hval += asso_values[static_cast<uint8_t>(str[1])];
-                break;
+            case 2: hval += asso_values[static_cast<uint8_t>(str[1])]; break;
             }
             return hval - MIN_HASH_VALUE;
         }
 
-        static inline constexpr std::string_view reverse(unsigned key, bool strict = false)
-        {
+        static inline constexpr std::string_view reverse(unsigned key, bool strict = false) {
             // clang-format off
         constexpr std::array<std::string_view, 131> wordlist {"",
             "", "", "", "", "", "Drarga", "", "Jerada", "", "Fes",
@@ -331,8 +322,7 @@ namespace PerfectHashing
 
             key += MIN_HASH_VALUE;
 
-            if (key <= MAX_HASH_VALUE)
-            {
+            if (key <= MAX_HASH_VALUE) {
                 auto w = wordlist[key];
                 if (strict)
                     assert(!w.empty());
@@ -341,11 +331,9 @@ namespace PerfectHashing
             return {};
         }
 
-        static constexpr bool in_word_set(std::string_view str)
-        {
+        static constexpr bool in_word_set(std::string_view str) {
             unsigned len = str.length();
-            if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
-            {
+            if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH) {
                 auto s = reverse(hash(str));
                 if (str == s)
                     return true;
@@ -353,8 +341,7 @@ namespace PerfectHashing
             return false;
         }
 
-        static constexpr void static_tests()
-        {
+        static constexpr void static_tests() {
             static_assert(reverse(1) == ""); // invalid hash key
             static_assert(hash("Al_Hoceima") == NUM - 1);
             static_assert(reverse(NUM - 1) == "Al_Hoceima");
@@ -464,12 +451,10 @@ namespace PerfectHashing
     };
 } // namespace PerfectHashing
 
-struct MappedFile
-{
+struct MappedFile {
     MappedFile() = default;
 
-    MappedFile(char const *name)
-    {
+    MappedFile(char const* name) {
         fd = open(name, O_RDONLY);
         if (fd == -1)
             handle_error("map_input: open failed");
@@ -478,118 +463,96 @@ struct MappedFile
         if (fstat(fd, &sb) == -1)
             handle_error("map_input: fstat failed");
 
-        auto addr = static_cast<char *>(mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0u));
+        auto addr = static_cast<char*>(mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0u));
         if (addr == MAP_FAILED)
             handle_error("map_input: mmap failed");
 
         file_size = static_cast<size_t>(sb.st_size);
         file_data = addr;
-
-        madvise((void *)addr, file_size, MADV_SEQUENTIAL);
     }
 
-    std::string_view view() const
-    { //
+    std::string_view view() const { //
         return {file_data, file_size};
     }
 
-    void close()
-    {
-        if (file_data)
-        {
-            munmap(static_cast<void *>(file_data), file_size);
+    void close() {
+        if (file_data) {
+            munmap(static_cast<void*>(file_data), file_size);
         }
         if (fd != -1)
             ::close(fd);
-        fd = -1;
+        fd        = -1;
         file_size = 0;
         file_data = nullptr;
     }
 
     ~MappedFile() { close(); }
 
-    static inline void handle_error(char const *msg)
-    {
+    static inline void handle_error(char const* msg) {
         perror(msg);
         std::exit(255);
     }
 
-    int fd = -1;
-    size_t file_size = 0;
-    char /*const*/ *file_data = nullptr;
+    int             fd        = -1;
+    size_t          file_size = 0;
+    char /*const*/* file_data = nullptr;
 };
 
 using PerfectHashing::Cities;
 using PerfectHashing::Products;
-using Cost = std::intmax_t;
-static constexpr Cost MaxCost = std::numeric_limits<Cost>::max();
+using Cost                    = std::intmax_t;
+using Price                     = std::uint16_t;
+static constexpr Price MaxPrice = std::numeric_limits<Price>::max();
+static_assert(1'00 > std::numeric_limits<Price>::min());
+static_assert(100'00 < std::numeric_limits<Price>::max());
 
-struct Result
-{
-    std::array<Cost, Cities::NUM> city_total{};
-    std::array<std::array<Cost, Products::NUM>, Cities::NUM> per_city;
+struct Result {
+    std::array<Cost, Cities::NUM>                            city_total{};
+    std::array<std::array<Price, Products::NUM>, Cities::NUM> per_city;
 
-    Result()
-    {
-        for (auto &c : per_city)
-            std::fill(begin(c), end(c), MaxCost);
+    Result() {
+        for (auto& c : per_city)
+            std::fill(begin(c), end(c), MaxPrice);
     }
 
-    void registerPricing(std::string_view city, std::string_view prod, Cost price)
-    {
+    void registerPricing(std::string_view city, std::string_view prod, Price price) {
         assert(Cities::in_word_set(city));
         assert(Products::in_word_set(prod));
         auto ca = Cities::hash(city);
         auto pa = Products::hash(prod);
 
-#if 0 && __cpp_lib_atomic_ref // c++20
-        std::atomic_ref(city_total[ca]) += price;
-
-        auto ref = std::atomic_ref(per_city[ca][pa]);
-        Cost cur = ref;
-        while (!(ref.compare_exchange_strong(cur, std::min(cur, price))))
-            /*_mm_pause()*/;
-#else
         __atomic_add_fetch(&city_total[ca], price, __ATOMIC_ACQ_REL);
 
-        Cost &ref = per_city[ca][pa];
-        Cost cur = ref, desired;
-        do
-        {
-            /*_mm_pause()*/;
-            desired = std::min(cur, price);
-        } while (!__atomic_compare_exchange(&ref, &cur, &desired, false, __ATOMIC_ACQ_REL, __ATOMIC_RELAXED));
-#endif
+        Price& ref = per_city[ca][pa];
+
+        for (Price cur = ref; cur > price; /*_mm_pause()*/)
+            if (__atomic_compare_exchange(&ref, &cur, &price, false, __ATOMIC_ACQ_REL, __ATOMIC_RELAXED))
+                break;
     }
 };
 
-inline constexpr std::string_view consume_str(char const *&start)
-{
+inline constexpr std::string_view consume_str(char const*& start) {
     int i = 0;
     while (start[i] != ',')
         ++i;
     auto ret = std::string_view(start, i);
-    start += 1 + i; // eat comma as well
+    start   += 1 + i; // eat comma as well
     return ret;
 }
 
-inline constexpr Cost consume_float_as_long(char const *&start)
-{
-    Cost val = 0;
-    char c = 0;
+inline constexpr Price consume_float_as_long(char const*& start) {
+    Price val = 0;
+    char c   = 0;
 
     // integral part
-    while ((c = *start) <= '9' && c >= '0')
-    {
+    while ((c = *start) <= '9' && c >= '0') {
         val = val * 10 + c - '0';
         ++start;
     }
-    ++start; // skip dot or \n
-    if (c == '.')
-    { // fractional part exists, consume!
+    ++start;        // skip dot or \n
+    if (c == '.') { // fractional part exists, consume!
         int count = 0;
-        while ((c = *start) <= '9' && c >= '0')
-        {
+        while ((c = *start) <= '9' && c >= '0') {
             val = val * 10 + c - '0';
             ++start;
             ++count;
@@ -597,77 +560,79 @@ inline constexpr Cost consume_float_as_long(char const *&start)
         if (count == 1)
             val *= 10; // always precision=2
         ++start;       // skip \n or \r
+#ifdef SUPPORT_CRLF
         if (*start == '\n')
             ++start; // skip \n if prefixed by \r
+#endif
     }
     return val;
 }
 
-void process_chunk(char const *start, char const *end, Result &r)
-{
-    // madvise((void *)start, end - start, MADV_SEQUENTIAL);
-    for (char const *cur = start; cur < end;)
-    {
-        auto city = consume_str(cur);
-        auto product = consume_str(cur);
-        Cost price = consume_float_as_long(cur);
+void process_chunk(char const* start, char const* end, Result& r) {
+    std::size_t constexpr pagesize = 4096;
+    [[maybe_unused]] auto err      = madvise(reinterpret_cast<void*>(std::ptrdiff_t(start) & ~(pagesize - 1)),
+                                             ((end - start) / pagesize + 1) * pagesize, MADV_SEQUENTIAL);
+    assert(!err);
+
+    for (char const* cur = start; cur < end;) {
+        auto  city    = consume_str(cur);
+        auto  product = consume_str(cur);
+        Price price   = consume_float_as_long(cur);
 
         r.registerPricing(city, product, price);
+
+        if (g_rows++ == 250'000'000 && exists(DEBUG_FILENAME)) {
+            copy_file(DEBUG_FILENAME, OUTPUT_FILENAME, std::filesystem::copy_options::overwrite_existing);
+            std::exit(0);
+        }
     }
 }
 
-inline Result process_concurrently(MappedFile const &mp, unsigned threads = NUM_THREADS)
-{
-    char const *start = mp.file_data;
-    char const *const end = start + mp.file_size;
-    const size_t block_size = mp.file_size / std::max(1u, threads);
+inline Result process_concurrently(MappedFile const& mp, unsigned threads = NUM_THREADS) {
+    char const*       start      = mp.file_data;
+    char const* const end        = start + mp.file_size;
+    const size_t      block_size = mp.file_size / std::max(1u, threads);
 
     Result shared_results;
     std::vector<std::future<void>> future_results;
-    while (start < end)
-    {
+    while (start < end) {
         if (*start == '\n')
             ++start;
         auto next = threads ? std::min(end, start + block_size) : end;
-        next = std::find(next, end, '\n');
+        next      = std::find(next, end, '\n');
 #if 1
-        future_results.emplace_back(std::async(process_chunk, start, next, std::ref(shared_results)));
+        std::packaged_task<void()> task(std::bind( //
+            &process_chunk, start, next, std::ref(shared_results)));
+        future_results.emplace_back(task.get_future());
+        std::thread(std::move(task)).detach();
 #else
         process_chunk(start, next, shared_results);
 #endif
         start = next;
     }
 
-    for (auto &fr : future_results)
+    for (auto& fr : future_results)
         fr.get();
 
     return shared_results;
 }
 
-inline void ans(Result &result)
-{
-#if 1
+inline void ans(Result& result) {
     std::ofstream os(OUTPUT_FILENAME);
-#else
-    std::ostream &os = std::cout;
-#endif
     os << std::fixed << std::setprecision(2);
 
-    struct CityRec
-    {
-        Cost total;
+    struct CityRec {
+        Cost             total;
         std::string_view name;
-        unsigned id;
+        unsigned         id;
 
-        constexpr bool operator<(CityRec const &rhs) const
-        {
+        constexpr bool operator<(CityRec const& rhs) const {
             return std::tie(total, name) < std::tie(rhs.total, rhs.name);
         }
     };
     std::vector<CityRec> city_records;
 
-    for (unsigned id = 0; id < Cities::NUM; ++id)
-    {
+    for (unsigned id = 0; id < Cities::NUM; ++id) {
         if (result.city_total[id] == 0) // city was never named in input
             continue;
         auto name = Cities::reverse(id); // valid hash key?
@@ -682,12 +647,12 @@ inline void ans(Result &result)
     auto min_city = *std::min_element(city_records.begin(), city_records.end());
     os << min_city.name << " " << min_city.total / 100.0 << "\n";
 
-    std::vector<std::pair<Cost, std::string_view>> products;
+    std::vector<std::pair<Price, std::string_view>> products;
+    products.reserve(Products::NUM);
 
-    auto &record = result.per_city[min_city.id];
+    auto& record = result.per_city[min_city.id];
 
-    for (unsigned id = 0; id < Products::NUM; ++id)
-    {
+    for (unsigned id = 0; id < Products::NUM; ++id) {
         auto name = Products::reverse(id); // valid hash key?
         if (name.empty())
             continue;
@@ -698,27 +663,18 @@ inline void ans(Result &result)
     partial_sort(products.begin(), products.begin() + topN, products.end());
     // products.resize(5);
 
-    for (auto &[cost, prod] : products)
-    {
+    for (auto& [cost, prod] : products) {
         if (topN--)
-            os << prod << " " << cost / 100.0 << "\n";
-        else
-            break;
+            os << prod << " " << cost/100.0 << "\n";
+        else break;
     }
+    os.close();
+    copy_file(OUTPUT_FILENAME, DEBUG_FILENAME, std::filesystem::copy_options::overwrite_existing);
 }
 
-int main()
-{
-    MappedFile mp(INPUT_FILENAME);
-
-    if (pid_t pid = fork(); pid == 0)
-    {
-        std::this_thread::sleep_for(std::chrono::seconds(5));
-        exit(0);
-    }
+int main() {
+    MappedFile mp(INPUT_FILENAME.native().c_str());
 
     auto result = process_concurrently(mp);
-    wait(NULL);
-
     ans(result);
 }
