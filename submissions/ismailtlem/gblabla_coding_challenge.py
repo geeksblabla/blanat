@@ -37,7 +37,7 @@ def main(input_path, output_path):
     output_lines.extend([f"{product} {format_float_number(price)}" for product, price in cheapest_products])
 
     with open(output_path, "w", encoding="utf-8") as f:
-        f.write("\n".join(output_lines))
+        f.write("\n".join(output_lines)+ "\n")
 
 
 if __name__ == "__main__":
