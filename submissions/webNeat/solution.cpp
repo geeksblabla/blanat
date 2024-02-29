@@ -12,7 +12,7 @@
 #define PRODUCTS_COUNT 100
 #define LINE_MAX_LENGTH 100
 #define ALPHABET_SIZE 26
-#define THREADS_COUNT 8
+#define THREADS_COUNT 16
 
 struct TrieNode {
   struct TrieNode *children[ALPHABET_SIZE];
@@ -258,6 +258,7 @@ int main() {
     fprintf(out, "%s %.2f\n", index_to_product[pairs[i].first], pairs[i].second);
     count ++;
   }
+  fclose(out);
 
   return 0;
 }
