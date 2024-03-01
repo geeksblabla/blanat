@@ -41,12 +41,12 @@ public class Main {
 
 
         var cityMap = new TreeMap<Slot, Double>();
-        try (var fjp = new ForkJoinPool(NUM_THREADS_TO_USE)) {
-            Dictionary cityDictionary = new Dictionary();
-            Dictionary productDictionary = new Dictionary();
-            fjp.submit(new ChunkProcessor(cityDictionary, productDictionary, chunks)).join();
-            cityDictionary.forEach(slot -> cityMap.put(slot, slot.getCityResult()));
-        }
+        var fjp = new ForkJoinPool(NUM_THREADS_TO_USE);
+        
+        Dictionary cityDictionary = new Dictionary();
+        Dictionary productDictionary = new Dictionary();
+        fjp.submit(new ChunkProcessor(cityDictionary, productDictionary, chunks)).join();
+        cityDictionary.forEach(slot -> cityMap.put(slot, slot.getCityResult()));
 
         double minSum = Collections.min(cityMap.values());
         Slot minCity = cityMap
