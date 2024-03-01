@@ -296,8 +296,9 @@ void printResult2(Data &data) {
 #define MAX_THREADS 128
 
 void merge2(Data &data, Data &data_j) {
-  size_t cache_p[MAX_PRODUCTS + 1];
-  memset(cache_p, -1, (MAX_PRODUCTS + 1) * sizeof(size_t));
+  char cache_p[MAX_PRODUCTS + 1];
+  memset(cache_p, -1, (MAX_PRODUCTS + 1) * sizeof(char));
+
   for (size_t i = 0; data_j.cities_index.size() > i; ++i) {
     size_t j =
         data.cities_index.get(data_j.cities_index.name_from_idx(i)).first;
@@ -306,10 +307,11 @@ void merge2(Data &data, Data &data_j) {
     City &city_j = data_j.cities[i];
     City &city = data.cities[j];
     for (size_t ii = 0; data_j.products_index.size() > ii; ++ii) {
+      if (cache_p[ii] == -1)
+        cache_p[ii] =
+            data.products_index.get(data_j.products_index.name_from_idx(ii))
+                .first;
       size_t jj = cache_p[ii];
-      if (jj == -1)
-        jj = data.products_index.get(data_j.products_index.name_from_idx(ii))
-                 .first;
       Product &product_j = city_j.products[ii];
       Product &product = city.products[jj];
       if (product_j.min < product.min)
@@ -371,7 +373,6 @@ int main() {
   std::mutex mu_fr;
 
   const unsigned int number_of_threads = 32;
-      //2 * std::thread::hardware_concurrency();
   const off_t chunk_size = fr_m.file_size() / number_of_threads;
   for (unsigned int j = 0; j < number_of_threads; j++) {
     threads.emplace_back(
