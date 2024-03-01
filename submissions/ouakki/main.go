@@ -1,17 +1,15 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"io"
 	"log"
 	"os"
-	"runtime"
 	"runtime/debug"
 	"runtime/pprof"
 	"runtime/trace"
 	"sort"
 	"sync"
+	"syscall"
 	"unsafe"
 )
 
@@ -90,16 +88,12 @@ func createIndex(data []string, hash func(string) uint64, size uint32) []int {
 }
 
 type task struct {
-	in       io.Reader
+	data     []byte
 	products [][]int64
 	sum      []int64
 }
 
-func bytesToString(b []byte) string {
-	return unsafe.String(unsafe.SliceData(b), len(b))
-}
-
-func newTask(in io.Reader) *task {
+func newTask(data []byte) *task {
 	products := make([][]int64, maxConstraintsCount)
 	for i := 0; i < maxConstraintsCount; i++ {
 		products[i] = make([]int64, maxConstraintsCount)
@@ -109,29 +103,57 @@ func newTask(in io.Reader) *task {
 	}
 	sum := make([]int64, maxConstraintsCount)
 	return &task{
-		in:       in,
 		products: products,
 		sum:      sum,
+		data:     data,
 	}
 }
 
 func (t *task) run() {
-	scanner := bufio.NewScanner(t.in)
 	var (
-		price      int64
+		price      int
 		sep1, sep2 int
+		cursor     int
 	)
-	for scanner.Scan() {
-		var (
-			record = scanner.Bytes()
-		)
-		// todo: optimise
-		for i := len(record) - 3; i > 0; i-- {
-			if record[i] == ',' {
-				sep2 = i
-				break
+
+	datalen := len(t.data)
+	for {
+		if cursor > datalen-2 {
+			return
+		}
+		start := cursor
+		cursor += 11
+		for t.data[cursor] != '\n' {
+			cursor++
+			if t.data[cursor] == ',' {
+				sep1 = start - cursor
 			}
 		}
+		cursor++
+		record := t.data[start : cursor-1]
+
+		// todo: optimise
+
+		price = (int(record[len(record)-1]) - '0')
+		pos := 0
+		k := 10
+		for i := len(record) - 2; i > 0; i-- {
+			if record[i] == ',' {
+				sep2 = i
+				if len(record)-pos == 2 {
+					price = price * 10
+				}
+				break
+			}
+			if record[i] == '.' {
+				pos = i
+				continue
+			}
+			price = price + (int(record[i])-'0')*k
+			k *= 10
+
+		}
+
 		for j := sep2 - 4; j > 0; j-- {
 			if record[j] == ',' {
 				sep1 = j
@@ -139,20 +161,18 @@ func (t *task) run() {
 			}
 		}
 
-		city := bytesToString(record[:sep1])
-		product := bytesToString(record[sep1+1 : sep2])
-
-		price = int64(parseInt(record[sep2+1:]))
-
-		cx := cidx[hashc(city)]
-		fx := fidx[hashf(product)]
-
-		t.products[cx][fx] = custMin(t.products[cx][fx], price)
-		t.sum[cx] += price
+		cx := cidx[(uint64(record[0])*uint64(record[sep1-1]) + uint64(record[sep1-2])*uint64(sep1) + uint64(record[1]))]
+		fx := fidx[uint64(record[sep1+1])-uint64(record[sep1+2])+(uint64(record[sep1+3])*uint64(record[sep2-1]))-9363]
+		if t.products[cx][fx] > 100 {
+			t.products[cx][fx] = custMin(t.products[cx][fx], int64(price))
+		}
+		t.sum[cx] += int64(price)
 	}
-	assert(scanner.Err())
 }
 
+func bytesToString(b []byte) string {
+	return unsafe.String(unsafe.SliceData(b), len(b))
+}
 func (t *task) mergeTask(tt *task) {
 
 	for cidx := 0; cidx < maxConstraintsCount; cidx++ {
@@ -193,74 +213,13 @@ func generateResult(tasks []*task) {
 	assert(err)
 }
 
-func splitFileIntoTasks(path string, tasksCount int) []*task {
-	f, err := os.Open(path)
-	assert(err)
-	defer f.Close()
-
-	fi, err := f.Stat()
-	assert(err)
-
-	size := fi.Size()
-
-	step := size / int64(tasksCount)
-
-	type chunk struct {
-		start, end int64
-	}
-
-	var chunks []chunk
-
-	var base = int64(0)
-
-	for {
-		targetEnd := base + step
-		if targetEnd+step >= size {
-			chunks = append(chunks, chunk{start: int64(base), end: size})
-			break
-		}
-
-		_, err := f.Seek(int64(targetEnd), 0)
-		assert(err)
-
-		scanner := bufio.NewScanner(bufio.NewReader(f))
-		scanner.Split(bufio.ScanBytes)
-		for scanner.Scan() {
-			targetEnd++
-			if scanner.Bytes()[0] == '\n' {
-				break
-			}
-		}
-		chunks = append(chunks, chunk{
-			start: base,
-			end:   targetEnd,
-		})
-		base = targetEnd
-	}
-
-	var tasks []*task
-
-	for _, s := range chunks {
-		f, err := os.Open(path)
-		assert(err)
-		_, err = f.Seek(s.start, 0)
-		assert(err)
-
-		sr := io.NewSectionReader(f, s.start, s.end-s.start)
-		br := bufio.NewReaderSize(sr, 1<<19)
-
-		tasks = append(tasks, newTask(br))
-	}
-
-	return tasks
-}
-
 func main() {
 
-	// 32 seems to be a fair ratio between goroutine overhead and processing speed
+	// disable the gc, should not trigger but just in case.
+
 	debug.SetGCPercent(-1)
 	if profile {
-		f, err := os.Create("./profiles/pprod")
+		f, err := os.Create("./profiles/pprod1")
 		if err != nil {
 			log.Fatal("could not create CPU profile: ", err)
 		}
@@ -279,36 +238,60 @@ func main() {
 		defer trace.Stop()
 	}
 
-	tasks := splitFileIntoTasks(inputFile, concurrency)
+	f, data, err := mmap(inputFile)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	// Compute start indices for each worker.
+	stride := len(data) / concurrency
+	starts := make([]int, concurrency)
+	for i := range starts {
+		if i == 0 {
+			continue
+		}
+		start := i * stride
+		for data[start-1] != '\n' {
+			start++
+		}
+		starts[i] = start
+	}
+
+	// Create tasks.
+	workers := make([]*task, concurrency)
+	for i := range workers {
+		start := starts[i]
+		var end int
+		if i == concurrency-1 {
+			end = len(data)
+		} else {
+			end = starts[i+1]
+		}
+		workers[i] = newTask(data[start:end])
+	}
+
+	// start the worker
+
 	var wg sync.WaitGroup
-	for _, t := range tasks {
-		t := t
+	for _, w := range workers {
+		w := w
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			t.run()
+			w.run()
 		}()
 	}
 
 	wg.Wait()
 
-	generateResult(tasks)
+	generateResult(workers)
 
-	if memProfile {
-		f, err := os.Create("./profiles/meme")
-		if err != nil {
-			log.Fatal("could not create memory profile: ", err)
-		}
-		defer f.Close()
-		runtime.GC()
-		if err := pprof.WriteHeapProfile(f); err != nil {
-			log.Fatal("could not write memory profile: ", err)
-		}
-	}
 }
 
 func hashf(str string) uint64 {
 	return uint64(str[0]) - uint64(str[1]) + (uint64(str[2]) * uint64(str[len(str)-1])) - 9363
+
 }
 
 func hashc(str string) uint64 {
@@ -348,24 +331,28 @@ func ans(mp map[string]int64) string {
 		vec[4].key, float64(vec[4].value)/100)
 }
 
-// todo: optimise
-func parseInt(s []byte) int {
-	n := 0
-	pos := len(s) - 3
-	if s[pos] != '.' {
-		pos = len(s) - 2
+func mmap(filename string) (_ *os.File, data []byte, err error) {
+	// Open the file.
+	f, err := os.Open(filename)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer func() {
+		if err != nil {
+			f.Close()
+		}
+	}()
+
+	// Grab its size.
+	fi, err := f.Stat()
+	if err != nil {
+		return nil, nil, err
 	}
 
-	for _, ch := range s[:pos] {
-		ch -= '0'
-		n = n*10 + int(ch)
+	// mmap the file.
+	data, err = syscall.Mmap(int(f.Fd()), 0, int(fi.Size()), syscall.PROT_READ, syscall.MAP_SHARED)
+	if err != nil {
+		return nil, nil, err
 	}
-	for _, ch := range s[pos+1:] {
-		ch -= '0'
-		n = n*10 + int(ch)
-	}
-	if (len(s) - pos) == 2 {
-		return n * 10
-	}
-	return n
+	return f, data, nil
 }
