@@ -153,7 +153,7 @@ The challenge will run from the 19th of February 2024 until 29th of February 202
 
 ## Leaderboard
 
-The leaderboard below is **temporary and not final**. We will go over the list below and perform another (manual) evaluation and a thorough review to validate it to respect the challenge constraints. If your list doesn't figure within this list, that means unfortunately the result of **the evaluation is incorrect**, and thus it is disqualified. No further review will be performed. Final results, and winner announcement is planned for early next week.
+The leaderboard below is temporary and not final. We will go over the list below and perform another (manual) evaluation and a thorough review to validate it to respect the challenge constraints. If your name doesn't figure in this list, that means unfortunately the result of the evaluation is incorrect, and thus it is disqualified. No further review will be performed. Final results, and winner announcement is planned for next week (Please bear with us :)).
 
 | Username       | Avg Time (ms) | Median Time (ms) | Language | Humanized Time                |
 |----------------|---------------|------------------|----------|-------------------------------|
