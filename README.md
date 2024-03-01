@@ -1,5 +1,7 @@
-# Blanat Challenge
+# Blanat Challenge - The challenge is now closed
+Thank you all for your contributions. As of 1st of March 2024, this challenge is officially closed and we won't be actively maintaining it.
 
+### Description
 Blanat Challenge is a coding challenge designed to test your coding skills and your ability to write optimized code. [The challenge](#challenge-the-cheapest-city) primarily focuses on writing a program capable of efficiently handling large amounts of data and promptly returning the solution. It is open to everyone, and you can submit your code in any of the following languages: C, C++, Java, Rust, Python, PHP or JavaScript. This is your chance to demonstrate that your favorite programming language is the best and the fastest one! 😀
 
 > This challenge is part of BlaBlaConf 2024, Make sure to check the [event](https://blablaconf.com)
@@ -147,38 +149,46 @@ The competition focuses solely on correctness and speed of execution to gauge pa
 
 ## Timeline
 
-The challenge will run from the 19th of February 2024 until 29th of February 2024. The winner will be announced during March 1st 2024 in our social media challenges
+The challenge will run from the 19th of February 2024 until 29th of February 2024. The winner will be announced on March 1st 2024 in our social media challenges
 
 ## Leaderboard
-> Last updated: Thu 29 Feb 2024, 12pm Moroccan time
 
-| Username      | Avg Time (ms) | Median Time (ms) | Language | Humanized Time                |
-|---------------|---------------|------------------|----------|-------------------------------|
-| k34n4y138     | 11260         | 8114             | C++      | 11.26 sec (≈ 0 min 11.26 sec) |
-| anassajaanan  | 14024         | 12351            | C        | 14.02 sec (≈ 0 min 14.02 sec) |
-| ouakki        | 29182         | 28706            | go       | 29.18 sec (≈ 0 min 29.18 sec) |
-| ILKAY-BRAHIM  | 31368         | 23004            | C++      | 31.37 sec (≈ 0 min 31.37 sec) |
-| sqrt-minus-one| 35369         | 34040            | C++      | 35.37 sec (≈ 0 min 35.37 sec) |
-| ibrataha8     | 53029         | 51788            | C++      | 53.03 sec (≈ 0 min 53.03 sec) |
-| dauom         | 56548         | 57044            | C++      | 56.55 sec (≈ 0 min 56.55 sec) |
-| webNeat       | 61003         | 57203            | C++      | 61.00 sec (≈ 1 min 1.00 sec) |
-| samir-        | 63933         | 67410            | C++      | 63.93 sec (≈ 1 min 3.93 sec)  |
-| essmehdi      | 68107         | 62067            | rs       | 68.11 sec (≈ 1 min 8.11 sec)  |
-| NotAsheraf    | 99730         | 97091            | rs       | 99.73 sec (≈ 1 min 39.73 sec) |
-| yousfiSaad    | 181086        | 176295           | C++      | 181.09 sec (≈ 3 min 1.09 sec) |
-| imOphen       | 222679        | 213030           | python   | 222.68 sec (≈ 3 min 42.68 sec)|
-| j-mounim      | 243495        | 238397           | js       | 243.50 sec (≈ 4 min 3.50 sec) |
-| mohammedfatihX| 249995        | 252203           | java     | 250.00 sec (≈ 4 min 10.00 sec)|
-| nizarbenalla  | 275221        | 269733           | java     | 275.22 sec (≈ 4 min 35.22 sec)|
-| hamzanaciri99 | 275966        | 267462           | java     | 275.97 sec (≈ 4 min 35.97 sec)|
-| lhousaine     | 299057        | 292420           | js       | 299.06 sec (≈ 4 min 59.06 sec)|
-| houcine7      | 309110        | 309692           | java     | 309.11 sec (≈ 5 min 9.11 sec) |
-| Moohaa        | 356836        | 359523           | java     | 356.84 sec (≈ 5 min 56.84 sec)|
-| aboullaite    | 368758        | 368167           | java     | 368.76 sec (≈ 6 min 8.76 sec)|
-| guizo792      | 526844        | 550883           | java     | 526.84 sec (≈ 8 min 46.84 sec)|
-| YassineOsip   | 561658        | 569382           | python   | 561.66 sec (≈ 9 min 21.66 sec)|
-| Smartdev110   | 776007        | 792428           | java     | 776.01 sec (≈ 12 min 56.01 sec)|
-| sm3xy         | 903274        | 900806           | python   | 903.27 sec (≈ 15 min 3.27 sec) |
+The leaderboard below is temporary and not final. We will go over the list below and perform another (manual) evaluation and a thorough review to validate it to respect the challenge constraints. If your name doesn't figure in this list, that means unfortunately the result of the evaluation is incorrect, and thus it is disqualified. No further review will be performed. Final results, and winner announcement is planned for next week (Please bear with us :)).
+
+| Username       | Avg Time (ms) | Median Time (ms) | Language | Humanized Time                |
+|----------------|---------------|------------------|----------|-------------------------------|
+| superma-C   | 9067         | 3            | cpp        | 9.07 sec (~ 0 min 09.06 sec)      |
+| k34n4y138   | 11260         | 8114            | cpp        | 11.26 sec (~ 0 min 11.25 sec)      |
+| anassajaanan   | 12294         | 9904            | c        | 12.29 sec (~ 0 min 12.29 sec)      |
+| ibrataha8   | 21505         | 17443            | cpp        | 21.50 sec (~ 0 min 21.50 sec)      |
+| viierr   | 27806         | 17091            | cpp        | 27.81 sec (~ 0 min 27.80 sec)      |
+| ouakki   | 29182         | 28706            | go        | 29.18 sec (~ 0 min 29.18 sec)      |
+| yousfiSaad   | 30134         | 29761            | cpp        | 30.13 sec (~ 0 min 30.13 sec)      |
+| ILKAY-BRAHIM   | 31368         | 23004            | cpp        | 31.37 sec (~ 0 min 31.36 sec)      |
+| sqrt-minus-one   | 35369         | 34040            | cpp        | 35.37 sec (~ 0 min 35.36 sec)      |
+| dauom   | 56548         | 57044            | cpp        | 56.55 sec (~ 0 min 56.54 sec)      |
+| Hamdane-yassine   | 58869         | 60488            | rs        | 58.87 sec (~ 0 min 58.86 sec)      |
+| webNeat   | 61003         | 57203            | cpp        | 1.00 sec (~ 1 min 01.00 sec)      |
+| youssefhamdane   | 63224         | 69065            | rs        | 3.22 sec (~ 1 min 03.22 sec)      |
+| samir-   | 63933         | 67410            | cpp        | 3.93 sec (~ 1 min 03.93 sec)      |
+| essmehdi   | 68107         | 62067            | rs        | 8.11 sec (~ 1 min 08.10 sec)      |
+| samir   | 68946         | 70297            | cpp        | 8.95 sec (~ 1 min 08.94 sec)      |
+| ismail-bertalfilali   | 82966         | 82673            | java        | 22.97 sec (~ 1 min 22.96 sec)      |
+| NotAsheraf   | 99730         | 97091            | rs        | 39.73 sec (~ 1 min 39.73 sec)      |
+| imOphen   | 222679         | 213030            | py        | 42.68 sec (~ 3 min 42.67 sec)      |
+| j-mounim   | 243495         | 238397            | js        | 3.50 sec (~ 4 min 03.49 sec)      |
+| mohammedfatihX   | 249995         | 252203            | java        | 10.00 sec (~ 4 min 09.99 sec)      |
+| nizarbenalla   | 275221         | 269733            | java        | 35.22 sec (~ 4 min 35.22 sec)      |
+| hamzanaciri99   | 275966         | 267462            | java        | 35.97 sec (~ 4 min 35.96 sec)      |
+| lhousaine   | 299057         | 292420            | js        | 59.06 sec (~ 4 min 59.05 sec)      |
+| houcine7   | 309110         | 309692            | java        | 9.11 sec (~ 5 min 09.11 sec)      |
+| Moohaa   | 356836         | 359523            | java        | 56.84 sec (~ 5 min 56.83 sec)      |
+| aboullaite   | 368758         | 368167            | java        | 8.76 sec (~ 6 min 08.75 sec)      |
+| guizo792   | 526844         | 550883            | java        | 46.84 sec (~ 8 min 46.84 sec)      |
+| YassineOsip   | 561658         | 569382            | py        | 21.66 sec (~ 9 min 21.65 sec)      |
+| Smartdev110   | 776007         | 792428            | java        | 56.01 sec (~ 12 min 56.00 sec)      |
+| sm3xy   | 903274         | 900806            | py        | 3.27 sec (~ 15 min 03.27 sec)      |
+| ismailtlem   | 1006454         | 1005366            | py        | 46.45 sec (~ 16 min 46.45 sec)      |
 
 
 
