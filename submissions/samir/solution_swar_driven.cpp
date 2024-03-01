@@ -171,10 +171,10 @@ int process(int argc, char* argv[])
 
     //char *file = "/Users/idwysa/dockk/blanat/input_small.txt";
     //char *file = "input_billion.txt";
-    FILE *file_out = fopen("outputswa.txt", "w");
+    FILE *file_out = fopen("output.txt", "w");
    // FILE *file_out = fopen("/Users/idwysa/dockk/blanat/fasto.txt", "w");
     //char *file = "/Users/idwysa/dockk/output2.csv";
-    int file_desc = open("input_billion.txt", O_RDONLY);
+    int file_desc = open("input.txt", O_RDONLY);
     //int file_desc = open("/Users/idwysa/dockk/trc.txt", O_RDONLY);
     //int file_desc = open("/Users/idwysa/dockk/output33.csv", O_RDONLY);
 
