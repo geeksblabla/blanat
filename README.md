@@ -1,6 +1,51 @@
 # Blanat Challenge - The challenge is now closed
 
-Thank you all for your contributions. As of 1st of March 2024, this challenge is officially closed and we won't be actively maintaining it.
+Thank you all for your contribution. As of 1st of March 2024, this challenge is officially closed and we won't be actively maintaining it.
+
+### Final Leaderboard
+Congratulations to all participants, it was a great learning journey. Congratulations to **[k34n4y138](https://github.com/k34n4y138)** for setting the fastest time of `2.13s`. Below the final leaderboard:
+
+| Username            | Avg Time (ms) | Median Time (ms) | Language | Humanized Time                |
+|---------------------|---------------|------------------|----------|-------------------------------|
+| k34n4y138           | 2129          | 1916             | cpp      | 2.13 sec (≈ 0 min 2.13 sec)   |
+| superma-C           | 3595          | 3367             | c        | 3.60 sec (≈ 0 min 3.60 sec)   |
+| anassajaanan        | 10063         | 3155             | c        | 10.06 sec (≈ 0 min 10.06 sec) |
+| ibrataha8           | 12207         | 8652             | cpp      | 12.21 sec (≈ 0 min 12.21 sec) |
+| webNeat             | 69014         | 78245            | php      | 69.01 sec (≈ 1 min 9.01 sec)  |
+| ILKAY-BRAHIM        | 78971         | 79006            | cpp      | 78.97 sec (≈ 1 min 18.97 sec) |
+| sqrt-minus-one      | 78971         | 78973            | cpp      | 78.97 sec (≈ 1 min 18.97 sec) |
+| ismail-bertalfilali | 78633         | 78633            | java     | 78.63 sec (≈ 1 min 18.63 sec) |
+| yousfiSaad          | 79063         | 79066            | cpp      | 79.06 sec (≈ 1 min 19.06 sec) |
+| samir               | 79777         | 79763            | cpp      | 79.78 sec (≈ 1 min 19.78 sec) |
+| j-mounim            | 83543         | 83430            | js       | 83.54 sec (≈ 1 min 23.54 sec) |
+| lhousaine           | 108599        | 108673           | js       | 108.60 sec (≈ 1 min 48.60 sec)|
+| imOphen             | 103678        | 103609           | py       | 103.68 sec (≈ 1 min 43.68 sec)|
+| Moohaa              | 179344        | 178468           | java     | 179.34 sec (≈ 2 min 59.34 sec)|
+| houcine7            | 194900        | 185755           | java     | 194.90 sec (≈ 3 min 14.90 sec)|
+| aboullaite          | 200033        | 200050           | java     | 200.03 sec (≈ 3 min 20.03 sec)|
+| guizo792            | 347541        | 346847           | java     | 347.54 sec (≈ 5 min 47.54 sec)|
+
+#### How submissions were evaluated ?
+Test has been run on a [N2 Google cloud VM](https://cloud.google.com/compute/docs/general-purpose-machines#n2_series) with 16 vCPU, 64GB of RAM and 100Go persisant SSD disk.
+The [runner](https://github.com/geeksblabla/blarun) was updated to evaluate the submisions into 2 steps:
+- First, a small and fast check of 100K entries to check for corretness
+- Then, a total of 10 runs over the final 1B row of data, where the slowest and the fastest runs are discarded. The rest is what we include in the final result. The timeout has been reduced to 10mins only.
+
+### FAQ
+Q: My submission is not there, what happened ?
+A: If you cannot find your submission that means it's either failed the correctness check or timed out. Please check the `run.log` file for more details on why this could be the case. We won't be able to comment on every single submission, but we hope you can find the answer yourself.
+
+Q: My submission was on the leaderboard before, why it got removed now ?
+A: Again, it's either timeout or it failed to pass the correctness check. Please check the `run.log` file for details and look for your username.
+
+Q: What is `run.log`
+A: It is the runner's log from the test server.
+
+Q: Can I submit after the challenge is closed ?
+A: No, we will not be reviwing nor testing any submissions moving forward. This repo will be kept for educational purposes only
+
+Q: Will there be future challenges like this ?
+A: Not in the near future! This turned out to be much more time consuming than we thought :) However we will try to keep it a yearly tradition. See you hopefully next year
 
 ### Description
 
@@ -153,47 +198,6 @@ The competition focuses solely on correctness and speed of execution to gauge pa
 ## Timeline
 
 The challenge will run from the 19th of February 2024 until 29th of February 2024. The winner will be announced on March 1st 2024 in our social media challenges
-
-## Leaderboard
-
-> ⚠️ The leaderboard below is **temporary and not final**. We will go over the list below and perform another (manual) evaluation and a thorough review to validate it to respect the challenge constraints. If your name doesn't figure in this list, that means unfortunately the result of the evaluation is incorrect, and thus it is disqualified. No further review will be performed. Final results, and winner announcement is planned for next week (Please bear with us :)).
-
-| Username            | Avg Time (ms) | Median Time (ms) | Language | Humanized Time                   |
-| ------------------- | ------------- | ---------------- | -------- | -------------------------------- |
-| superma-C           | 9067          | 3                | cpp      | 9.07 sec (~ 0 min 09.06 sec)     |
-| k34n4y138           | 11260         | 8114             | cpp      | 11.26 sec (~ 0 min 11.25 sec)    |
-| anassajaanan        | 12294         | 9904             | c        | 12.29 sec (~ 0 min 12.29 sec)    |
-| ibrataha8           | 21505         | 17443            | cpp      | 21.50 sec (~ 0 min 21.50 sec)    |
-| viierr              | 27806         | 17091            | cpp      | 27.81 sec (~ 0 min 27.80 sec)    |
-| ouakki              | 29182         | 28706            | go       | 29.18 sec (~ 0 min 29.18 sec)    |
-| yousfiSaad          | 30134         | 29761            | cpp      | 30.13 sec (~ 0 min 30.13 sec)    |
-| ILKAY-BRAHIM        | 31368         | 23004            | cpp      | 31.37 sec (~ 0 min 31.36 sec)    |
-| sqrt-minus-one      | 35369         | 34040            | cpp      | 35.37 sec (~ 0 min 35.36 sec)    |
-| dauom               | 56548         | 57044            | cpp      | 56.55 sec (~ 0 min 56.54 sec)    |
-| Hamdane-yassine     | 58869         | 60488            | rs       | 58.87 sec (~ 0 min 58.86 sec)    |
-| webNeat             | 61003         | 57203            | cpp      | 61.00 sec (~ 1 min 01.00 sec)    |
-| youssefhamdane      | 63224         | 69065            | rs       | 63.22 sec (~ 1 min 03.22 sec)    |
-| samir-              | 63933         | 67410            | cpp      | 63.93 sec (~ 1 min 03.93 sec)    |
-| essmehdi            | 68107         | 62067            | rs       | 68.11 sec (~ 1 min 08.11 sec)    |
-| samir               | 68946         | 70297            | cpp      | 68.95 sec (~ 1 min 08.95 sec)    |
-| ismail-bertalfilali | 82966         | 82673            | java     | 82.97 sec (~ 1 min 22.97 sec)    |
-| NotAsheraf          | 99730         | 97091            | rs       | 99.73 sec (~ 1 min 39.73 sec)    |
-| imOphen             | 222679        | 213030           | py       | 222.7 sec (~ 3 min 42.7 sec)     |
-| j-mounim            | 243495        | 238397           | js       | 243.5 sec (~ 4 min 03.5 sec)     |
-| mohammedfatihX      | 249995        | 252203           | java     | 249.99 sec (~ 4 min 09.99 sec)   |
-| nizarbenalla        | 275221        | 269733           | java     | 275.22 sec (~ 4 min 35.22 sec)   |
-| hamzanaciri99       | 275966        | 267462           | java     | 275.97 sec (~ 4 min 35.97 sec)   |
-| lhousaine           | 299057        | 292420           | js       | 299.06 sec (~ 4 min 59.06 sec)   |
-| houcine7            | 309110        | 309692           | java     | 309.11 sec (~ 5 min 09.11 sec)   |
-| Moohaa              | 356836        | 359523           | java     | 356.84 sec (~ 5 min 56.84 sec)   |
-| aboullaite          | 368758        | 368167           | java     | 368.76 sec (~ 6 min 08.76 sec)   |
-| guizo792            | 526844        | 550883           | java     | 526.84 sec (~ 8 min 46.84 sec)   |
-| YassineOsip         | 561658        | 569382           | py       | 561.66 sec (~ 9 min 21.66 sec)   |
-| Smartdev110         | 776007        | 792428           | java     | 776.01 sec (~ 12 min 56.01 sec)  |
-| sm3xy               | 903274        | 900806           | py       | 903.27 sec (~ 15 min 03.27 sec)  |
-| ismailtlem          | 1006454       | 1005366          | py       | 1006.45 sec (~ 16 min 46.45 sec) |
-
-We only list solutions with correct results that run within ~15 min. We unfortunately can't give feedback on every submission and we invite you to read the full assignment.
 
 ## Prize
 
