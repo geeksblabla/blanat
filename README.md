@@ -3,7 +3,7 @@
 Thank you all for your contributions. As of 1st of March 2024, this challenge is officially closed and we won't be actively maintaining it.
 
 ### Final Leaderboard
-Congratulations to all the participants, it was a great learning journey. Congratulations to k34n4y138 for setting the fastest time of `2.13s`. Below the final leaderboard:
+Congratulations to all the participants, it was a great learning journey. Congratulations to **[k34n4y138](https://github.com/k34n4y138)** for setting the fastest time of `2.13s`. Below the final leaderboard:
 
 | Username            | Avg Time (ms) | Median Time (ms) | Language | Humanized Time                |
 |---------------------|---------------|------------------|----------|-------------------------------|
@@ -27,7 +27,7 @@ Congratulations to all the participants, it was a great learning journey. Congra
 
 #### How we tested
 Test has been run on a [N2 Google cloud VM](https://cloud.google.com/compute/docs/general-purpose-machines#n2_series) with 16 vCPU, 64GB of RAM and 100Go persisant SSD disque.
-The [runner]() was updated to evaluate the submisions into 2 steps:
+The [runner](https://github.com/geeksblabla/blarun) was updated to evaluate the submisions into 2 steps:
 - First small and fast check of 1M entry to chec for corretness
 - a total of 10 runs over the final 1B row of data, where the slowst and the fastest runs are discarded. The rest is what we include in the final results. The timeout has been reduced to 10mins only.
 
@@ -37,6 +37,9 @@ A: If you cannot find your submission that means it's either failed the correctn
 
 Q: My submission was on the leaderboard before, why it got removed now ?
 A: Again, it's either timeout or it failed to pass the correctness check. Please check the `run.log` file for details and loo for your username.
+
+Q: What is `run.log`
+A: It is the runner's log from the test server.
 
 Q: Can I submit after the challenge is closed ?
 A: No, we will not be reviwing nor testing any submissions moving forward. This repo will be kept for educational purposes only
