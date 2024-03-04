@@ -1,9 +1,9 @@
 # Blanat Challenge - The challenge is now closed
 
-Thank you all for your contributions. As of 1st of March 2024, this challenge is officially closed and we won't be actively maintaining it.
+Thank you all for your contribution. As of 1st of March 2024, this challenge is officially closed and we won't be actively maintaining it.
 
 ### Final Leaderboard
-Congratulations to all the participants, it was a great learning journey. Congratulations to **[k34n4y138](https://github.com/k34n4y138)** for setting the fastest time of `2.13s`. Below the final leaderboard:
+Congratulations to all participants, it was a great learning journey. Congratulations to **[k34n4y138](https://github.com/k34n4y138)** for setting the fastest time of `2.13s`. Below the final leaderboard:
 
 | Username            | Avg Time (ms) | Median Time (ms) | Language | Humanized Time                |
 |---------------------|---------------|------------------|----------|-------------------------------|
@@ -25,18 +25,18 @@ Congratulations to all the participants, it was a great learning journey. Congra
 | aboullaite          | 200033        | 200050           | java     | 200.03 sec (≈ 3 min 20.03 sec)|
 | guizo792            | 347541        | 346847           | java     | 347.54 sec (≈ 5 min 47.54 sec)|
 
-#### How we tested
-Test has been run on a [N2 Google cloud VM](https://cloud.google.com/compute/docs/general-purpose-machines#n2_series) with 16 vCPU, 64GB of RAM and 100Go persisant SSD disque.
+#### How submissions were evaluated ?
+Test has been run on a [N2 Google cloud VM](https://cloud.google.com/compute/docs/general-purpose-machines#n2_series) with 16 vCPU, 64GB of RAM and 100Go persisant SSD disk.
 The [runner](https://github.com/geeksblabla/blarun) was updated to evaluate the submisions into 2 steps:
-- First small and fast check of 1M entry to chec for corretness
-- a total of 10 runs over the final 1B row of data, where the slowst and the fastest runs are discarded. The rest is what we include in the final results. The timeout has been reduced to 10mins only.
+- First, a small and fast check of 100K entries to check for corretness
+- Then, a total of 10 runs over the final 1B row of data, where the slowest and the fastest runs are discarded. The rest is what we include in the final result. The timeout has been reduced to 10mins only.
 
 ### FAQ
 Q: My submission is not there, what happened ?
-A: If you cannot find your submission that means it's either failed the correctness check or timed out. Please check the `run.log` file for more details on why this could be the case. we won't be able to comment on every single submission, but we hope you can find the answer yourself.
+A: If you cannot find your submission that means it's either failed the correctness check or timed out. Please check the `run.log` file for more details on why this could be the case. We won't be able to comment on every single submission, but we hope you can find the answer yourself.
 
 Q: My submission was on the leaderboard before, why it got removed now ?
-A: Again, it's either timeout or it failed to pass the correctness check. Please check the `run.log` file for details and loo for your username.
+A: Again, it's either timeout or it failed to pass the correctness check. Please check the `run.log` file for details and look for your username.
 
 Q: What is `run.log`
 A: It is the runner's log from the test server.
@@ -44,7 +44,7 @@ A: It is the runner's log from the test server.
 Q: Can I submit after the challenge is closed ?
 A: No, we will not be reviwing nor testing any submissions moving forward. This repo will be kept for educational purposes only
 
-Q: Will there be future challnges like this ?
+Q: Will there be future challenges like this ?
 A: Not in the near future! This turned out to be much more time consuming than we thought :) However we will try to keep it a yearly tradition. See you hopefully next year
 
 ### Description
