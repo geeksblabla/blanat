@@ -5,25 +5,26 @@ Thank you all for your contribution. As of 1st of March 2024, this challenge is 
 ### Final Leaderboard
 Congratulations to all participants, it was a great learning journey. Congratulations to **[k34n4y138](https://github.com/k34n4y138)** for setting the fastest time of `2.13s`. Below the final leaderboard:
 
-| Username            | Avg Time (ms) | Median Time (ms) | Language | Humanized Time                |
-|---------------------|---------------|------------------|----------|-------------------------------|
-| k34n4y138           | 2129          | 1916             | cpp      | 2.13 sec (≈ 0 min 2.13 sec)   |
-| superma-C           | 3595          | 3367             | c        | 3.60 sec (≈ 0 min 3.60 sec)   |
-| anassajaanan        | 10063         | 3155             | c        | 10.06 sec (≈ 0 min 10.06 sec) |
-| ibrataha8           | 12207         | 8652             | cpp      | 12.21 sec (≈ 0 min 12.21 sec) |
-| webNeat             | 69014         | 78245            | php      | 69.01 sec (≈ 1 min 9.01 sec)  |
-| ILKAY-BRAHIM        | 78971         | 79006            | cpp      | 78.97 sec (≈ 1 min 18.97 sec) |
-| sqrt-minus-one      | 78971         | 78973            | cpp      | 78.97 sec (≈ 1 min 18.97 sec) |
-| ismail-bertalfilali | 78633         | 78633            | java     | 78.63 sec (≈ 1 min 18.63 sec) |
-| yousfiSaad          | 79063         | 79066            | cpp      | 79.06 sec (≈ 1 min 19.06 sec) |
-| samir               | 79777         | 79763            | cpp      | 79.78 sec (≈ 1 min 19.78 sec) |
-| j-mounim            | 83543         | 83430            | js       | 83.54 sec (≈ 1 min 23.54 sec) |
-| lhousaine           | 108599        | 108673           | js       | 108.60 sec (≈ 1 min 48.60 sec)|
-| imOphen             | 103678        | 103609           | py       | 103.68 sec (≈ 1 min 43.68 sec)|
-| Moohaa              | 179344        | 178468           | java     | 179.34 sec (≈ 2 min 59.34 sec)|
-| houcine7            | 194900        | 185755           | java     | 194.90 sec (≈ 3 min 14.90 sec)|
-| aboullaite          | 200033        | 200050           | java     | 200.03 sec (≈ 3 min 20.03 sec)|
-| guizo792            | 347541        | 346847           | java     | 347.54 sec (≈ 5 min 47.54 sec)|
+| Username           | Avg Time (ms) | Median Time (ms) | Language | Humanized Time                |
+|--------------------|---------------|------------------|----------|-------------------------------|
+| k34n4y138          |2129           | 1916           | cpp       | 2.13 sec (≈ 0 min 2.13 sec)   |
+| anassajaanan       | 3231          | 3126             | c        | 3.23 sec (≈ 0 min 3.23 sec)   |
+| superma-C          |3595        	 | 3367         | c      	| 3.60 sec (≈	0 min	3.60 sec)   |
+| ibrataha8          | 12198         | 8515             | cpp      | 12.20 sec (≈ 0 min 12.20 sec) |
+| NotAsheraf         | 34748         | 34746            | rs       | 34.75 sec (≈ 0 min 34.75 sec) |
+| webNeat             |56498         | 50557         | php    	| 56.50 sec (≈	0 min	56.50 sec) |
+| ismail-bertalfilali|78633          | 78633            | java    |  78.63 sec (≈ 1 min 18.63 sec)|
+| sqrt-minus-one     |78971        	 | 78973        |  cpp      	| 78.97 sec (≈	1 min	18.97 sec)|
+| ILKAY-BRAHIM       | 78971         | 79006            | cpp      | 78.97 sec (≈ 1 min 18.97 sec) |
+| yousfiSaad        	|79063         | 79066         | cpp    	| 79.06 sec (≈	1 min	19.06 sec) |
+| samir              |79777          | 79763         | cpp      |  79.77 sec (≈ 1 min 19.77 sec) |
+| j-mounim           |83543          | 83430           | js      |  83.54 sec (≈ 1 min 23.54 sec)|
+| imOphen            |103018         | 103010           |  py      |  103.02 sec (≈ 1 min 43.02 sec)|
+| lhousaine          |108599         | 108673         | js       | 108.60 sec (≈ 1 min 48.60 sec)|
+| Moohaa             | 177097        | 175511           | java     | 177.10 sec (≈ 2 min 57.10 sec)|
+| aboullaite         | 194739        | 194725           | java     | 194.74 sec (≈ 3 min 14.74 sec)|
+| houcine7           | 194900        | 185755           | java     | 194.90 sec (≈ 3 min 14.90 sec)|
+| guizo792           | 347432        | 347311           | java     | 347.43 sec (≈ 5 min 47.43 sec)|
 
 #### How submissions were evaluated ?
 Test has been run on a [N2 Google cloud VM](https://cloud.google.com/compute/docs/general-purpose-machines#n2_series) with 16 vCPU, 64GB of RAM and 100Go persisant SSD disk.
